@@ -122,6 +122,7 @@ Open <http://localhost:4200> and click one of the demo accounts on the sign-in p
 | What | Command (inside `backend/` with the venv active) |
 |---|---|
 | Reset demo data | `python manage.py seed_demo --reset` |
+| Receive the demo accounts' e-mails in your inbox | `python manage.py seed_demo --inbox you@gmail.com` (riya gets `you+riya@gmail.com`, ...) |
 | Create your own admin | `python manage.py createsuperuser` |
 | Django admin | <http://localhost:8000/admin/> (demo admin: `admin` / `Admin@12345`) |
 | Browsable API | <http://localhost:8000/api/> (sign in to the admin first) |

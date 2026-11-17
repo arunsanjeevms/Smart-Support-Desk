@@ -3,6 +3,10 @@ Load demo users and realistic tickets so the app can be explored immediately.
 
     python manage.py seed_demo           # add demo data (safe to run again)
     python manage.py seed_demo --reset   # wipe tickets first, then reload
+
+    # Receive the demo accounts' notification e-mails in your own inbox
+    # (riya -> you+riya@gmail.com, meera -> you+meera@gmail.com, ...):
+    python manage.py seed_demo --inbox you@gmail.com
 """
 
 import random
@@ -10,7 +14,9 @@ from datetime import timedelta
 
 from django.conf import settings
 from django.contrib.auth import get_user_model
-from django.core.management.base import BaseCommand
+from django.core.exceptions import ValidationError
+from django.core.management.base import BaseCommand, CommandError
+from django.core.validators import validate_email
 from django.db import connection
 from django.utils import timezone
 
@@ -31,6 +37,12 @@ class Command(BaseCommand):
 
     def add_arguments(self, parser):
         parser.add_argument("--reset", action="store_true", help="Delete all tickets before seeding.")
+        parser.add_argument(
+            "--inbox",
+            metavar="EMAIL",
+            help="Give every demo account a plus address of this inbox (you+riya@gmail.com) so the "
+            "notification e-mails actually arrive. The demo addresses on example.com cannot receive mail.",
+        )
 
     def handle(self, *args, **options):
         if options["reset"]:
@@ -40,6 +52,8 @@ class Command(BaseCommand):
             self.stdout.write(self.style.WARNING("Removed existing tickets and activity."))
 
         users = self._create_users()
+        if options["inbox"]:
+            self._route_to_inbox(users, options["inbox"])
         if Ticket.objects.exists():
             self.stdout.write("Tickets already exist - skipping ticket creation (use --reset to reload).")
         else:
@@ -72,6 +86,19 @@ class Command(BaseCommand):
             created[spec["username"]] = user
         self.stdout.write(f"Users ready: {len(created)}")
         return created
+
+    def _route_to_inbox(self, users, inbox: str):
+        try:
+            validate_email(inbox)
+        except ValidationError:
+            raise CommandError(f"'{inbox}' is not a valid e-mail address.")
+        local, domain = inbox.split("@", 1)
+        local = local.split("+", 1)[0]
+        self.stdout.write("Demo e-mails now go to your inbox:")
+        for username, user in users.items():
+            user.email = f"{local}+{username}@{domain}"
+            user.save(update_fields=["email"])
+            self.stdout.write(f"  {username:<10} {user.email}")
 
     def _create_tickets(self, users):
         rng = random.Random(42)  # deterministic demo data
