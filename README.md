@@ -37,6 +37,7 @@ More documentation:
 
 - [docs/PROJECT_GUIDE.md](docs/PROJECT_GUIDE.md) - a guided tour of the code for people new to Angular, Django or MongoDB
 - [docs/DEMO.md](docs/DEMO.md) - a 3-minute demo script (ticket creation → status update → resolution)
+- [docs/ER_DIAGRAMS.md](docs/ER_DIAGRAMS.md) - ER diagrams of every collection, relationships, indexes and data rules
 
 ---
 
@@ -234,13 +235,16 @@ Smart-Support-Desk/
 │       ├── shared/              DataTable, export menu, badges, avatar, dialogs, pipes
 │       ├── layout/              app shell (sidebar + top bar)
 │       └── features/            auth, dashboard, tickets, activity, users, configuration
-├── docs/                        project guide and demo script
+├── docs/                        project guide, demo script and ER diagrams
 └── .github/workflows/ci.yml     tests + build + result e-mail
 ```
 
 ---
 
 ## Data model (ER diagram)
+
+A summary of the collections. [docs/ER_DIAGRAMS.md](docs/ER_DIAGRAMS.md) has the full version with every
+field, delete rules, indexes and example documents.
 
 ```mermaid
 erDiagram
