@@ -1,0 +1,15 @@
+{% autoescape off %}Hello,
+
+{{ sender }} shared the "{{ report.title }}" report from {{ brand }} with you.
+The {{ format_label }} file ({{ file_name }}) is attached.
+{% if note %}
+Message from {{ sender_first_name }}:
+{{ note }}
+{% endif %}
+{% for label, value in details %}  {{ label }}: {{ value }}
+{% endfor %}
+Open {{ brand }}: {{ app_url }}
+
+--
+Sent by {{ sender }}{% if sender_email %} ({{ sender_email }}){% endif %} using {{ brand }}.
+{% endautoescape %}

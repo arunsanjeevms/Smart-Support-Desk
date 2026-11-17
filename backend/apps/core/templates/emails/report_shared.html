@@ -1,0 +1,57 @@
+{% extends "emails/base.html" %}
+
+{% block preheader %}{{ sender }} shared the {{ report.title|lower }} report ({{ report.records_text }}) with you.{% endblock %}
+
+{% block content %}
+  <p style="margin:0 0 6px;font-size:11px;font-weight:600;letter-spacing:1.4px;text-transform:uppercase;color:#0f766e;">Shared report</p>
+  <h1 style="margin:0 0 14px;font-size:22px;line-height:1.35;font-weight:600;color:#101828;">{{ report.title }} report</h1>
+  <p style="margin:0 0 22px;">
+    Hello,<br>
+    <strong style="color:#101828;font-weight:600;">{{ sender }}</strong> shared a report from {{ brand }} with you.
+    The {{ format_label }} file is attached to this e-mail.
+  </p>
+
+  {% if note %}
+  <!-- Personal message -->
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:22px;">
+    <tr>
+      <td style="padding:14px 18px;background:#f9fafb;border:1px solid #eaecf0;border-left:4px solid #0f766e;border-radius:10px;">
+        <div style="font-size:11px;font-weight:600;letter-spacing:1.2px;text-transform:uppercase;color:#667085;margin-bottom:6px;">Message from {{ sender_first_name }}</div>
+        <div style="font-size:14px;line-height:1.65;color:#1d2939;">{{ note|linebreaksbr }}</div>
+      </td>
+    </tr>
+  </table>
+  {% endif %}
+
+  <!-- Report details -->
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border:1px solid #e4e7ec;border-radius:10px;font-size:13px;">
+    {% for label, value in details %}
+    <tr>
+      <td width="34%" style="padding:11px 18px;{% if not forloop.last %}border-bottom:1px solid #eaecf0;{% endif %}background:#f9fafb;color:#667085;{% if forloop.first %}border-radius:10px 0 0 0;{% elif forloop.last %}border-radius:0 0 0 10px;{% endif %}">{{ label }}</td>
+      <td style="padding:11px 18px;{% if not forloop.last %}border-bottom:1px solid #eaecf0;{% endif %}color:#101828;font-weight:500;">{{ value }}</td>
+    </tr>
+    {% endfor %}
+  </table>
+
+  <!-- Attachment -->
+  <table role="presentation" cellpadding="0" cellspacing="0" style="margin-top:18px;">
+    <tr>
+      <td width="38" height="38" align="center" valign="middle" style="width:38px;height:38px;border-radius:8px;background:{% if format == 'pdf' %}#fef3f2{% else %}#ecfdf3{% endif %};color:{% if format == 'pdf' %}#b42318{% else %}#15803d{% endif %};font-size:10px;font-weight:700;letter-spacing:0.5px;font-family:'Poppins','Segoe UI',Helvetica,Arial,sans-serif;">{{ format_badge }}</td>
+      <td style="padding-left:12px;font-size:13px;line-height:1.45;">
+        <div style="color:#101828;font-weight:500;">{{ file_name }}</div>
+        <div style="color:#667085;font-size:12px;">Attached &middot; {{ format_label }}</div>
+      </td>
+    </tr>
+  </table>
+
+  <!-- Button -->
+  <table role="presentation" cellpadding="0" cellspacing="0" style="margin-top:28px;">
+    <tr>
+      <td style="border-radius:8px;background:#0f766e;">
+        <a href="{{ app_url }}" style="display:inline-block;padding:12px 26px;font-family:'Poppins','Segoe UI',Helvetica,Arial,sans-serif;font-size:14px;font-weight:600;color:#ffffff;text-decoration:none;border-radius:8px;">Open {{ brand }}</a>
+      </td>
+    </tr>
+  </table>
+{% endblock %}
+
+{% block footer %}Sent by {{ sender }}{% if sender_email %} ({{ sender_email }}){% endif %} using {{ brand }}. Reply to this e-mail to answer them directly.{% endblock %}

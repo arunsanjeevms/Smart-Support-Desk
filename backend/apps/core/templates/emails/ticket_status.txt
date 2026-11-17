@@ -1,0 +1,19 @@
+{% autoescape off %}Hi {{ first_name }},
+
+{% if resolved %}The support team has resolved a ticket you raised.{% else %}There is an update on a ticket you raised.{% endif %}
+
+  Ticket:   {{ ticket.reference }} - {{ ticket.title }}
+  Status:   {{ old.label }} -> {{ new.label }}
+{% for label, value in details %}  {{ label }}: {{ value }}
+{% endfor %}{% if resolved and ticket.resolution_note %}
+Resolution from the support team:
+{{ ticket.resolution_note }}
+{% endif %}
+View the ticket: {{ ticket_url }}
+
+{% if resolved %}Still having trouble? Add a comment on the ticket and the support team will pick it up again.{% else %}You can follow every step and add comments on the ticket page.{% endif %}
+
+--
+{{ brand }}
+You are receiving this e-mail because you raised ticket {{ ticket.reference }}.
+{% endautoescape %}

@@ -184,8 +184,15 @@ class StatusWorkflowTests(ApiTestCase):
         self.assertIsNotNone(response.data["resolved_at"])
 
         self.assertEqual(len(mail.outbox), 1)
-        self.assertEqual(mail.outbox[0].to, ["riya@example.com"])
-        self.assertIn(note, mail.outbox[0].body)
+        message = mail.outbox[0]
+        self.assertEqual(message.to, ["riya@example.com"])
+        self.assertIn("Resolved", message.subject)
+        self.assertIn(note, message.body)
+        html, html_type = message.alternatives[0]
+        self.assertEqual(html_type, "text/html")
+        self.assertIn("Your ticket has been resolved", html)
+        self.assertIn(note, html)
+        self.assertIn(f"/tickets/{self.ticket.pk}", html)  # "View ticket" button link
 
         types = list(self.ticket.activities.order_by("created_at").values_list("activity_type", flat=True))
         self.assertEqual(types, ["created", "status_changed"])

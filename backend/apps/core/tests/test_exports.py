@@ -76,10 +76,29 @@ class ExportTests(ApiTestCase):
         self.assertEqual(len(mail.outbox), 1)
         message = mail.outbox[0]
         self.assertEqual(message.to, ["lead@example.com"])
-        self.assertEqual(message.body, "FYI")
+        self.assertEqual(message.subject, "Tickets report from Smart Support Desk")
+        # Plain-text and HTML versions both carry the sender's note and the report details.
+        self.assertIn("FYI", message.body)
+        self.assertIn("Meera", message.body)
+        html, html_type = message.alternatives[0]
+        self.assertEqual(html_type, "text/html")
+        self.assertIn("Shared report", html)
+        self.assertIn("FYI", html)
+        self.assertIn("Status: Open", html)
         filename, content, mimetype = message.attachments[0]
         self.assertTrue(filename.endswith(".pdf"))
         self.assertEqual(mimetype, "application/pdf")
+        self.assertIn(filename, html)
+
+    def test_email_export_escapes_the_personal_message(self):
+        self.client_for(self.agent).post(
+            "/api/tickets/export/email/",
+            {"file_type": "xlsx", "recipients": ["lead@example.com"], "message": "<script>alert(1)</script>"},
+            format="json",
+        )
+        html, _ = mail.outbox[0].alternatives[0]
+        self.assertNotIn("<script>", html)
+        self.assertIn("&lt;script&gt;", html)
 
     def test_email_export_validates_recipients(self):
         response = self.client_for(self.agent).post(

@@ -1,7 +1,6 @@
 import logging
 
 from django.conf import settings
-from django.core.mail import EmailMessage
 from django.http import HttpResponse
 from django.utils import timezone
 from django.utils.text import slugify
@@ -10,6 +9,7 @@ from rest_framework.decorators import action
 from rest_framework.exceptions import ValidationError
 from rest_framework.response import Response
 
+from ..emails import build_email
 from .columns import ExportColumn
 from .serializers import EmailExportSerializer
 from .writers import EXPORT_FORMATS, ExportFormat, ReportMeta
@@ -47,7 +47,7 @@ class ExportMixin:
             raise ValidationError({"file_type": [f"Choose one of: {', '.join(EXPORT_FORMATS)}."]})
         return fmt
 
-    def _build_export(self, fmt: ExportFormat) -> tuple[bytes, str]:
+    def _build_export(self, fmt: ExportFormat) -> tuple[bytes, str, ReportMeta]:
         limit = settings.SUPPORT_DESK["EXPORT_MAX_ROWS"]
         columns = self.get_export_columns()
         objects = list(self.filter_queryset(self.get_queryset())[:limit])
@@ -65,13 +65,13 @@ class ExportMixin:
         )
         content = fmt.builder(meta, columns, rows, cell_colors)
         filename = f"{slugify(self.export_title)}-{now:%Y%m%d-%H%M}.{fmt.extension}"
-        return content, filename
+        return content, filename, meta
 
     # ---- endpoints ---------------------------------------------------------
     @action(detail=False, methods=["get"], url_path="export")
     def export(self, request, *args, **kwargs):
         fmt = self._export_format(request.query_params.get("file_type"))
-        content, filename = self._build_export(fmt)
+        content, filename, _meta = self._build_export(fmt)
         response = HttpResponse(content, content_type=fmt.content_type)
         response["Content-Disposition"] = f'attachment; filename="{filename}"'
         return response
@@ -83,17 +83,31 @@ class ExportMixin:
         data = payload.validated_data
 
         fmt = self._export_format(data["file_type"])
-        content, filename = self._build_export(fmt)
-        sender = request.user.get_full_name() or request.user.get_username()
-        body = data.get("message") or (
-            f"Hello,\n\n{sender} shared the attached {self.export_title.lower()} report "
-            f"from Smart Support Desk.\n\nRegards,\nSmart Support Desk"
-        )
-        email = EmailMessage(
-            subject=data.get("subject") or f"Smart Support Desk - {self.export_title}",
-            body=body,
+        content, filename, meta = self._build_export(fmt)
+        user = request.user
+        sender = user.get_full_name() or user.get_username()
+        email = build_email(
+            template="report_shared",
+            subject=data.get("subject") or f"{meta.title} report from Smart Support Desk",
             to=data["recipients"],
-            reply_to=[request.user.email] if request.user.email else None,
+            reply_to=[user.email] if user.email else None,
+            context={
+                "report": meta,
+                "sender": sender,
+                "sender_first_name": user.first_name or sender,
+                "sender_email": user.email,
+                "note": (data.get("message") or "").strip(),
+                "format": fmt.key,
+                "format_label": fmt.label,
+                "format_badge": fmt.extension.upper(),
+                "file_name": filename,
+                "details": [
+                    ("Report", meta.title),
+                    ("Records", meta.records_text),
+                    ("Filters", "; ".join(meta.filters) if meta.filters else "None (all records)"),
+                    ("Generated", f"{meta.generated_text} by {meta.generated_by}"),
+                ],
+            },
         )
         email.attach(filename, content, fmt.content_type)
         try:

@@ -386,6 +386,10 @@ accident. To really send mail with Gmail:
 
 3. Restart `runserver`. Export e-mails and status-change notifications are now delivered.
 
+All e-mails are HTML (with a plain-text version) and share one branded layout. The templates are in
+`backend/apps/core/templates/emails/`. The "View ticket" buttons link to `FRONTEND_URL` (default
+`http://localhost:4200`); set it in `backend/.env` when the app runs somewhere else.
+
 ---
 
 ## API reference

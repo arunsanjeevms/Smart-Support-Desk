@@ -108,11 +108,31 @@ jobs:
       MAIL_PASSWORD: ${{ secrets.MAIL_PASSWORD }}
       MAIL_TO: msarunsanjeev@gmail.com
       RESULT: ${{ (needs.backend.result == 'success' && needs.frontend.result == 'success') && 'passed' || 'failed' }}
+      # Colours for the HTML e-mail (green = passed, red = failed, grey = skipped/cancelled)
+      RESULT_COLOR: ${{ (needs.backend.result == 'success' && needs.frontend.result == 'success') && '#15803D' || '#B42318' }}
+      RESULT_BG: ${{ (needs.backend.result == 'success' && needs.frontend.result == 'success') && '#ECFDF3' || '#FEF3F2' }}
+      RESULT_ICON: ${{ (needs.backend.result == 'success' && needs.frontend.result == 'success') && '&#10003;' || '&#10007;' }}
+      BACKEND_COLOR: ${{ needs.backend.result == 'success' && '#15803D' || (needs.backend.result == 'failure' && '#B42318' || '#475467') }}
+      BACKEND_BG: ${{ needs.backend.result == 'success' && '#ECFDF3' || (needs.backend.result == 'failure' && '#FEF3F2' || '#F2F4F7') }}
+      FRONTEND_COLOR: ${{ needs.frontend.result == 'success' && '#15803D' || (needs.frontend.result == 'failure' && '#B42318' || '#475467') }}
+      FRONTEND_BG: ${{ needs.frontend.result == 'success' && '#ECFDF3' || (needs.frontend.result == 'failure' && '#FEF3F2' || '#F2F4F7') }}
 
     steps:
       - name: Explain missing secrets
         if: env.MAIL_USERNAME == '' || env.MAIL_PASSWORD == ''
         run: echo "::notice::Skipping the result email - add the MAIL_USERNAME and MAIL_PASSWORD repository secrets to enable it."
+
+      - name: Prepare e-mail details
+        if: env.MAIL_USERNAME != '' && env.MAIL_PASSWORD != ''
+        run: |
+          echo "SHORT_SHA=${GITHUB_SHA::7}" >> "$GITHUB_ENV"
+          # First line of the commit message, HTML-escaped so it is safe inside the e-mail.
+          python3 - >> "$GITHUB_ENV" <<'PY'
+          import html, json, os
+          event = json.load(open(os.environ["GITHUB_EVENT_PATH"], encoding="utf-8"))
+          message = (event.get("head_commit") or {}).get("message") or "Manual run from the Actions tab"
+          print("COMMIT_TITLE=" + html.escape(message.splitlines()[0])[:140])
+          PY
 
       - name: Send result email
         if: env.MAIL_USERNAME != '' && env.MAIL_PASSWORD != ''
@@ -125,19 +145,74 @@ jobs:
           password: ${{ secrets.MAIL_PASSWORD }}
           from: Smart Support Desk CI <${{ secrets.MAIL_USERNAME }}>
           to: ${{ env.MAIL_TO }}
-          subject: "[Smart Support Desk] CI ${{ env.RESULT }} - ${{ github.ref_name }} @ ${{ github.sha }}"
-          convert_markdown: true
+          subject: "CI ${{ env.RESULT }} · ${{ github.ref_name }} · ${{ env.SHORT_SHA }} · Smart Support Desk"
+          # Plain-text version for mail apps that do not show HTML.
           body: |
-            ## CI ${{ env.RESULT }}
+            CI ${{ env.RESULT }} for ${{ github.repository }}
 
-            | Job | Result |
-            |-----|--------|
-            | Backend tests (Django + MongoDB) | **${{ needs.backend.result }}** |
-            | Frontend tests and build (Angular) | **${{ needs.frontend.result }}** |
+            Backend tests (Django + MongoDB):    ${{ needs.backend.result }}
+            Frontend tests and build (Angular):  ${{ needs.frontend.result }}
 
-            - Repository: ${{ github.repository }}
-            - Branch: ${{ github.ref_name }}
-            - Commit: ${{ github.sha }}
-            - Triggered by: ${{ github.actor }} (${{ github.event_name }})
+            Branch:       ${{ github.ref_name }}
+            Commit:       ${{ env.SHORT_SHA }} - ${{ env.COMMIT_TITLE }}
+            Triggered by: ${{ github.actor }} (${{ github.event_name }})
 
             Full log: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+          html_body: |
+            <!doctype html>
+            <html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+            <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap" rel="stylesheet"></head>
+            <body style="margin:0;padding:0;background:#f4f6f8;">
+            <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#f4f6f8;border-collapse:collapse;"><tr><td align="center" style="padding:32px 12px 24px;">
+            <table role="presentation" width="600" cellpadding="0" cellspacing="0" style="width:600px;max-width:600px;border-collapse:collapse;font-family:'Poppins','Segoe UI',Helvetica,Arial,sans-serif;">
+              <tr><td style="padding:0 4px 18px;">
+                <table role="presentation" cellpadding="0" cellspacing="0"><tr>
+                  <td width="34" height="34" align="center" style="width:34px;height:34px;background:#0f766e;border-radius:9px;color:#fff;font-size:17px;font-weight:600;line-height:34px;">&#10003;</td>
+                  <td style="padding-left:11px;font-size:16px;font-weight:600;color:#101828;">Smart Support Desk</td>
+                </tr></table>
+              </td></tr>
+              <tr><td style="background:#ffffff;border:1px solid #e4e7ec;border-radius:14px;">
+                <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse;">
+                  <tr><td style="height:4px;line-height:4px;font-size:0;background:${{ env.RESULT_COLOR }};border-radius:14px 14px 0 0;">&nbsp;</td></tr>
+                  <tr><td style="padding:32px 40px 36px;color:#344054;font-size:14px;line-height:1.65;">
+                    <p style="margin:0 0 6px;font-size:11px;font-weight:600;letter-spacing:1.4px;text-transform:uppercase;color:#0f766e;">Continuous integration</p>
+                    <table role="presentation" cellpadding="0" cellspacing="0" style="margin:0 0 18px;"><tr>
+                      <td width="36" height="36" align="center" style="width:36px;height:36px;border-radius:50%;background:${{ env.RESULT_BG }};color:${{ env.RESULT_COLOR }};font-size:18px;font-weight:700;line-height:36px;">${{ env.RESULT_ICON }}</td>
+                      <td style="padding-left:12px;font-size:22px;font-weight:600;color:#101828;">All checks ${{ env.RESULT }}</td>
+                    </tr></table>
+                    <p style="margin:0 0 22px;">The pipeline finished for <strong style="color:#101828;">${{ github.repository }}</strong> on branch <strong style="color:#101828;">${{ github.ref_name }}</strong>.</p>
+
+                    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border:1px solid #e4e7ec;border-radius:10px;border-collapse:separate;font-size:13px;">
+                      <tr>
+                        <td style="padding:12px 18px;border-bottom:1px solid #eaecf0;color:#101828;font-weight:500;">Backend tests <span style="color:#667085;font-weight:400;">(Django + MongoDB)</span></td>
+                        <td align="right" style="padding:12px 18px;border-bottom:1px solid #eaecf0;"><span style="display:inline-block;padding:3px 11px;border-radius:999px;background:${{ env.BACKEND_BG }};color:${{ env.BACKEND_COLOR }};font-size:12px;font-weight:600;text-transform:capitalize;">${{ needs.backend.result }}</span></td>
+                      </tr>
+                      <tr>
+                        <td style="padding:12px 18px;color:#101828;font-weight:500;">Frontend tests &amp; build <span style="color:#667085;font-weight:400;">(Angular)</span></td>
+                        <td align="right" style="padding:12px 18px;"><span style="display:inline-block;padding:3px 11px;border-radius:999px;background:${{ env.FRONTEND_BG }};color:${{ env.FRONTEND_COLOR }};font-size:12px;font-weight:600;text-transform:capitalize;">${{ needs.frontend.result }}</span></td>
+                      </tr>
+                    </table>
+
+                    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin-top:20px;font-size:13px;border-collapse:collapse;">
+                      <tr><td width="32%" style="padding:9px 0;border-bottom:1px solid #f2f4f7;color:#667085;">Commit</td>
+                          <td style="padding:9px 0;border-bottom:1px solid #f2f4f7;color:#101828;"><a href="${{ github.server_url }}/${{ github.repository }}/commit/${{ github.sha }}" style="color:#0f766e;font-weight:600;text-decoration:none;">${{ env.SHORT_SHA }}</a> &nbsp;${{ env.COMMIT_TITLE }}</td></tr>
+                      <tr><td style="padding:9px 0;border-bottom:1px solid #f2f4f7;color:#667085;">Branch</td>
+                          <td style="padding:9px 0;border-bottom:1px solid #f2f4f7;color:#101828;font-weight:500;">${{ github.ref_name }}</td></tr>
+                      <tr><td style="padding:9px 0;border-bottom:1px solid #f2f4f7;color:#667085;">Triggered by</td>
+                          <td style="padding:9px 0;border-bottom:1px solid #f2f4f7;color:#101828;font-weight:500;">${{ github.actor }} <span style="color:#667085;font-weight:400;">(${{ github.event_name }})</span></td></tr>
+                      <tr><td style="padding:9px 0;color:#667085;">Run</td>
+                          <td style="padding:9px 0;color:#101828;font-weight:500;">#${{ github.run_number }}</td></tr>
+                    </table>
+
+                    <table role="presentation" cellpadding="0" cellspacing="0" style="margin-top:28px;"><tr>
+                      <td style="border-radius:8px;background:#0f766e;"><a href="${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}" style="display:inline-block;padding:12px 26px;font-size:14px;font-weight:600;color:#ffffff;text-decoration:none;border-radius:8px;">View full log</a></td>
+                    </tr></table>
+                  </td></tr>
+                </table>
+              </td></tr>
+              <tr><td style="padding:22px 16px 0;text-align:center;font-size:12px;line-height:1.7;color:#98a2b3;">
+                Sent automatically by GitHub Actions after every push to ${{ github.repository }}.
+              </td></tr>
+            </table>
+            </td></tr></table>
+            </body></html>

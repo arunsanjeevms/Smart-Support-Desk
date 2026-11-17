@@ -178,6 +178,8 @@ EMAIL_TIMEOUT = 20
 # Application settings
 # --------------------------------------------------------------------------
 SUPPORT_DESK = {
+    # Where the Angular app runs - used for links in e-mails ("View ticket").
+    "FRONTEND_URL": os.getenv("FRONTEND_URL", "http://localhost:4200").rstrip("/"),
     "TICKET_REFERENCE_PREFIX": os.getenv("TICKET_REFERENCE_PREFIX", "SSD"),
     "TICKET_REFERENCE_START": 1000,
     # Hard limit so an export can never pull an unbounded result set.
