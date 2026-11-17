@@ -155,11 +155,17 @@ td.mat-mdc-cell {
   text-align: center;
 }
 
+// Alternating ("zebra") rows: white and a light blue tint.
 tr.mat-mdc-row {
+  background: var(--app-surface);
   transition: background-color 0.12s;
 
+  &:nth-child(even) {
+    background: var(--app-row-alt);
+  }
+
   &:hover {
-    background: var(--app-surface-hover);
+    background: var(--app-row-hover);
   }
 
   &.clickable {

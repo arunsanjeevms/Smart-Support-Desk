@@ -5,6 +5,9 @@
   --app-surface: #ffffff;
   --app-surface-muted: #f9fafb;
   --app-surface-hover: #f3f5f8;
+  // Table rows: every second row is tinted, and hovering highlights a row.
+  --app-row-alt: #f4f7fd;
+  --app-row-hover: #e8eefb;
 
   // Lines
   --app-border: #e4e7ec;
