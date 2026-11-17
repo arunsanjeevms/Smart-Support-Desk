@@ -1,0 +1,8 @@
+Django==6.0.10
+django-mongodb-backend==6.0.4
+pymongo==4.20.0
+djangorestframework==3.18.3
+django-cors-headers==4.9.0
+python-dotenv==1.2.4
+reportlab==5.1.0
+openpyxl==3.1.5
