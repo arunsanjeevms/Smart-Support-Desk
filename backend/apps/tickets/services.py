@@ -41,7 +41,7 @@ def create_ticket(*, created_by, title, description, category, priority=None) ->
         priority=priority,
         created_by=created_by,
     )
-    log_activity(ticket, created_by, ActivityType.CREATED, f"{created_by.display_name} raised the ticket")
+    log_activity(ticket, created_by, ActivityType.CREATED, "Raised the ticket")
     return ticket
 
 
@@ -129,5 +129,4 @@ def update_ticket(*, ticket: Ticket, actor, changes: dict) -> Ticket:
 
 def add_comment(*, ticket: Ticket, author, message: str) -> TicketActivity:
     ticket.save(update_fields=["updated_at"])
-    return log_activity(ticket, author, ActivityType.COMMENTED, f"{author.display_name} commented",
-                        note=message.strip())
+    return log_activity(ticket, author, ActivityType.COMMENTED, "Added a comment", note=message.strip())
