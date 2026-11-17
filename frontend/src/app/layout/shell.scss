@@ -1,0 +1,257 @@
+.shell {
+  height: 100vh;
+  background: var(--app-bg);
+}
+
+// ---------------------------------------------------------------- sidebar
+.sidebar {
+  width: var(--app-sidebar-width);
+  border-right: 1px solid var(--app-border);
+  border-radius: 0;
+  background: var(--app-surface);
+  display: flex;
+  flex-direction: column;
+
+  ::ng-deep .mat-drawer-inner-container {
+    display: flex;
+    flex-direction: column;
+  }
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  height: var(--app-topbar-height);
+  padding: 0 20px;
+  border-bottom: 1px solid var(--app-border);
+  color: var(--app-text);
+  text-decoration: none !important;
+}
+
+.brand-mark {
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  background: var(--app-primary);
+  color: #fff;
+  box-shadow: 0 2px 6px rgba(31, 79, 191, 0.35);
+
+  .mat-icon {
+    font-size: 22px;
+    width: 22px;
+    height: 22px;
+  }
+}
+
+.brand-text {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.15;
+
+  strong {
+    font-size: 15px;
+  }
+
+  span {
+    font-size: 12px;
+    color: var(--app-text-muted);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+}
+
+.nav {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 16px 12px;
+}
+
+.nav-heading {
+  padding: 14px 10px 6px;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--app-text-muted);
+
+  &:first-child {
+    padding-top: 0;
+  }
+}
+
+.nav-link {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  height: 40px;
+  padding: 0 12px;
+  border-radius: 8px;
+  color: var(--app-text-secondary);
+  font-weight: 500;
+  text-decoration: none !important;
+  transition:
+    background-color 0.12s,
+    color 0.12s;
+
+  .mat-icon {
+    font-size: 20px;
+    width: 20px;
+    height: 20px;
+    color: var(--app-text-muted);
+  }
+
+  &:hover {
+    background: var(--app-surface-hover);
+    color: var(--app-text);
+  }
+
+  &.active {
+    background: var(--app-primary-soft);
+    color: var(--app-primary);
+
+    .mat-icon {
+      color: var(--app-primary);
+      font-variation-settings:
+        'FILL' 1,
+        'wght' 400,
+        'GRAD' 0,
+        'opsz' 24;
+    }
+  }
+}
+
+.sidebar-footer {
+  margin-top: auto;
+  padding: 16px;
+}
+
+.help-card {
+  display: flex;
+  gap: 10px;
+  padding: 14px;
+  border-radius: var(--app-radius);
+  background: var(--app-surface-muted);
+  border: 1px solid var(--app-border);
+  font-size: 12.5px;
+  color: var(--app-text-secondary);
+
+  .mat-icon {
+    flex: none;
+    color: #b45309;
+    font-size: 20px;
+    width: 20px;
+    height: 20px;
+  }
+
+  strong {
+    display: block;
+    color: var(--app-text);
+    margin-bottom: 2px;
+  }
+}
+
+// ---------------------------------------------------------------- top bar
+.main {
+  display: flex;
+  flex-direction: column;
+}
+
+.topbar {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  height: var(--app-topbar-height);
+  padding: 0 24px;
+  background: rgba(255, 255, 255, 0.92);
+  backdrop-filter: saturate(1.4) blur(8px);
+  border-bottom: 1px solid var(--app-border);
+
+  @media (max-width: 720px) {
+    padding: 0 12px;
+  }
+}
+
+.topbar-greeting {
+  display: flex;
+  gap: 6px;
+  font-size: 15px;
+
+  @media (max-width: 600px) {
+    display: none;
+  }
+}
+
+.role-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 28px;
+  padding: 0 10px;
+  border-radius: 999px;
+  font-size: 12.5px;
+  font-weight: 600;
+  color: #0f766e;
+  background: #effaf7;
+  border: 1px solid #b9e7dc;
+
+  &.agent {
+    color: #6d28d9;
+    background: #f6f2ff;
+    border-color: #ddd0fb;
+  }
+
+  .mat-icon {
+    font-size: 16px;
+    width: 16px;
+    height: 16px;
+  }
+
+  @media (max-width: 720px) {
+    display: none;
+  }
+}
+
+.new-ticket {
+  @media (max-width: 480px) {
+    min-width: 0;
+    padding: 0 12px;
+  }
+}
+
+.user-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  padding: 3px 4px 3px 3px;
+  border: 1px solid var(--app-border);
+  border-radius: 999px;
+  background: var(--app-surface);
+  cursor: pointer;
+
+  &:hover {
+    background: var(--app-surface-hover);
+  }
+
+  .chevron {
+    color: var(--app-text-muted);
+    font-size: 20px;
+    width: 20px;
+    height: 20px;
+  }
+}
+
+.menu-profile {
+  padding: 12px 16px;
+  min-width: 240px;
+}
+
+.content {
+  flex: 1;
+}

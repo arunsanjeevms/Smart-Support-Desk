@@ -1,0 +1,122 @@
+<mat-sidenav-container class="shell" autosize>
+  <mat-sidenav
+    class="sidebar"
+    [mode]="isMobile() ? 'over' : 'side'"
+    [opened]="!isMobile() || mobileOpen()"
+    (closedStart)="mobileOpen.set(false)"
+    [fixedInViewport]="isMobile()"
+  >
+    <a class="brand" routerLink="/dashboard" aria-label="Smart Support Desk home">
+      <span class="brand-mark" aria-hidden="true"><mat-icon class="filled">support_agent</mat-icon></span>
+      <span class="brand-text">
+        <strong>Smart Support</strong>
+        <span>Desk</span>
+      </span>
+    </a>
+
+    <nav class="nav" aria-label="Main navigation">
+      <span class="nav-heading">Workspace</span>
+      @for (item of workspaceNav(); track item.link) {
+        <a
+          class="nav-link"
+          [routerLink]="item.link"
+          routerLinkActive="active"
+          [routerLinkActiveOptions]="{ exact: !!item.exact }"
+          ariaCurrentWhenActive="page"
+        >
+          <mat-icon>{{ item.icon }}</mat-icon>
+          <span>{{ item.label }}</span>
+        </a>
+      }
+
+      @if (auth.isAgent()) {
+        <span class="nav-heading">Support team</span>
+        @for (item of supportNav; track item.link) {
+          <a class="nav-link" [routerLink]="item.link" routerLinkActive="active" ariaCurrentWhenActive="page">
+            <mat-icon>{{ item.icon }}</mat-icon>
+            <span>{{ item.label }}</span>
+          </a>
+        }
+      }
+    </nav>
+
+    <div class="sidebar-footer">
+      <div class="help-card">
+        <mat-icon>tips_and_updates</mat-icon>
+        <div>
+          <strong>{{ auth.isAgent() ? 'Working the queue' : 'Need help fast?' }}</strong>
+          <p>
+            @if (auth.isAgent()) {
+              Pick up unassigned tickets and add a clear resolution note when you resolve them.
+            } @else {
+              Clear titles and steps to reproduce help the team resolve tickets sooner.
+            }
+          </p>
+        </div>
+      </div>
+    </div>
+  </mat-sidenav>
+
+  <mat-sidenav-content class="main">
+    <header class="topbar">
+      @if (isMobile()) {
+        <button mat-icon-button type="button" aria-label="Open navigation" (click)="mobileOpen.set(true)">
+          <mat-icon>menu</mat-icon>
+        </button>
+      }
+
+      <div class="topbar-greeting">
+        <span class="muted">{{ greeting() }},</span>
+        <strong>{{ auth.user()?.first_name || auth.user()?.username }}</strong>
+      </div>
+
+      <span class="spacer"></span>
+
+      <span class="role-pill" [class.agent]="auth.isAgent()">
+        <mat-icon>{{ auth.isAgent() ? 'support_agent' : 'person' }}</mat-icon>
+        {{ auth.user()?.role_label }}
+      </span>
+
+      <a mat-flat-button routerLink="/tickets/new" class="new-ticket">
+        <mat-icon>add</mat-icon>
+        New ticket
+      </a>
+
+      <button
+        type="button"
+        class="user-button"
+        [matMenuTriggerFor]="userMenu"
+        aria-label="Account menu"
+      >
+        <app-user-avatar [user]="auth.user()" [size]="34" [showName]="false" />
+        <mat-icon class="chevron">expand_more</mat-icon>
+      </button>
+
+      <mat-menu #userMenu="matMenu" xPosition="before" class="user-menu">
+        <div class="menu-profile" role="presentation">
+          <app-user-avatar [user]="auth.user()" [size]="40" [subtitle]="auth.user()?.email" />
+        </div>
+        <mat-divider />
+        <a mat-menu-item routerLink="/tickets">
+          <mat-icon>confirmation_number</mat-icon>
+          <span>{{ auth.isAgent() ? 'All tickets' : 'My tickets' }}</span>
+        </a>
+        @if (auth.isAgent()) {
+          <a mat-menu-item routerLink="/tickets" [queryParams]="{ assigned_to: 'me' }">
+            <mat-icon>assignment_ind</mat-icon>
+            <span>Assigned to me</span>
+          </a>
+        }
+        <mat-divider />
+        <button mat-menu-item (click)="logout()">
+          <mat-icon>logout</mat-icon>
+          <span>Sign out</span>
+        </button>
+      </mat-menu>
+    </header>
+
+    <main class="content" id="main-content">
+      <router-outlet />
+    </main>
+  </mat-sidenav-content>
+</mat-sidenav-container>
