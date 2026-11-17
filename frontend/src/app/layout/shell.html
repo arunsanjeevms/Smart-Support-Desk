@@ -6,6 +6,9 @@
     (closedStart)="mobileOpen.set(false)"
     [fixedInViewport]="isMobile()"
   >
+    <!-- Decorative watermark behind the menu -->
+    <mat-icon class="sidebar-watermark filled" aria-hidden="true">support_agent</mat-icon>
+
     <a class="brand" routerLink="/dashboard" aria-label="Smart Support Desk home">
       <span class="brand-mark" aria-hidden="true"><mat-icon class="filled">support_agent</mat-icon></span>
       <span class="brand-text">
