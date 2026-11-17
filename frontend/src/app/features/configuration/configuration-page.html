@@ -4,10 +4,12 @@
     title="Configuration"
     description="Options shown across the app come from the backend. Add, rename, reorder or deactivate them here - no code change needed."
   >
-    <button mat-flat-button type="button" (click)="openDialog()" [disabled]="!activeType()">
-      <mat-icon>add</mat-icon>
-      Add {{ activeType()?.name?.toLowerCase() ?? 'value' }}
-    </button>
+    @if (!isBuiltIn()) {
+      <button mat-flat-button type="button" (click)="openDialog()" [disabled]="!activeType()">
+        <mat-icon>add</mat-icon>
+        Add {{ activeType()?.name?.toLowerCase() ?? 'value' }}
+      </button>
+    }
   </app-page-header>
 
   <!-- Configurable list picker -->
@@ -21,7 +23,7 @@
         (click)="selectType(type.code)"
       >
         <span class="type-icon">
-          <mat-icon>{{ type.code === 'ticket_priority' ? 'flag' : 'category' }}</mat-icon>
+          <mat-icon>{{ typeIcon(type.code) }}</mat-icon>
         </span>
         <span class="type-text">
           <strong>{{ type.name }}</strong>
@@ -31,6 +33,17 @@
       </button>
     }
   </section>
+
+  @if (isBuiltIn()) {
+    <div class="alert info notice" role="note">
+      <mat-icon>notifications_active</mat-icon>
+      <span>
+        Each row is an action that sends an e-mail. Switch <strong>Active</strong> off to stop that e-mail,
+        or use <strong>Edit</strong> to rename it. The SMTP account and the master switch
+        (<code>EMAIL_NOTIFICATIONS</code>) are set in <code>backend/.env</code>.
+      </span>
+    </div>
+  }
 
   <app-data-table
     [source]="source"
@@ -87,7 +100,8 @@
         [checked]="row.is_active"
         [disabled]="busyId() === row.id"
         (change)="toggleActive(row, $event.checked)"
-        [attr.aria-label]="(row.is_active ? 'Deactivate ' : 'Activate ') + row.label"
+        [attr.aria-label]="(row.is_active ? 'Turn off ' : 'Turn on ') + row.label"
+        [matTooltip]="isBuiltIn() ? (row.is_active ? 'E-mail is sent' : 'E-mail is not sent') : ''"
       />
     </ng-template>
 
@@ -96,9 +110,11 @@
         <button mat-icon-button type="button" matTooltip="Edit" [attr.aria-label]="'Edit ' + row.label" (click)="openDialog(row)">
           <mat-icon>edit</mat-icon>
         </button>
-        <button mat-icon-button type="button" matTooltip="Delete" class="danger" [attr.aria-label]="'Delete ' + row.label" (click)="remove(row)">
-          <mat-icon>delete</mat-icon>
-        </button>
+        @if (!isBuiltIn()) {
+          <button mat-icon-button type="button" matTooltip="Delete" class="danger" [attr.aria-label]="'Delete ' + row.label" (click)="remove(row)">
+            <mat-icon>delete</mat-icon>
+          </button>
+        }
       </span>
     </ng-template>
   </app-data-table>

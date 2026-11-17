@@ -1,4 +1,4 @@
-import { Component, OnInit, inject, signal } from '@angular/core';
+import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
 import { MatButtonToggleModule } from '@angular/material/button-toggle';
 import { MatDialog } from '@angular/material/dialog';
@@ -63,6 +63,14 @@ export class ConfigurationPage implements OnInit {
     { key: 'updated_at', label: 'Updated', sortField: 'updated_at', hideBelow: 'sm', value: (v) => new Date(v.updated_at).toLocaleDateString() },
     { key: 'actions', label: '', width: '110px', align: 'end' },
   ];
+
+  /** Lists whose values are built into the app (e-mail events): rename / switch on-off only. */
+  protected readonly isBuiltIn = computed(() => this.activeType()?.code === 'notification_event');
+
+  protected typeIcon(code: string): string {
+    const icons: Record<string, string> = { ticket_priority: 'flag', notification_event: 'notifications' };
+    return icons[code] ?? 'category';
+  }
 
   ngOnInit(): void {
     this.lookups.types().subscribe({

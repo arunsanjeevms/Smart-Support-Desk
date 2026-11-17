@@ -60,6 +60,8 @@ export class LookupValueDialog {
   private readonly dialogRef = inject(MatDialogRef<LookupValueDialog, LookupValue>);
 
   protected readonly isEdit = !!this.data.value;
+  /** Built-in lists (e-mail events): the code is fixed, only label/description/icon/state change. */
+  protected readonly builtIn = this.data.type.code === 'notification_event';
   protected readonly icons = SUGGESTED_ICONS;
   protected readonly colors = SUGGESTED_COLORS;
   protected readonly saving = signal(false);

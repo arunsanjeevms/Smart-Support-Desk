@@ -71,6 +71,13 @@
   color: var(--app-text-secondary);
 }
 
+.notice {
+  code {
+    font-family: var(--app-font-mono);
+    font-size: 12.5px;
+  }
+}
+
 .status-toggle {
   height: 40px;
   align-items: center;

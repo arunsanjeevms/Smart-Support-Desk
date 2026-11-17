@@ -32,8 +32,8 @@
 
       <mat-form-field>
         <mat-label>Code</mat-label>
-        <input matInput formControlName="code" maxlength="50" class="mono" (input)="markCodeEdited()" />
-        <mat-hint>Stable key used by integrations.</mat-hint>
+        <input matInput formControlName="code" maxlength="50" class="mono" (input)="markCodeEdited()" [readonly]="builtIn" />
+        <mat-hint>{{ builtIn ? 'Built-in code - cannot be changed.' : 'Stable key used by integrations.' }}</mat-hint>
         @if (form.controls.code.hasError('required')) {
           <mat-error>Enter a code.</mat-error>
         } @else if (form.controls.code.hasError('pattern')) {
