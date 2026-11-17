@@ -1,0 +1,130 @@
+.title {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.title-icon {
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  background: var(--app-primary-soft);
+  color: var(--app-primary);
+}
+
+.content {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  min-width: min(560px, 82vw);
+}
+
+.preview {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 14px;
+  border-radius: var(--app-radius);
+  background: var(--app-surface-muted);
+  border: 1px dashed var(--app-border-strong);
+}
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px 4px 7px;
+  border-radius: 6px;
+  background: var(--app-surface);
+  border: 1px solid var(--app-border);
+  font-weight: 500;
+
+  .mat-icon {
+    color: var(--chip-color);
+    font-size: 18px;
+    width: 18px;
+    height: 18px;
+  }
+}
+
+.form-grid {
+  gap: 14px 16px;
+}
+
+.color-input {
+  width: 32px;
+  height: 32px;
+  margin-right: 8px;
+  padding: 0;
+  border: 1px solid var(--app-border);
+  border-radius: 6px;
+  background: none;
+  cursor: pointer;
+}
+
+.pickers {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.icon-picker,
+.color-picker {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.pick {
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  border-radius: 8px;
+  border: 1px solid var(--app-border);
+  background: var(--app-surface);
+  color: var(--app-text-secondary);
+  cursor: pointer;
+
+  .mat-icon {
+    font-size: 18px;
+    width: 18px;
+    height: 18px;
+  }
+
+  &:hover {
+    background: var(--app-surface-hover);
+  }
+
+  &.selected {
+    border-color: var(--app-primary);
+    background: var(--app-primary-soft);
+    color: var(--app-primary);
+  }
+}
+
+.swatch {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  border: 2px solid #fff;
+  box-shadow: 0 0 0 1px var(--app-border-strong);
+  cursor: pointer;
+
+  &.selected {
+    box-shadow: 0 0 0 2px var(--app-text);
+  }
+}
+
+.toggles {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 8px;
+}
+
+mat-progress-spinner {
+  margin-right: 8px;
+}

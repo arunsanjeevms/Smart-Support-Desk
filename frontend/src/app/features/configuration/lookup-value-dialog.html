@@ -1,0 +1,133 @@
+<h2 mat-dialog-title class="title">
+  <span class="title-icon"><mat-icon>{{ isEdit ? 'edit' : 'add' }}</mat-icon></span>
+  {{ isEdit ? 'Edit' : 'Add' }} {{ data.type.name.toLowerCase() }}
+</h2>
+
+<form [formGroup]="form" (ngSubmit)="save()" novalidate>
+  <mat-dialog-content class="content">
+    @if (error()) {
+      <div class="alert error" role="alert"><mat-icon>error</mat-icon>{{ error() }}</div>
+    }
+
+    <!-- Live preview -->
+    <div class="preview" aria-label="Preview">
+      <span class="muted">Preview</span>
+      <span class="chip" [style.--chip-color]="preview().color || '#64748B'">
+        <mat-icon>{{ preview().icon || 'label' }}</mat-icon>
+        {{ preview().label || 'Label' }}
+      </span>
+    </div>
+
+    <div class="form-grid">
+      <mat-form-field>
+        <mat-label>Label</mat-label>
+        <input matInput formControlName="label" maxlength="100" cdkFocusInitial />
+        @if (form.controls.label.hasError('required')) {
+          <mat-error>Enter a label.</mat-error>
+        }
+        @if (form.controls.label.hasError('server')) {
+          <mat-error>{{ form.controls.label.getError('server') }}</mat-error>
+        }
+      </mat-form-field>
+
+      <mat-form-field>
+        <mat-label>Code</mat-label>
+        <input matInput formControlName="code" maxlength="50" class="mono" (input)="markCodeEdited()" />
+        <mat-hint>Stable key used by integrations.</mat-hint>
+        @if (form.controls.code.hasError('required')) {
+          <mat-error>Enter a code.</mat-error>
+        } @else if (form.controls.code.hasError('pattern')) {
+          <mat-error>Lowercase letters, numbers and _ only.</mat-error>
+        }
+        @if (form.controls.code.hasError('server')) {
+          <mat-error>{{ form.controls.code.getError('server') }}</mat-error>
+        }
+      </mat-form-field>
+
+      <mat-form-field class="full">
+        <mat-label>Description</mat-label>
+        <input matInput formControlName="description" maxlength="255" />
+        <mat-hint>Shown to users when they choose this option.</mat-hint>
+      </mat-form-field>
+
+      <mat-form-field>
+        <mat-label>Icon</mat-label>
+        <mat-icon matPrefix>{{ preview().icon || 'label' }}</mat-icon>
+        <input matInput formControlName="icon" maxlength="50" class="mono" />
+        <mat-hint>Any Material Symbols name.</mat-hint>
+      </mat-form-field>
+
+      <mat-form-field>
+        <mat-label>Colour</mat-label>
+        <input matInput formControlName="color" maxlength="7" class="mono" />
+        <input
+          matSuffix
+          type="color"
+          class="color-input"
+          aria-label="Pick a colour"
+          [value]="preview().color"
+          (input)="pickColor($any($event.target).value)"
+        />
+        @if (form.controls.color.hasError('pattern')) {
+          <mat-error>Use a hex colour like #1F4FBF.</mat-error>
+        }
+        @if (form.controls.color.hasError('server')) {
+          <mat-error>{{ form.controls.color.getError('server') }}</mat-error>
+        }
+      </mat-form-field>
+    </div>
+
+    <div class="pickers">
+      <div class="icon-picker" role="group" aria-label="Suggested icons">
+        @for (icon of icons; track icon) {
+          <button
+            type="button"
+            class="pick"
+            [class.selected]="preview().icon === icon"
+            [matTooltip]="icon"
+            [attr.aria-label]="'Use icon ' + icon"
+            (click)="pickIcon(icon)"
+          >
+            <mat-icon>{{ icon }}</mat-icon>
+          </button>
+        }
+      </div>
+      <div class="color-picker" role="group" aria-label="Suggested colours">
+        @for (color of colors; track color) {
+          <button
+            type="button"
+            class="swatch"
+            [class.selected]="preview().color?.toUpperCase() === color"
+            [style.background]="color"
+            [attr.aria-label]="'Use colour ' + color"
+            (click)="pickColor(color)"
+          ></button>
+        }
+      </div>
+    </div>
+
+    <div class="form-grid options">
+      <mat-form-field>
+        <mat-label>Display order</mat-label>
+        <input matInput type="number" min="0" formControlName="sort_order" />
+        <mat-hint>Lower numbers are listed first.</mat-hint>
+      </mat-form-field>
+      <div class="toggles">
+        <mat-slide-toggle formControlName="is_active">Active (offered on new tickets)</mat-slide-toggle>
+        <mat-checkbox formControlName="is_default">Default selection</mat-checkbox>
+      </div>
+    </div>
+  </mat-dialog-content>
+
+  <mat-dialog-actions align="end">
+    <button mat-button type="button" mat-dialog-close [disabled]="saving()">Cancel</button>
+    <button mat-flat-button type="submit" [disabled]="saving()">
+      @if (saving()) {
+        <mat-progress-spinner diameter="18" mode="indeterminate" />
+      } @else {
+        <mat-icon>save</mat-icon>
+      }
+      {{ isEdit ? 'Save changes' : 'Add value' }}
+    </button>
+  </mat-dialog-actions>
+</form>

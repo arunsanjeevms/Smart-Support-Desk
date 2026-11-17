@@ -1,0 +1,111 @@
+<div class="page">
+  <app-page-header
+    icon="tune"
+    title="Configuration"
+    description="Options shown across the app come from the backend. Add, rename, reorder or deactivate them here - no code change needed."
+  >
+    <button mat-flat-button type="button" (click)="openDialog()" [disabled]="!activeType()">
+      <mat-icon>add</mat-icon>
+      Add {{ activeType()?.name?.toLowerCase() ?? 'value' }}
+    </button>
+  </app-page-header>
+
+  <!-- Configurable list picker -->
+  <section class="types" aria-label="Configurable lists">
+    @for (type of types(); track type.id) {
+      <button
+        type="button"
+        class="type"
+        [class.active]="activeType()?.id === type.id"
+        [attr.aria-pressed]="activeType()?.id === type.id"
+        (click)="selectType(type.code)"
+      >
+        <span class="type-icon">
+          <mat-icon>{{ type.code === 'ticket_priority' ? 'flag' : 'category' }}</mat-icon>
+        </span>
+        <span class="type-text">
+          <strong>{{ type.name }}</strong>
+          <span>{{ type.description }}</span>
+        </span>
+        <span class="count">{{ type.value_count }}</span>
+      </button>
+    }
+  </section>
+
+  <app-data-table
+    [source]="source"
+    [columns]="columns"
+    exportTitle="Configuration values"
+    searchPlaceholder="Search label, code or description…"
+    emptyIcon="tune"
+    emptyTitle="No values in this list yet"
+  >
+    <ng-container tableFilters>
+      <mat-button-toggle-group
+        class="status-toggle"
+        hideSingleSelectionIndicator
+        [value]="source.filters()['is_active']"
+        (change)="source.setFilter('is_active', $event.value)"
+        aria-label="Filter by state"
+      >
+        <mat-button-toggle value="">All</mat-button-toggle>
+        <mat-button-toggle value="true">Active</mat-button-toggle>
+        <mat-button-toggle value="false">Inactive</mat-button-toggle>
+      </mat-button-toggle-group>
+    </ng-container>
+
+    <ng-template appCell="sort_order" let-row>
+      <span class="order mono">{{ row.sort_order }}</span>
+    </ng-template>
+
+    <ng-template appCell="label" let-row>
+      <span class="value">
+        <span class="value-icon" [style.--value-color]="row.color || '#64748B'">
+          <mat-icon>{{ row.icon || 'label' }}</mat-icon>
+        </span>
+        <span class="value-text">
+          <strong>{{ row.label }}</strong>
+          @if (row.description) {
+            <span>{{ row.description }}</span>
+          }
+        </span>
+      </span>
+    </ng-template>
+
+    <ng-template appCell="code" let-row>
+      <span class="ref-chip">{{ row.code }}</span>
+    </ng-template>
+
+    <ng-template appCell="is_default" let-row>
+      @if (row.is_default) {
+        <mat-icon class="default filled" matTooltip="Pre-selected on new tickets">star</mat-icon>
+      }
+    </ng-template>
+
+    <ng-template appCell="is_active" let-row>
+      <mat-slide-toggle
+        [checked]="row.is_active"
+        [disabled]="busyId() === row.id"
+        (change)="toggleActive(row, $event.checked)"
+        [attr.aria-label]="(row.is_active ? 'Deactivate ' : 'Activate ') + row.label"
+      />
+    </ng-template>
+
+    <ng-template appCell="actions" let-row>
+      <span class="row-actions">
+        <button mat-icon-button type="button" matTooltip="Edit" [attr.aria-label]="'Edit ' + row.label" (click)="openDialog(row)">
+          <mat-icon>edit</mat-icon>
+        </button>
+        <button mat-icon-button type="button" matTooltip="Delete" class="danger" [attr.aria-label]="'Delete ' + row.label" (click)="remove(row)">
+          <mat-icon>delete</mat-icon>
+        </button>
+      </span>
+    </ng-template>
+  </app-data-table>
+
+  <p class="admin-note muted">
+    <mat-icon>admin_panel_settings</mat-icon>
+    Administrators can also manage these lists and create support agents in the Django admin at
+    <code>http://localhost:8000/admin/</code>.
+  </p>
+</div>
