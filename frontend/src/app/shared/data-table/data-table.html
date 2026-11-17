@@ -1,0 +1,160 @@
+<section class="table-card">
+  <!-- Toolbar: search, filters, actions -->
+  <div class="toolbar">
+    <div class="search">
+      <mat-icon class="search-icon" aria-hidden="true">search</mat-icon>
+      <input
+        type="search"
+        [formControl]="searchControl"
+        [placeholder]="searchPlaceholder()"
+        [attr.aria-label]="searchPlaceholder()"
+      />
+      @if (searchControl.value) {
+        <button mat-icon-button type="button" class="clear" aria-label="Clear search" (click)="clearSearch()">
+          <mat-icon>close</mat-icon>
+        </button>
+      }
+    </div>
+
+    <div class="filters">
+      <ng-content select="[tableFilters]" />
+    </div>
+
+    <div class="actions">
+      @if (source().isFiltered()) {
+        <button mat-button type="button" (click)="clearAll()">
+          <mat-icon>filter_alt_off</mat-icon>
+          Clear
+        </button>
+      }
+      <button
+        mat-icon-button
+        type="button"
+        matTooltip="Refresh"
+        aria-label="Refresh table"
+        (click)="source().load()"
+      >
+        <mat-icon>refresh</mat-icon>
+      </button>
+      @if (showExport()) {
+        <app-export-menu [endpoint]="source().endpoint" [params]="exportParams()" [title]="exportTitle()" />
+      }
+      <ng-content select="[tableActions]" />
+    </div>
+  </div>
+
+  <div class="progress">
+    @if (source().loading()) {
+      <mat-progress-bar mode="indeterminate" aria-label="Loading" />
+    }
+  </div>
+
+  <!-- Table -->
+  <div class="table-scroll" [class.dimmed]="source().loading() && source().loadedOnce()">
+    <table
+      mat-table
+      [dataSource]="source().rows()"
+      matSort
+      [matSortActive]="sortKey()"
+      [matSortDirection]="source().sort().direction"
+      (matSortChange)="onSort($event)"
+    >
+      @for (column of columns(); track column.key) {
+        <ng-container [matColumnDef]="column.key">
+          @if (column.sortField) {
+            <th
+              mat-header-cell
+              *matHeaderCellDef
+              [mat-sort-header]="column.key"
+              [style.width]="column.width"
+              [class]="'align-' + (column.align ?? 'start')"
+              [class.hide-mobile]="column.hideOnMobile"
+            >
+              {{ column.label }}
+            </th>
+          } @else {
+            <th
+              mat-header-cell
+              *matHeaderCellDef
+              [style.width]="column.width"
+              [class]="'align-' + (column.align ?? 'start')"
+              [class.hide-mobile]="column.hideOnMobile"
+            >
+              {{ column.label }}
+            </th>
+          }
+          <td
+            mat-cell
+            *matCellDef="let row"
+            [class]="'align-' + (column.align ?? 'start')"
+            [class.hide-mobile]="column.hideOnMobile"
+          >
+            @if (templates().get(column.key); as template) {
+              <ng-container *ngTemplateOutlet="template; context: { $implicit: row }" />
+            } @else {
+              {{ cellText(column, row) }}
+            }
+          </td>
+        </ng-container>
+      }
+
+      <tr mat-header-row *matHeaderRowDef="displayedColumns(); sticky: true"></tr>
+      <tr
+        mat-row
+        *matRowDef="let row; columns: displayedColumns()"
+        [class.clickable]="!!rowLink()"
+        [attr.tabindex]="rowLink() ? 0 : null"
+        (click)="openRow(row, $event)"
+        (keydown.enter)="openRow(row)"
+      ></tr>
+    </table>
+
+    <!-- States -->
+    @if (source().error(); as error) {
+      <div class="state" role="alert">
+        <span class="state-icon danger"><mat-icon>cloud_off</mat-icon></span>
+        <h3>Couldn't load this table</h3>
+        <p>{{ error }}</p>
+        <button mat-stroked-button type="button" (click)="source().load()">
+          <mat-icon>refresh</mat-icon>
+          Try again
+        </button>
+      </div>
+    } @else if (source().loadedOnce() && source().rows().length === 0) {
+      <div class="state">
+        @if (source().isFiltered()) {
+          <span class="state-icon"><mat-icon>search_off</mat-icon></span>
+          <h3>No matching records</h3>
+          <p>Try a different search term or remove some filters.</p>
+          <button mat-stroked-button type="button" (click)="clearAll()">
+            <mat-icon>filter_alt_off</mat-icon>
+            Clear search &amp; filters
+          </button>
+        } @else {
+          <span class="state-icon"><mat-icon>{{ emptyIcon() }}</mat-icon></span>
+          <h3>{{ emptyTitle() }}</h3>
+          @if (emptyMessage()) {
+            <p>{{ emptyMessage() }}</p>
+          }
+          <ng-content select="[tableEmptyAction]" />
+        }
+      </div>
+    } @else if (!source().loadedOnce()) {
+      <div class="skeleton" aria-hidden="true">
+        @for (row of [1, 2, 3, 4, 5]; track row) {
+          <div class="skeleton-row"><span></span><span></span><span></span></div>
+        }
+      </div>
+    }
+  </div>
+
+  <mat-paginator
+    [length]="source().total()"
+    [pageIndex]="source().pageIndex()"
+    [pageSize]="source().pageSize()"
+    [pageSizeOptions]="pageSizeOptions()"
+    [showFirstLastButtons]="true"
+    (page)="onPage($event)"
+    aria-label="Select page"
+  />
+</section>

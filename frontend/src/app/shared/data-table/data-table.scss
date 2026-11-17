@@ -1,0 +1,236 @@
+:host {
+  display: block;
+}
+
+.table-card {
+  background: var(--app-surface);
+  border: 1px solid var(--app-border);
+  border-radius: var(--app-radius-lg);
+  box-shadow: var(--app-shadow-xs);
+  overflow: hidden;
+}
+
+// ---------------------------------------------------------------- toolbar
+.toolbar {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+  padding: 14px 16px;
+  border-bottom: 1px solid var(--app-border);
+}
+
+.search {
+  position: relative;
+  display: flex;
+  align-items: center;
+  flex: 1 1 260px;
+  max-width: 360px;
+  height: 40px;
+  border: 1px solid var(--app-border-strong);
+  border-radius: 8px;
+  background: var(--app-surface);
+  transition:
+    border-color 0.15s,
+    box-shadow 0.15s;
+
+  &:focus-within {
+    border-color: var(--app-primary);
+    box-shadow: 0 0 0 3px var(--app-primary-soft);
+  }
+
+  .search-icon {
+    margin-left: 10px;
+    color: var(--app-text-muted);
+    font-size: 20px;
+    width: 20px;
+    height: 20px;
+  }
+
+  input {
+    flex: 1;
+    min-width: 0;
+    height: 100%;
+    border: 0;
+    outline: 0;
+    padding: 0 10px;
+    background: transparent;
+    font: inherit;
+    color: var(--app-text);
+
+    &::placeholder {
+      color: var(--app-text-muted);
+    }
+
+    &::-webkit-search-cancel-button {
+      display: none;
+    }
+  }
+
+  .clear {
+    --mat-icon-button-state-layer-size: 32px;
+    width: 32px;
+    height: 32px;
+    padding: 4px;
+    margin-right: 4px;
+
+    .mat-icon {
+      font-size: 18px;
+      width: 18px;
+      height: 18px;
+    }
+  }
+}
+
+.filters {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+
+  &:empty {
+    display: none;
+  }
+}
+
+.actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-left: auto;
+}
+
+.progress {
+  height: 3px;
+  margin-top: -1px;
+}
+
+// ---------------------------------------------------------------- table
+.table-scroll {
+  overflow-x: auto;
+  max-height: calc(100vh - 290px);
+  min-height: 140px;
+  overflow-y: auto;
+  transition: opacity 0.15s;
+
+  &.dimmed {
+    opacity: 0.6;
+  }
+}
+
+table {
+  width: 100%;
+}
+
+th.mat-mdc-header-cell {
+  background: var(--app-surface-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  white-space: nowrap;
+}
+
+td.mat-mdc-cell {
+  color: var(--app-text-secondary);
+  padding-top: 8px;
+  padding-bottom: 8px;
+}
+
+.align-end {
+  text-align: right;
+}
+
+.align-center {
+  text-align: center;
+}
+
+tr.mat-mdc-row {
+  transition: background-color 0.12s;
+
+  &:hover {
+    background: var(--app-surface-hover);
+  }
+
+  &.clickable {
+    cursor: pointer;
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--app-primary);
+    outline-offset: -2px;
+  }
+}
+
+@media (max-width: 900px) {
+  .hide-mobile {
+    display: none;
+  }
+}
+
+// ---------------------------------------------------------------- states
+.state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 8px;
+  padding: 48px 24px 56px;
+
+  h3 {
+    font-size: 16px;
+  }
+
+  p {
+    color: var(--app-text-muted);
+    max-width: 380px;
+    margin-bottom: 8px;
+  }
+}
+
+.state-icon {
+  display: grid;
+  place-items: center;
+  width: 52px;
+  height: 52px;
+  border-radius: 14px;
+  background: var(--app-primary-soft);
+  color: var(--app-primary);
+  margin-bottom: 4px;
+
+  &.danger {
+    background: var(--app-danger-soft);
+    color: var(--app-danger);
+  }
+}
+
+.skeleton {
+  padding: 8px 16px 16px;
+}
+
+.skeleton-row {
+  display: grid;
+  grid-template-columns: 1fr 2fr 1fr;
+  gap: 24px;
+  padding: 16px 0;
+  border-bottom: 1px solid var(--app-border);
+
+  span {
+    height: 12px;
+    border-radius: 6px;
+    background: linear-gradient(90deg, #eef0f3 0%, #f6f7f9 50%, #eef0f3 100%);
+    background-size: 200% 100%;
+    animation: shimmer 1.2s infinite linear;
+  }
+}
+
+@keyframes shimmer {
+  from {
+    background-position: 200% 0;
+  }
+  to {
+    background-position: -200% 0;
+  }
+}
+
+mat-paginator {
+  border-top: 1px solid var(--app-border);
+}
