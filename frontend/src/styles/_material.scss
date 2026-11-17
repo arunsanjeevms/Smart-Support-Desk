@@ -1,0 +1,125 @@
+@use '@angular/material' as mat;
+
+// Angular Material (Material 3) light theme.
+html {
+  color-scheme: light;
+
+  @include mat.theme(
+    (
+      color: (
+        primary: mat.$azure-palette,
+        tertiary: mat.$blue-palette,
+        theme-type: light,
+      ),
+      typography: (
+        plain-family: 'IBM Plex Sans',
+        brand-family: 'IBM Plex Sans',
+      ),
+      density: 0,
+    )
+  );
+
+  // Calm, neutral surfaces instead of tinted Material 3 defaults.
+  @include mat.theme-overrides(
+    (
+      primary: #1f4fbf,
+      on-primary: #ffffff,
+      background: #f5f6f8,
+      surface: #ffffff,
+      surface-container-lowest: #ffffff,
+      surface-container-low: #ffffff,
+      surface-container: #ffffff,
+      surface-container-high: #ffffff,
+      surface-container-highest: #f3f5f8,
+      outline: #d0d5dd,
+      outline-variant: #e4e7ec,
+      on-surface: #101828,
+      on-surface-variant: #475467,
+      corner-full: 8px,
+    )
+  );
+
+  @include mat.dialog-overrides(
+    (
+      container-shape: 14px,
+    )
+  );
+
+  @include mat.table-overrides(
+    (
+      background-color: transparent,
+      header-headline-color: #475467,
+      header-headline-weight: 600,
+      header-headline-size: 12px,
+      header-container-height: 44px,
+      row-item-container-height: 56px,
+      row-item-outline-color: #eaecf0,
+    )
+  );
+
+  @include mat.paginator-overrides(
+    (
+      container-background-color: transparent,
+    )
+  );
+
+  @include mat.form-field-overrides(
+    (
+      outlined-container-shape: 8px,
+      outlined-outline-color: #d0d5dd,
+    )
+  );
+
+  @include mat.snack-bar-overrides(
+    (
+      container-shape: 10px,
+    )
+  );
+
+  @include mat.menu-overrides(
+    (
+      container-shape: 10px,
+    )
+  );
+
+  @include mat.tooltip-overrides(
+    (
+      container-shape: 6px,
+    )
+  );
+}
+
+// Material Symbols are used for every icon (see app.config.ts).
+.material-symbols-outlined {
+  font-variation-settings:
+    'FILL' 0,
+    'wght' 400,
+    'GRAD' 0,
+    'opsz' 24;
+}
+
+.mat-icon.filled {
+  font-variation-settings:
+    'FILL' 1,
+    'wght' 400,
+    'GRAD' 0,
+    'opsz' 24;
+}
+
+// Snack bar variants used by NotifyService.
+.snack-success .mat-mdc-snackbar-surface {
+  background: #0f5132 !important;
+}
+.snack-error .mat-mdc-snackbar-surface {
+  background: #912018 !important;
+}
+
+// Compact form fields used in table toolbars (40px tall, same as the search box).
+.filter-field {
+  @include mat.form-field-density(-4);
+  width: 172px;
+
+  &.wide {
+    width: 230px;
+  }
+}

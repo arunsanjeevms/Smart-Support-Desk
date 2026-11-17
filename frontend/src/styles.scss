@@ -1,0 +1,9 @@
+/*
+ * Global styles.
+ *  - styles/_tokens.scss     colours, spacing, radius, shadows (CSS variables)
+ *  - styles/_material.scss   Angular Material theme + component tweaks
+ *  - styles/_utilities.scss  small shared helpers (cards, page layout, badges)
+ */
+@use './styles/tokens';
+@use './styles/material';
+@use './styles/utilities';

@@ -1,0 +1,48 @@
+// Design tokens shared by every component. Change the look of the app here.
+:root {
+  // Surfaces
+  --app-bg: #f5f6f8;
+  --app-surface: #ffffff;
+  --app-surface-muted: #f9fafb;
+  --app-surface-hover: #f3f5f8;
+
+  // Lines
+  --app-border: #e4e7ec;
+  --app-border-strong: #d0d5dd;
+
+  // Text
+  --app-text: #101828;
+  --app-text-secondary: #475467;
+  --app-text-muted: #667085;
+
+  // Brand
+  --app-primary: #1f4fbf;
+  --app-primary-hover: #1a43a3;
+  --app-primary-soft: #eef3fd;
+  --app-primary-border: #c9d7f7;
+
+  // Feedback
+  --app-success: #15803d;
+  --app-success-soft: #ecfdf3;
+  --app-warning: #b45309;
+  --app-warning-soft: #fffaeb;
+  --app-danger: #b42318;
+  --app-danger-soft: #fef3f2;
+
+  // Shape & depth
+  --app-radius-sm: 6px;
+  --app-radius: 10px;
+  --app-radius-lg: 14px;
+  --app-shadow-xs: 0 1px 2px rgba(16, 24, 40, 0.05);
+  --app-shadow-sm: 0 1px 3px rgba(16, 24, 40, 0.08), 0 1px 2px rgba(16, 24, 40, 0.04);
+  --app-shadow-md: 0 8px 24px -6px rgba(16, 24, 40, 0.12);
+
+  // Type
+  --app-font: 'IBM Plex Sans', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --app-font-mono: 'IBM Plex Mono', ui-monospace, 'Cascadia Mono', monospace;
+
+  // Layout
+  --app-sidebar-width: 248px;
+  --app-topbar-height: 64px;
+  --app-content-max: 1360px;
+}
