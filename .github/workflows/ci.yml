@@ -1,13 +1,23 @@
 name: CI
 
+# Pushes to main are tested by the Deploy workflow, which calls this file
+# before it ships anything (so the same tests are not run twice).
 on:
-  push:
-    branches: [main]
   pull_request:
   workflow_dispatch:
+  workflow_call:
+    inputs:
+      skip-email:
+        description: Leave the result e-mail to the caller
+        type: boolean
+        default: false
+      upload-frontend:
+        description: Keep the production Angular build as an artifact
+        type: boolean
+        default: false
 
 concurrency:
-  group: ci-${{ github.ref }}
+  group: ci-${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
 permissions:
@@ -97,7 +107,8 @@ jobs:
   notify:
     name: Email the result
     needs: [backend, frontend]
-    if: always()
+    # Runs after success or failure, but not when a newer push cancelled this run.
+    if: ${{ !cancelled() }}
     runs-on: ubuntu-latest
 
     env:
