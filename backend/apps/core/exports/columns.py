@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 from datetime import date, datetime
-from typing import Any, Callable
+from typing import Any, Callable, Literal
 
 from django.utils import timezone
 
@@ -13,11 +13,21 @@ class ExportColumn:
     ``source`` is either a dotted attribute path (``"category.label"``) or a
     callable that receives the object. ``width`` is the Excel column width in
     characters and is also used as the relative column weight in PDFs.
+
+    Optional presentation hints:
+
+    * ``align``  - ``"left"`` (default), ``"right"`` or ``"center"``
+    * ``strong`` - emphasise the value (e.g. ticket references)
+    * ``color``  - callable returning a hex colour for the value of a given row
+                   (e.g. the status colour), or ``None`` for the default colour
     """
 
     header: str
     source: str | Callable[[Any], Any]
     width: int = 18
+    align: Literal["left", "right", "center"] = "left"
+    strong: bool = False
+    color: Callable[[Any], str | None] | None = None
 
     def resolve(self, obj: Any) -> Any:
         if callable(self.source):
@@ -29,6 +39,14 @@ class ExportColumn:
         if callable(value):  # e.g. get_status_display
             value = value()
         return normalise(value)
+
+    def color_for(self, obj: Any) -> str | None:
+        if self.color is None:
+            return None
+        try:
+            return self.color(obj) or None
+        except (AttributeError, KeyError, ValueError):
+            return None
 
 
 def normalise(value: Any) -> Any:

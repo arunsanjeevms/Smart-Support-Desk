@@ -38,6 +38,16 @@ class ExportTests(ApiTestCase):
         self.assertEqual(response["Content-Type"], "application/pdf")
         self.assertTrue(response.content.startswith(b"%PDF"))
 
+    def test_pdf_embeds_the_poppins_font(self):
+        response = self.client_for(self.agent).get("/api/tickets/export/?file_type=pdf")
+        self.assertIn(b"Poppins", response.content)
+        self.assertIn(b"Poppins-SemiBold", response.content)
+
+    def test_pdf_with_no_matching_rows_still_renders(self):
+        response = self.client_for(self.agent).get("/api/tickets/export/?file_type=pdf&search=nothing-matches")
+        self.assertEqual(response.status_code, 200)
+        self.assertTrue(response.content.startswith(b"%PDF"))
+
     def test_requester_export_only_contains_own_tickets(self):
         response = self.client_for(self.requester).get("/api/tickets/export/?file_type=xlsx")
         sheet = load_workbook(BytesIO(response.content)).active

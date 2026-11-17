@@ -38,11 +38,11 @@ class LookupValueViewSet(ExportMixin, viewsets.ModelViewSet):
     export_title = "Configuration values"
     export_columns = [
         ExportColumn("List", "lookup_type.name", 20),
-        ExportColumn("Label", "label", 24),
+        ExportColumn("Label", "label", 24, strong=True),
         ExportColumn("Code", "code", 18),
         ExportColumn("Description", "description", 36),
         ExportColumn("Icon", "icon", 14),
-        ExportColumn("Order", "sort_order", 8),
+        ExportColumn("Order", "sort_order", 8, align="right"),
         ExportColumn("Active", "is_active", 9),
         ExportColumn("Default", "is_default", 9),
     ]

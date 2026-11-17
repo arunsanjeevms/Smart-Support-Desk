@@ -84,15 +84,16 @@ class TicketViewSet(
 
     export_title = "Tickets"
     export_columns = [
-        ExportColumn("Reference", "reference", 12),
+        ExportColumn("Reference", "reference", 11, strong=True),
         ExportColumn("Title", "title", 34),
         ExportColumn("Category", "category.label", 18),
-        ExportColumn("Priority", "priority.label", 11),
-        ExportColumn("Status", "get_status_display", 12),
+        ExportColumn("Priority", "priority.label", 10, color=lambda t: t.priority.color if t.priority else None),
+        ExportColumn("Status", "get_status_display", 12,
+                     color=lambda t: STATUS_PRESENTATION[TicketStatus(t.status)]["color"]),
         ExportColumn("Raised by", "created_by.display_name", 18),
         ExportColumn("Assigned to", "assigned_to.display_name", 18),
-        ExportColumn("Created", "created_at", 18),
-        ExportColumn("Resolved", "resolved_at", 18),
+        ExportColumn("Created", "created_at", 16),
+        ExportColumn("Resolved", "resolved_at", 16),
         ExportColumn("Resolution note", "resolution_note", 40),
     ]
 
@@ -248,7 +249,7 @@ class ActivityViewSet(ExportMixin, viewsets.ReadOnlyModelViewSet):
     export_title = "Activity log"
     export_columns = [
         ExportColumn("When", "created_at", 18),
-        ExportColumn("Ticket", "ticket.reference", 12),
+        ExportColumn("Ticket", "ticket.reference", 11, strong=True),
         ExportColumn("Ticket title", "ticket.title", 30),
         ExportColumn("Activity", "get_activity_type_display", 20),
         ExportColumn("Details", "message", 36),

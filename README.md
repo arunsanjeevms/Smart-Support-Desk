@@ -364,7 +364,7 @@ Every list endpoint gets two extra endpoints from a single backend mixin (`apps/
 
 | Endpoint | Result |
 |---|---|
-| `GET /api/<table>/export/?file_type=pdf` | landscape PDF with title, filters summary, zebra rows, page numbers |
+| `GET /api/<table>/export/?file_type=pdf` | branded landscape PDF set in Poppins: running header and footer, a title block with a summary strip (records, generated, prepared by, filters), coloured status/priority, "Page x of y" |
 | `GET /api/<table>/export/?file_type=xlsx` | Excel sheet with styled header, frozen header row, auto-filter |
 | `POST /api/<table>/export/email/` `{"file_type": "pdf", "recipients": ["a@b.com"], "subject": "", "message": ""}` | the same file sent as an e-mail attachment |
 

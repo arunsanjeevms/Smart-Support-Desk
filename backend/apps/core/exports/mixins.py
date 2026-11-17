@@ -12,7 +12,7 @@ from rest_framework.response import Response
 
 from .columns import ExportColumn
 from .serializers import EmailExportSerializer
-from .writers import EXPORT_FORMATS, ExportFormat
+from .writers import EXPORT_FORMATS, ExportFormat, ReportMeta
 
 logger = logging.getLogger(__name__)
 
@@ -50,17 +50,20 @@ class ExportMixin:
     def _build_export(self, fmt: ExportFormat) -> tuple[bytes, str]:
         limit = settings.SUPPORT_DESK["EXPORT_MAX_ROWS"]
         columns = self.get_export_columns()
-        queryset = self.filter_queryset(self.get_queryset())[:limit]
-        rows = [[column.resolve(obj) for column in columns] for obj in queryset]
+        objects = list(self.filter_queryset(self.get_queryset())[:limit])
+        rows = [[column.resolve(obj) for column in columns] for obj in objects]
+        cell_colors = [[column.color_for(obj) for column in columns] for obj in objects]
 
         now = timezone.localtime()
         user = self.request.user
-        parts = [
-            f"Generated {now:%d %b %Y, %H:%M} by {user.get_full_name() or user.get_username()}",
-            f"{len(rows)} record{'s' if len(rows) != 1 else ''}",
-            *self.get_export_filter_summary(),
-        ]
-        content = fmt.builder(self.export_title, "  |  ".join(parts), columns, rows)
+        meta = ReportMeta(
+            title=self.export_title,
+            generated_at=now.replace(tzinfo=None),
+            generated_by=user.get_full_name() or user.get_username(),
+            record_count=len(rows),
+            filters=self.get_export_filter_summary(),
+        )
+        content = fmt.builder(meta, columns, rows, cell_colors)
         filename = f"{slugify(self.export_title)}-{now:%Y%m%d-%H%M}.{fmt.extension}"
         return content, filename
 

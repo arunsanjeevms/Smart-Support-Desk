@@ -103,7 +103,7 @@ class UserViewSet(ExportMixin, viewsets.ReadOnlyModelViewSet):
 
     export_title = "Users"
     export_columns = [
-        ExportColumn("Name", "display_name", 24),
+        ExportColumn("Name", "display_name", 24, strong=True),
         ExportColumn("Username", "username", 18),
         ExportColumn("Email", "email", 30),
         ExportColumn("Role", "get_role_display", 16),
