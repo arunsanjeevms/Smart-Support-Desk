@@ -1,0 +1,83 @@
+<div class="auth">
+  <app-brand-panel />
+
+  <section class="form-panel">
+    <div class="form-card">
+      <div class="form-title">
+        <h1>Welcome back</h1>
+        <p>Sign in to raise and follow your support tickets.</p>
+      </div>
+
+      @if (error()) {
+        <div class="alert error" role="alert">
+          <mat-icon>error</mat-icon>
+          <span>{{ error() }}</span>
+        </div>
+      }
+
+      <form [formGroup]="form" (ngSubmit)="submit()" novalidate>
+        <mat-form-field>
+          <mat-label>Username or email</mat-label>
+          <mat-icon matPrefix>person</mat-icon>
+          <input matInput formControlName="username" autocomplete="username" />
+          @if (form.controls.username.hasError('required')) {
+            <mat-error>Enter your username or email.</mat-error>
+          }
+          @if (form.controls.username.hasError('server')) {
+            <mat-error>{{ form.controls.username.getError('server') }}</mat-error>
+          }
+        </mat-form-field>
+
+        <mat-form-field>
+          <mat-label>Password</mat-label>
+          <mat-icon matPrefix>lock</mat-icon>
+          <input
+            matInput
+            formControlName="password"
+            autocomplete="current-password"
+            [type]="hidePassword() ? 'password' : 'text'"
+          />
+          <button
+            mat-icon-button
+            matSuffix
+            type="button"
+            (click)="hidePassword.set(!hidePassword())"
+            [attr.aria-label]="hidePassword() ? 'Show password' : 'Hide password'"
+          >
+            <mat-icon>{{ hidePassword() ? 'visibility' : 'visibility_off' }}</mat-icon>
+          </button>
+          @if (form.controls.password.hasError('required')) {
+            <mat-error>Enter your password.</mat-error>
+          }
+        </mat-form-field>
+
+        <button mat-flat-button class="submit" type="submit" [disabled]="submitting()">
+          @if (submitting()) {
+            <mat-progress-spinner diameter="18" mode="indeterminate" />
+          } @else {
+            <mat-icon>login</mat-icon>
+          }
+          {{ submitting() ? 'Signing in…' : 'Sign in' }}
+        </button>
+      </form>
+
+      @if (demoAccounts().length) {
+        <div class="divider">or try a demo account</div>
+        <div class="demo-list">
+          @for (account of demoAccounts(); track account.username) {
+            <button class="demo" type="button" [disabled]="submitting()" (click)="useDemo(account)">
+              <span class="demo-icon"><mat-icon>{{ account.icon }}</mat-icon></span>
+              <span class="demo-text">
+                <strong>{{ account.label }} · {{ account.full_name }}</strong>
+                <span>{{ account.description }}</span>
+              </span>
+              <mat-icon class="go">arrow_forward</mat-icon>
+            </button>
+          }
+        </div>
+      }
+
+      <p class="switch">New here? <a routerLink="/register">Create an account</a></p>
+    </div>
+  </section>
+</div>
