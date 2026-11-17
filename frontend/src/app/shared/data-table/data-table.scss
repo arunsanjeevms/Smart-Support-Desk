@@ -100,6 +100,14 @@
   margin-left: auto;
 }
 
+.live {
+  margin-right: 4px;
+
+  @media (max-width: 720px) {
+    display: none;
+  }
+}
+
 .progress {
   height: 3px;
   margin-top: -1px;

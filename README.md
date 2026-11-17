@@ -351,6 +351,11 @@ deleted (the API answers `409 Conflict` and suggests deactivating instead), so h
 
 ## Tables, exports and e-mail
 
+**Live data.** The dashboard and every table reload themselves in the background every 30 seconds (and as soon as you
+return to the browser tab). The reload is silent: rows stay on screen, nothing flickers, and a failed refresh keeps the
+current data. A small "Updated 10:42:05 AM" badge shows when the data was last refreshed. The interval is
+`AUTO_REFRESH_MS` in `frontend/src/app/core/utils/auto-refresh.ts`.
+
 All tables use one reusable Angular `DataTable` component backed by a `TableSource` that keeps search, sort, page
 and filters in signals and calls the API. Sorting, searching, filtering and paging all run **in Django/MongoDB**,
 so they work the same for 30 or 300,000 rows.

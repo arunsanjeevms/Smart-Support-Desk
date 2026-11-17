@@ -27,15 +27,7 @@
           Clear
         </button>
       }
-      <button
-        mat-icon-button
-        type="button"
-        matTooltip="Refresh"
-        aria-label="Refresh table"
-        (click)="source().load()"
-      >
-        <mat-icon>refresh</mat-icon>
-      </button>
+      <app-live-indicator class="live" [updatedAt]="source().lastUpdated()" />
       @if (showExport()) {
         <app-export-menu [endpoint]="source().endpoint" [params]="exportParams()" [title]="exportTitle()" />
       }

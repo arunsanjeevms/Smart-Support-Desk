@@ -4,10 +4,7 @@
     [title]="auth.isAgent() ? 'Support overview' : 'My support overview'"
     [description]="(today | date: 'EEEE, d MMMM y') + ' · ' + (auth.isAgent() ? 'Everything in the queue at a glance.' : 'Track the issues you have reported.')"
   >
-    <button mat-stroked-button type="button" (click)="load()" [disabled]="loading()">
-      <mat-icon>refresh</mat-icon>
-      Refresh
-    </button>
+    <app-live-indicator [updatedAt]="lastUpdated()" />
     <a mat-flat-button routerLink="/tickets/new">
       <mat-icon>add</mat-icon>
       New ticket

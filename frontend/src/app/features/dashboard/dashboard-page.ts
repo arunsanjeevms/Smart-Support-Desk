@@ -10,7 +10,9 @@ import { TicketStats } from '../../core/models/api.models';
 import { AuthService } from '../../core/services/auth.service';
 import { TicketService } from '../../core/services/ticket.service';
 import { errorMessage } from '../../core/utils/api-errors';
+import { autoRefresh } from '../../core/utils/auto-refresh';
 import { CountUp } from '../../shared/components/count-up';
+import { LiveIndicator } from '../../shared/components/live-indicator';
 import { LookupBadge } from '../../shared/components/lookup-badge';
 import { PageHeader } from '../../shared/components/page-header';
 import { StatusBadge } from '../../shared/components/status-badge';
@@ -48,6 +50,7 @@ interface StatTile {
     LookupBadge,
     UserAvatar,
     CountUp,
+    LiveIndicator,
     RelativeTimePipe,
   ],
   templateUrl: './dashboard-page.html',
@@ -61,6 +64,8 @@ export class DashboardPage implements OnInit {
   protected readonly loading = signal(true);
   protected readonly error = signal<string | null>(null);
   protected readonly today = new Date();
+  protected readonly lastUpdated = signal<Date | null>(null);
+  private requestInFlight = false;
 
   protected readonly tiles = computed<StatTile[]>(() => {
     const stats = this.stats();
@@ -193,21 +198,35 @@ export class DashboardPage implements OnInit {
     return rows.map((row) => ({ ...row, percent: (row.count / max) * 100 }));
   });
 
+  constructor() {
+    // Keep the numbers current while the page stays open.
+    autoRefresh(() => this.load(true));
+  }
+
   ngOnInit(): void {
     this.load();
   }
 
-  protected load(): void {
-    this.loading.set(true);
-    this.error.set(null);
+  /** `silent` = background refresh: no loading bar, and a failure keeps the current numbers. */
+  protected load(silent = false): void {
+    if (this.requestInFlight) return;
+    this.requestInFlight = true;
+    if (!silent) {
+      this.loading.set(true);
+      this.error.set(null);
+    }
     this.tickets.stats().subscribe({
       next: (stats) => {
+        this.requestInFlight = false;
         this.stats.set(stats);
+        this.lastUpdated.set(new Date());
         this.loading.set(false);
+        this.error.set(null);
       },
       error: (error: unknown) => {
-        this.error.set(errorMessage(error, 'Could not load the dashboard.'));
+        this.requestInFlight = false;
         this.loading.set(false);
+        if (!silent) this.error.set(errorMessage(error, 'Could not load the dashboard.'));
       },
     });
   }

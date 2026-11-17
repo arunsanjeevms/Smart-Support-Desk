@@ -4,6 +4,7 @@ import { Subject, catchError, of, switchMap, tap } from 'rxjs';
 
 import { ApiService, QueryParams } from '../../core/services/api.service';
 import { errorMessage } from '../../core/utils/api-errors';
+import { AUTO_REFRESH_MS, autoRefresh } from '../../core/utils/auto-refresh';
 
 export type SortDirection = 'asc' | 'desc' | '';
 
@@ -18,6 +19,8 @@ export interface TableSourceOptions {
   filters?: Record<string, string>;
   /** Filters that define the table itself (e.g. which list) - never cleared or counted as "filtered". */
   lockedFilters?: string[];
+  /** Background refresh interval in milliseconds; 0 turns it off. Defaults to 30 seconds. */
+  autoRefreshMs?: number;
 }
 
 /**
@@ -32,13 +35,16 @@ export interface TableSourceOptions {
  */
 export class TableSource<T> {
   private readonly api = inject(ApiService);
-  private readonly reload$ = new Subject<void>();
+  /** Emits `true` for a silent (background) reload, `false` for a normal one. */
+  private readonly reload$ = new Subject<boolean>();
 
   readonly rows = signal<T[]>([]);
   readonly total = signal(0);
   readonly loading = signal(false);
   readonly error = signal<string | null>(null);
   readonly loadedOnce = signal(false);
+  /** When the rows were last loaded successfully. */
+  readonly lastUpdated = signal<Date | null>(null);
 
   readonly pageIndex = signal(0);
   readonly pageSize: WritableSignal<number>;
@@ -67,14 +73,16 @@ export class TableSource<T> {
 
     this.reload$
       .pipe(
-        tap(() => {
+        tap((silent) => {
+          if (silent) return; // background refresh: no spinner, keep what is on screen
           this.loading.set(true);
           this.error.set(null);
         }),
-        switchMap(() =>
+        switchMap((silent) =>
           this.api.getPage<T>(this.endpoint, this.queryParams()).pipe(
             catchError((error: unknown) => {
-              this.error.set(errorMessage(error, 'Could not load the data.'));
+              // A failed background refresh keeps the current rows and stays quiet.
+              if (!silent) this.error.set(errorMessage(error, 'Could not load the data.'));
               return of(null);
             }),
           ),
@@ -94,7 +102,13 @@ export class TableSource<T> {
         }
         this.rows.set(page.results);
         this.total.set(page.count);
+        this.lastUpdated.set(new Date());
       });
+
+    // Keep the table fresh without anyone pressing a button.
+    autoRefresh(() => {
+      if (this.loadedOnce() && !this.loading()) this.refresh();
+    }, options.autoRefreshMs ?? AUTO_REFRESH_MS);
   }
 
   /** Search / sort / filter params - shared by the list and the export endpoints. */
@@ -112,7 +126,12 @@ export class TableSource<T> {
   }
 
   load(): void {
-    this.reload$.next();
+    this.reload$.next(false);
+  }
+
+  /** Reload in the background: no loading state, and errors do not replace the rows. */
+  refresh(): void {
+    this.reload$.next(true);
   }
 
   setSearch(term: string): void {

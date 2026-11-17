@@ -19,6 +19,7 @@ describe('TableSource', () => {
           sort: { active: 'created_at', direction: 'desc' },
           filters: { type: 'ticket_category', status: '' },
           lockedFilters: ['type'],
+          autoRefreshMs: 0, // no background timer in tests
         }),
     );
   }
@@ -78,6 +79,59 @@ describe('TableSource', () => {
       .flush({ message: 'Only the support team can perform this action.', errors: {} }, { status: 403, statusText: 'Forbidden' });
 
     expect(source.error()).toBe('Only the support team can perform this action.');
+  });
+
+  describe('background refresh', () => {
+    const page = (ids: string[]) => ({
+      count: ids.length,
+      page: 1,
+      page_size: 10,
+      total_pages: 1,
+      results: ids.map((id) => ({ id })),
+    });
+
+    it('updates the rows without showing a loading state', () => {
+      const source = createSource();
+      source.load();
+      http.expectOne(() => true).flush(page(['a']));
+
+      source.refresh();
+      expect(source.loading()).toBe(false);
+      http.expectOne(() => true).flush(page(['a', 'b']));
+
+      expect(source.rows()).toEqual([{ id: 'a' }, { id: 'b' }]);
+      expect(source.total()).toBe(2);
+      expect(source.lastUpdated()).not.toBeNull();
+    });
+
+    it('keeps the current rows and stays quiet when a refresh fails', () => {
+      const source = createSource();
+      source.load();
+      http.expectOne(() => true).flush(page(['a']));
+
+      source.refresh();
+      http.expectOne(() => true).flush({ message: 'down' }, { status: 503, statusText: 'Unavailable' });
+
+      expect(source.rows()).toEqual([{ id: 'a' }]);
+      expect(source.error()).toBeNull();
+    });
+
+    it('reloads on a timer once the first load has finished', () => {
+      vi.useFakeTimers();
+      try {
+        const source = TestBed.runInInjectionContext(
+          () => new TableSource<Row>('tickets/', { autoRefreshMs: 1000 }),
+        );
+        source.load();
+        http.expectOne(() => true).flush(page(['a']));
+
+        vi.advanceTimersByTime(1000);
+        http.expectOne(() => true).flush(page(['a', 'b']));
+        expect(source.total()).toBe(2);
+      } finally {
+        vi.useRealTimers();
+      }
+    });
   });
 
   it('keeps locked filters when clearing and does not count them as filtering', () => {

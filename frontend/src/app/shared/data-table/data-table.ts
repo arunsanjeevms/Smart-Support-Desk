@@ -13,6 +13,7 @@ import { MatTooltipModule } from '@angular/material/tooltip';
 import { Router } from '@angular/router';
 import { debounceTime, distinctUntilChanged } from 'rxjs';
 
+import { LiveIndicator } from '../components/live-indicator';
 import { ExportMenu } from '../export-menu/export-menu';
 import { CellTemplate, TableColumn } from './table-column';
 import { TableSource } from './table-source';
@@ -41,6 +42,7 @@ import { TableSource } from './table-source';
     MatTableModule,
     MatTooltipModule,
     ExportMenu,
+    LiveIndicator,
   ],
   templateUrl: './data-table.html',
   styleUrl: './data-table.scss',
