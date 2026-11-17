@@ -48,7 +48,7 @@ import { RelativeTimePipe } from '../../shared/pipes/relative-time.pipe';
         <ng-container tableFilters>
           <mat-form-field floatLabel="always" class="filter-field">
             <mat-label>Role</mat-label>
-            <mat-select
+            <mat-select panelClass="filter-panel" panelWidth=""
               [value]="source.filters()['role']"
               (selectionChange)="source.setFilter('role', $event.value)"
             >

@@ -28,7 +28,7 @@
     <ng-container tableFilters>
       <mat-form-field floatLabel="always" class="filter-field">
         <mat-label>Status</mat-label>
-        <mat-select
+        <mat-select panelClass="filter-panel" panelWidth=""
           multiple
           placeholder="Any status"
           [value]="statusFilter()"
@@ -48,7 +48,7 @@
 
       <mat-form-field floatLabel="always" class="filter-field">
         <mat-label>Category</mat-label>
-        <mat-select [value]="source.filters()['category']" (selectionChange)="setFilter('category', $event.value)">
+        <mat-select panelClass="filter-panel" panelWidth="" [value]="source.filters()['category']" (selectionChange)="setFilter('category', $event.value)">
           <mat-select-trigger>{{ optionLabel(config.categories(), source.filters()['category'], 'All categories') }}</mat-select-trigger>
           <mat-option value="">All categories</mat-option>
           @for (category of config.categories(); track category.id) {
@@ -64,7 +64,7 @@
 
       <mat-form-field floatLabel="always" class="filter-field">
         <mat-label>Priority</mat-label>
-        <mat-select [value]="source.filters()['priority']" (selectionChange)="setFilter('priority', $event.value)">
+        <mat-select panelClass="filter-panel" panelWidth="" [value]="source.filters()['priority']" (selectionChange)="setFilter('priority', $event.value)">
           <mat-select-trigger>{{ optionLabel(config.priorities(), source.filters()['priority'], 'Any priority') }}</mat-select-trigger>
           <mat-option value="">Any priority</mat-option>
           @for (priority of config.priorities(); track priority.id) {
@@ -81,7 +81,7 @@
       @if (auth.isAgent()) {
         <mat-form-field floatLabel="always" class="filter-field">
           <mat-label>Assignee</mat-label>
-          <mat-select
+          <mat-select panelClass="filter-panel" panelWidth=""
             [value]="source.filters()['assigned_to']"
             (selectionChange)="setFilter('assigned_to', $event.value)"
           >

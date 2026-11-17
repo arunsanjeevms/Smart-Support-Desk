@@ -133,9 +133,36 @@ html {
 // Compact form fields used in table toolbars (40px tall, same as the search box).
 .filter-field {
   @include mat.form-field-density(-4);
+  // Smaller text than regular form fields so long values like "Account & Profile" fit.
+  @include mat.form-field-overrides(
+    (
+      container-text-size: 13px,
+      outlined-label-text-size: 13px,
+    )
+  );
+  @include mat.select-overrides(
+    (
+      trigger-text-size: 13px,
+    )
+  );
   width: 172px;
 
   &.wide {
     width: 230px;
   }
+}
+
+// Filter dropdown lists grow to fit their longest option instead of the
+// (narrow) filter width, so labels never wrap onto two lines.
+.filter-panel.mat-mdc-select-panel {
+  min-width: 200px;
+}
+
+// Dropdown options: 14px to match the rest of the app (Material's default is 16px).
+html {
+  @include mat.option-overrides(
+    (
+      label-text-size: 14px,
+    )
+  );
 }

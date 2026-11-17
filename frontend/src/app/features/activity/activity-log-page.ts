@@ -51,7 +51,7 @@ import { RelativeTimePipe } from '../../shared/pipes/relative-time.pipe';
         <ng-container tableFilters>
           <mat-form-field floatLabel="always" class="filter-field wide">
             <mat-label>Activity</mat-label>
-            <mat-select
+            <mat-select panelClass="filter-panel" panelWidth=""
               [value]="source.filters()['activity_type']"
               (selectionChange)="source.setFilter('activity_type', $event.value)"
             >
