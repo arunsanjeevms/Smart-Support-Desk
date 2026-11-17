@@ -1,0 +1,179 @@
+<div class="page">
+  <app-page-header
+    icon="add_circle"
+    title="Raise a new ticket"
+    description="Tell us what went wrong. The support team is notified as soon as you submit."
+  >
+    <a mat-button routerLink="/tickets">
+      <mat-icon>arrow_back</mat-icon>
+      Back to tickets
+    </a>
+  </app-page-header>
+
+  <div class="layout">
+    <form class="card form-card" [formGroup]="form" (ngSubmit)="submit()" novalidate>
+      <div class="card-header">
+        <h2><mat-icon>edit_note</mat-icon>Ticket details</h2>
+        <span class="muted required-note"><span aria-hidden="true">*</span> Required</span>
+      </div>
+
+      <div class="card-body fields">
+        @if (error()) {
+          <div class="alert error" role="alert">
+            <mat-icon>error</mat-icon>
+            <span>{{ error() }}</span>
+          </div>
+        }
+
+        <mat-form-field>
+          <mat-label>Title</mat-label>
+          <mat-icon matPrefix>title</mat-icon>
+          <input
+            matInput
+            formControlName="title"
+            required
+            placeholder="e.g. Cannot download invoices from the billing page"
+            [maxlength]="rules.title_max"
+          />
+          <mat-hint>A short summary of the problem.</mat-hint>
+          <mat-hint align="end">{{ titleLength() }} / {{ rules.title_max }}</mat-hint>
+          @if (form.controls.title.hasError('required')) {
+            <mat-error>Please enter a title.</mat-error>
+          } @else if (form.controls.title.hasError('minlength')) {
+            <mat-error>The title should be at least {{ rules.title_min }} characters.</mat-error>
+          }
+          @if (form.controls.title.hasError('server')) {
+            <mat-error>{{ form.controls.title.getError('server') }}</mat-error>
+          }
+        </mat-form-field>
+
+        <div class="form-grid">
+          <mat-form-field>
+            <mat-label>Category</mat-label>
+            <mat-select formControlName="category" required>
+              <mat-select-trigger>
+                @if (selectedCategory(); as category) {
+                  <span class="option-with-icon">
+                    <mat-icon [style.color]="category.color">{{ category.icon }}</mat-icon>
+                    {{ category.label }}
+                  </span>
+                }
+              </mat-select-trigger>
+              @for (category of config.categories(); track category.id) {
+                <mat-option [value]="category.id">
+                  <span class="category-option">
+                    <mat-icon [style.color]="category.color">{{ category.icon }}</mat-icon>
+                    <span>
+                      <strong>{{ category.label }}</strong>
+                      @if (category.description) {
+                        <small>{{ category.description }}</small>
+                      }
+                    </span>
+                  </span>
+                </mat-option>
+              }
+            </mat-select>
+            <mat-hint>Which area of the product is affected?</mat-hint>
+            @if (form.controls.category.hasError('required')) {
+              <mat-error>Please choose a category.</mat-error>
+            }
+            @if (form.controls.category.hasError('server')) {
+              <mat-error>{{ form.controls.category.getError('server') }}</mat-error>
+            }
+          </mat-form-field>
+
+          <mat-form-field>
+            <mat-label>Priority</mat-label>
+            <mat-select formControlName="priority">
+              @for (priority of config.priorities(); track priority.id) {
+                <mat-option [value]="priority.id">
+                  <span class="option-with-icon">
+                    <mat-icon [style.color]="priority.color">{{ priority.icon }}</mat-icon>
+                    {{ priority.label }}
+                  </span>
+                </mat-option>
+              }
+            </mat-select>
+            <mat-hint>How badly does this block your work?</mat-hint>
+            @if (form.controls.priority.hasError('server')) {
+              <mat-error>{{ form.controls.priority.getError('server') }}</mat-error>
+            }
+          </mat-form-field>
+        </div>
+
+        <mat-form-field>
+          <mat-label>Description</mat-label>
+          <textarea
+            matInput
+            formControlName="description"
+            required
+            rows="8"
+            [maxlength]="rules.description_max"
+            placeholder="What happened? What did you expect? Steps to reproduce, error messages, browser…"
+          ></textarea>
+          <mat-hint>At least {{ rules.description_min }} characters.</mat-hint>
+          <mat-hint align="end">{{ descriptionLength() }} / {{ rules.description_max }}</mat-hint>
+          @if (form.controls.description.hasError('required')) {
+            <mat-error>Please describe the issue.</mat-error>
+          } @else if (form.controls.description.hasError('minlength')) {
+            <mat-error>Please add a little more detail (at least {{ rules.description_min }} characters).</mat-error>
+          }
+          @if (form.controls.description.hasError('server')) {
+            <mat-error>{{ form.controls.description.getError('server') }}</mat-error>
+          }
+        </mat-form-field>
+      </div>
+
+      <div class="form-actions">
+        <button mat-button type="button" (click)="reset()" [disabled]="submitting()">
+          <mat-icon>restart_alt</mat-icon>
+          Clear form
+        </button>
+        <span class="spacer"></span>
+        <a mat-stroked-button routerLink="/tickets">Cancel</a>
+        <button mat-flat-button type="submit" [disabled]="submitting()">
+          @if (submitting()) {
+            <mat-progress-spinner diameter="18" mode="indeterminate" />
+          } @else {
+            <mat-icon>send</mat-icon>
+          }
+          {{ submitting() ? 'Submitting…' : 'Submit ticket' }}
+        </button>
+      </div>
+    </form>
+
+    <aside class="side">
+      <section class="card">
+        <div class="card-header">
+          <h3><mat-icon>lightbulb</mat-icon>Tips for a quick resolution</h3>
+        </div>
+        <ul class="tips card-body">
+          <li><mat-icon>check</mat-icon>Use a specific title, e.g. "Export to Excel shows wrong dates".</li>
+          <li><mat-icon>check</mat-icon>List the steps that lead to the problem.</li>
+          <li><mat-icon>check</mat-icon>Copy any error message exactly as shown.</li>
+          <li><mat-icon>check</mat-icon>Mention your browser or device if it matters.</li>
+        </ul>
+      </section>
+
+      <section class="card">
+        <div class="card-header">
+          <h3><mat-icon>route</mat-icon>What happens next</h3>
+        </div>
+        <ol class="steps card-body">
+          <li>
+            <span class="step-icon open"><mat-icon>radio_button_unchecked</mat-icon></span>
+            <div><strong>Open</strong><span>Your ticket joins the support queue.</span></div>
+          </li>
+          <li>
+            <span class="step-icon progress"><mat-icon>autorenew</mat-icon></span>
+            <div><strong>In progress</strong><span>An agent picks it up and investigates.</span></div>
+          </li>
+          <li>
+            <span class="step-icon done"><mat-icon>check_circle</mat-icon></span>
+            <div><strong>Resolved</strong><span>You get an email with the resolution note.</span></div>
+          </li>
+        </ol>
+      </section>
+    </aside>
+  </div>
+</div>

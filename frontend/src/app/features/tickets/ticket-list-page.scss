@@ -1,0 +1,13 @@
+.title-link {
+  display: block;
+  max-width: 420px;
+  color: var(--app-text);
+  font-weight: 500;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+
+  &:hover {
+    color: var(--app-primary);
+  }
+}

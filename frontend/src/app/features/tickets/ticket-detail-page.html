@@ -1,0 +1,328 @@
+<div class="page">
+  <a class="back" routerLink="/tickets">
+    <mat-icon>arrow_back</mat-icon>
+    Back to tickets
+  </a>
+
+  @if (loading() && !ticket()) {
+    <mat-progress-bar mode="indeterminate" aria-label="Loading ticket" />
+  }
+
+  @if (loadError(); as message) {
+    <div class="card state">
+      <span class="state-icon"><mat-icon>report</mat-icon></span>
+      <h2>Ticket not available</h2>
+      <p class="muted">{{ message }}</p>
+      <div class="state-actions">
+        <button mat-stroked-button type="button" (click)="load()">
+          <mat-icon>refresh</mat-icon>
+          Try again
+        </button>
+        <a mat-flat-button routerLink="/tickets">Go to tickets</a>
+      </div>
+    </div>
+  }
+
+  @if (ticket(); as t) {
+    <!-- Header -->
+    <header class="ticket-header card">
+      <div class="header-top">
+        <span class="ref-chip">{{ t.reference }}</span>
+        <app-status-badge [status]="t.status" />
+        <app-lookup-badge [option]="t.category" />
+        @if (t.priority) {
+          <app-lookup-badge [option]="t.priority" />
+        }
+      </div>
+      <h1>{{ t.title }}</h1>
+      <div class="header-meta">
+        <span>
+          <mat-icon>person</mat-icon>
+          Raised by <strong>{{ t.created_by.full_name }}</strong>
+        </span>
+        <span [matTooltip]="(t.created_at | date: 'medium') ?? ''">
+          <mat-icon>calendar_today</mat-icon>
+          {{ t.created_at | relativeTime }}
+        </span>
+        <span>
+          <mat-icon>assignment_ind</mat-icon>
+          {{ t.assigned_to ? 'Assigned to ' + t.assigned_to.full_name : 'Not assigned yet' }}
+        </span>
+        <span [matTooltip]="(t.updated_at | date: 'medium') ?? ''">
+          <mat-icon>update</mat-icon>
+          Updated {{ t.updated_at | relativeTime }}
+        </span>
+      </div>
+    </header>
+
+    <div class="layout">
+      <!-- Main column -->
+      <div class="main-col">
+        <section class="card">
+          <div class="card-header">
+            <h2><mat-icon>description</mat-icon>Description</h2>
+          </div>
+          <div class="card-body prose">{{ t.description }}</div>
+        </section>
+
+        @if (t.status === 'resolved' && t.resolution_note) {
+          <section class="card resolution">
+            <div class="card-header">
+              <h2><mat-icon class="filled">verified</mat-icon>Resolution</h2>
+              @if (t.resolved_by) {
+                <span class="muted">
+                  by {{ t.resolved_by.full_name }} · {{ t.resolved_at | date: 'd MMM y, h:mm a' }}
+                </span>
+              }
+            </div>
+            <div class="card-body prose">{{ t.resolution_note }}</div>
+          </section>
+        }
+
+        <!-- Timeline -->
+        <section class="card">
+          <div class="card-header">
+            <h2><mat-icon>timeline</mat-icon>Activity</h2>
+            <span class="muted">{{ activities().length }} events</span>
+          </div>
+          <ol class="timeline">
+            @for (entry of activities(); track entry.id) {
+              <li [class]="'event ' + entry.activity_type">
+                <span class="event-icon"><mat-icon>{{ entry.icon }}</mat-icon></span>
+                <div class="event-body">
+                  <div class="event-line">
+                    <strong>{{ entry.actor?.full_name ?? 'System' }}</strong>
+                    @if (entry.activity_type === 'status_changed' && entry.from_status && entry.to_status) {
+                      <span class="muted">changed the status</span>
+                      <span class="transition">
+                        <app-status-badge [status]="entry.from_status" />
+                        <mat-icon class="arrow">arrow_forward</mat-icon>
+                        <app-status-badge [status]="entry.to_status" />
+                      </span>
+                    } @else if (entry.activity_type === 'commented') {
+                      <span class="muted">commented</span>
+                    } @else {
+                      <span class="muted">{{ entry.message }}</span>
+                    }
+                    <time class="when" [matTooltip]="(entry.created_at | date: 'medium') ?? ''">
+                      {{ entry.created_at | relativeTime }}
+                    </time>
+                  </div>
+                  @if (entry.note) {
+                    <div class="event-note" [class.comment]="entry.activity_type === 'commented'">{{ entry.note }}</div>
+                  }
+                </div>
+              </li>
+            }
+          </ol>
+
+          <form class="composer" [formGroup]="commentForm" (ngSubmit)="postComment()">
+            <app-user-avatar [user]="auth.user()" [showName]="false" [size]="32" />
+            <mat-form-field>
+              <mat-label>Add a comment</mat-label>
+              <textarea
+                matInput
+                formControlName="message"
+                rows="2"
+                maxlength="2000"
+                [placeholder]="auth.isAgent() ? 'Ask for details or share progress…' : 'Add more information for the support team…'"
+              ></textarea>
+              @if (commentForm.controls.message.hasError('required')) {
+                <mat-error>Write a comment first.</mat-error>
+              }
+            </mat-form-field>
+            <button mat-flat-button type="submit" [disabled]="posting()">
+              @if (posting()) {
+                <mat-progress-spinner diameter="18" mode="indeterminate" />
+              } @else {
+                <mat-icon>send</mat-icon>
+              }
+              Post
+            </button>
+          </form>
+        </section>
+      </div>
+
+      <!-- Side column -->
+      <aside class="side-col">
+        @if (t.can_manage) {
+          <section class="card manage">
+            <div class="card-header">
+              <h2><mat-icon>build</mat-icon>Manage ticket</h2>
+            </div>
+            <div class="quick-actions">
+              @if (t.assigned_to?.id !== auth.user()?.id) {
+                <button mat-stroked-button type="button" (click)="assignToMe()" [disabled]="saving()">
+                  <mat-icon>assignment_ind</mat-icon>
+                  Assign to me
+                </button>
+              }
+              @if (t.status === 'open') {
+                <button mat-stroked-button type="button" (click)="startProgress()" [disabled]="saving()">
+                  <mat-icon>play_arrow</mat-icon>
+                  Start progress
+                </button>
+              }
+            </div>
+
+            <form class="card-body manage-form" [formGroup]="manageForm" (ngSubmit)="save()" novalidate>
+              @if (saveError()) {
+                <div class="alert error" role="alert">
+                  <mat-icon>error</mat-icon>
+                  <span>{{ saveError() }}</span>
+                </div>
+              }
+
+              <mat-form-field>
+                <mat-label>Status</mat-label>
+                <mat-select formControlName="status">
+                  @for (status of statusOptions(); track status.value) {
+                    <mat-option [value]="status.value">
+                      <span class="option-with-icon">
+                        <mat-icon [style.color]="status.color">{{ status.icon }}</mat-icon>
+                        {{ status.label }}
+                        @if (status.value === t.status) {
+                          <span class="muted">(current)</span>
+                        }
+                      </span>
+                    </mat-option>
+                  }
+                </mat-select>
+                @if (manageForm.controls.status.hasError('server')) {
+                  <mat-error>{{ manageForm.controls.status.getError('server') }}</mat-error>
+                }
+              </mat-form-field>
+
+              <mat-form-field>
+                <mat-label>Resolution note{{ resolving() ? ' (required)' : '' }}</mat-label>
+                <textarea
+                  matInput
+                  formControlName="resolution_note"
+                  rows="5"
+                  maxlength="5000"
+                  placeholder="What was the cause and how was it fixed?"
+                ></textarea>
+                <mat-hint>
+                  @if (resolving()) {
+                    Required to resolve · at least {{ rules.resolution_min }} characters. Shared with the requester.
+                  } @else {
+                    Shared with the requester when the ticket is resolved.
+                  }
+                </mat-hint>
+                @if (manageForm.controls.resolution_note.hasError('resolutionRequired')) {
+                  <mat-error>Write at least {{ rules.resolution_min }} characters before resolving.</mat-error>
+                }
+                @if (manageForm.controls.resolution_note.hasError('server')) {
+                  <mat-error>{{ manageForm.controls.resolution_note.getError('server') }}</mat-error>
+                }
+              </mat-form-field>
+
+              <mat-form-field>
+                <mat-label>Assignee</mat-label>
+                <mat-select formControlName="assigned_to">
+                  <mat-option value="">
+                    <span class="option-with-icon"><mat-icon>person_off</mat-icon>Unassigned</span>
+                  </mat-option>
+                  @for (agent of config.agents(); track agent.id) {
+                    <mat-option [value]="agent.id">
+                      {{ agent.full_name }}{{ agent.id === auth.user()?.id ? ' (me)' : '' }}
+                    </mat-option>
+                  }
+                </mat-select>
+                @if (manageForm.controls.assigned_to.hasError('server')) {
+                  <mat-error>{{ manageForm.controls.assigned_to.getError('server') }}</mat-error>
+                }
+              </mat-form-field>
+
+              <div class="two">
+                <mat-form-field>
+                  <mat-label>Priority</mat-label>
+                  <mat-select formControlName="priority">
+                    @for (priority of config.priorities(); track priority.id) {
+                      <mat-option [value]="priority.id">
+                        <span class="option-with-icon">
+                          <mat-icon [style.color]="priority.color">{{ priority.icon }}</mat-icon>
+                          {{ priority.label }}
+                        </span>
+                      </mat-option>
+                    }
+                  </mat-select>
+                </mat-form-field>
+
+                <mat-form-field>
+                  <mat-label>Category</mat-label>
+                  <mat-select formControlName="category">
+                    @for (category of categoryOptions(); track category.id) {
+                      <mat-option [value]="category.id">
+                        <span class="option-with-icon">
+                          <mat-icon [style.color]="category.color">{{ category.icon }}</mat-icon>
+                          {{ category.label }}
+                        </span>
+                      </mat-option>
+                    }
+                  </mat-select>
+                  @if (manageForm.controls.category.hasError('server')) {
+                    <mat-error>{{ manageForm.controls.category.getError('server') }}</mat-error>
+                  }
+                </mat-form-field>
+              </div>
+
+              <div class="manage-actions">
+                <button mat-button type="button" (click)="discard()" [disabled]="!isDirty() || saving()">
+                  Discard
+                </button>
+                <button mat-flat-button type="submit" [disabled]="!isDirty() || saving()">
+                  @if (saving()) {
+                    <mat-progress-spinner diameter="18" mode="indeterminate" />
+                  } @else {
+                    <mat-icon>{{ resolving() && t.status !== 'resolved' ? 'task_alt' : 'save' }}</mat-icon>
+                  }
+                  {{ resolving() && t.status !== 'resolved' ? 'Resolve ticket' : 'Save changes' }}
+                </button>
+              </div>
+            </form>
+          </section>
+        } @else {
+          <section class="card info-card">
+            <mat-icon>info</mat-icon>
+            <p>
+              @switch (t.status) {
+                @case ('open') {
+                  Your ticket is in the queue. A support agent will pick it up soon.
+                }
+                @case ('in_progress') {
+                  {{ t.assigned_to?.full_name ?? 'An agent' }} is working on your ticket.
+                }
+                @default {
+                  This ticket has been resolved. Add a comment if the problem comes back.
+                }
+              }
+            </p>
+          </section>
+        }
+
+        <section class="card">
+          <div class="card-header">
+            <h2><mat-icon>info</mat-icon>Details</h2>
+          </div>
+          <dl class="details">
+            <div><dt>Reference</dt><dd class="mono">{{ t.reference }}</dd></div>
+            <div><dt>Status</dt><dd><app-status-badge [status]="t.status" /></dd></div>
+            <div><dt>Priority</dt><dd><app-lookup-badge [option]="t.priority" [plain]="true" /></dd></div>
+            <div><dt>Category</dt><dd><app-lookup-badge [option]="t.category" [plain]="true" /></dd></div>
+            <div>
+              <dt>Requester</dt>
+              <dd><app-user-avatar [user]="t.created_by" [subtitle]="t.created_by.email" /></dd>
+            </div>
+            <div><dt>Assignee</dt><dd><app-user-avatar [user]="t.assigned_to" /></dd></div>
+            <div><dt>Created</dt><dd>{{ t.created_at | date: 'd MMM y, h:mm a' }}</dd></div>
+            <div><dt>Last update</dt><dd>{{ t.updated_at | date: 'd MMM y, h:mm a' }}</dd></div>
+            @if (t.resolved_at) {
+              <div><dt>Resolved</dt><dd>{{ t.resolved_at | date: 'd MMM y, h:mm a' }}</dd></div>
+            }
+          </dl>
+        </section>
+      </aside>
+    </div>
+  }
+</div>

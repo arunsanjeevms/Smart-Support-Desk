@@ -1,0 +1,151 @@
+<div class="page">
+  <app-page-header
+    icon="confirmation_number"
+    [title]="title()"
+    [description]="
+      auth.isAgent()
+        ? 'Every ticket raised by users. Search, sort, filter and export the list.'
+        : 'Issues you have reported and their current status.'
+    "
+  >
+    <a mat-flat-button routerLink="/tickets/new">
+      <mat-icon>add</mat-icon>
+      New ticket
+    </a>
+  </app-page-header>
+
+  <app-data-table
+    [source]="source"
+    [columns]="columns()"
+    [rowLink]="rowLink"
+    exportTitle="Tickets"
+    searchPlaceholder="Search reference, title, description…"
+    emptyIcon="confirmation_number"
+    [emptyTitle]="auth.isAgent() ? 'No tickets yet' : 'You have not raised any tickets yet'"
+    emptyMessage="When an issue is reported it will appear here."
+  >
+    <!-- Filters -->
+    <ng-container tableFilters>
+      <mat-form-field class="filter-field">
+        <mat-label>Status</mat-label>
+        <mat-select
+          multiple
+          [value]="statusFilter()"
+          (selectionChange)="setFilter('status', $event.value)"
+        >
+          @for (status of config.statuses(); track status.value) {
+            <mat-option [value]="status.value">
+              <span class="option-with-icon">
+                <mat-icon [style.color]="status.color">{{ status.icon }}</mat-icon>
+                {{ status.label }}
+              </span>
+            </mat-option>
+          }
+        </mat-select>
+      </mat-form-field>
+
+      <mat-form-field class="filter-field">
+        <mat-label>Category</mat-label>
+        <mat-select [value]="source.filters()['category']" (selectionChange)="setFilter('category', $event.value)">
+          <mat-option value="">All categories</mat-option>
+          @for (category of config.categories(); track category.id) {
+            <mat-option [value]="category.id">
+              <span class="option-with-icon">
+                <mat-icon [style.color]="category.color">{{ category.icon }}</mat-icon>
+                {{ category.label }}
+              </span>
+            </mat-option>
+          }
+        </mat-select>
+      </mat-form-field>
+
+      <mat-form-field class="filter-field">
+        <mat-label>Priority</mat-label>
+        <mat-select [value]="source.filters()['priority']" (selectionChange)="setFilter('priority', $event.value)">
+          <mat-option value="">Any priority</mat-option>
+          @for (priority of config.priorities(); track priority.id) {
+            <mat-option [value]="priority.id">
+              <span class="option-with-icon">
+                <mat-icon [style.color]="priority.color">{{ priority.icon }}</mat-icon>
+                {{ priority.label }}
+              </span>
+            </mat-option>
+          }
+        </mat-select>
+      </mat-form-field>
+
+      @if (auth.isAgent()) {
+        <mat-form-field class="filter-field">
+          <mat-label>Assignee</mat-label>
+          <mat-select
+            [value]="source.filters()['assigned_to']"
+            (selectionChange)="setFilter('assigned_to', $event.value)"
+          >
+            <mat-option value="">Anyone</mat-option>
+            <mat-option value="me">
+              <span class="option-with-icon"><mat-icon>assignment_ind</mat-icon>Assigned to me</span>
+            </mat-option>
+            <mat-option value="unassigned">
+              <span class="option-with-icon"><mat-icon>person_off</mat-icon>Unassigned</span>
+            </mat-option>
+            @for (agent of config.agents(); track agent.id) {
+              <mat-option [value]="agent.id">{{ agent.full_name }}</mat-option>
+            }
+          </mat-select>
+        </mat-form-field>
+      }
+
+      <mat-form-field class="filter-field wide">
+        <mat-label>Created between</mat-label>
+        <mat-date-range-input [formGroup]="range" [rangePicker]="picker">
+          <input matStartDate formControlName="start" placeholder="From" />
+          <input matEndDate formControlName="end" placeholder="To" (dateChange)="applyDateRange()" />
+        </mat-date-range-input>
+        <mat-datepicker-toggle matIconSuffix [for]="picker" />
+        <mat-date-range-picker #picker (closed)="applyDateRange()" />
+      </mat-form-field>
+    </ng-container>
+
+    <!-- Custom cells -->
+    <ng-template appCell="reference" let-row>
+      <span class="ref-chip">{{ row.reference }}</span>
+    </ng-template>
+
+    <ng-template appCell="title" let-row>
+      <a class="title-link" [routerLink]="['/tickets', row.id]">{{ row.title }}</a>
+    </ng-template>
+
+    <ng-template appCell="category" let-row>
+      <app-lookup-badge [option]="row.category" />
+    </ng-template>
+
+    <ng-template appCell="priority" let-row>
+      <app-lookup-badge [option]="row.priority" [plain]="true" />
+    </ng-template>
+
+    <ng-template appCell="status" let-row>
+      <app-status-badge [status]="row.status" />
+    </ng-template>
+
+    <ng-template appCell="created_by" let-row>
+      <app-user-avatar [user]="row.created_by" [size]="26" />
+    </ng-template>
+
+    <ng-template appCell="assigned_to" let-row>
+      <app-user-avatar [user]="row.assigned_to" [size]="26" />
+    </ng-template>
+
+    <ng-template appCell="created_at" let-row>
+      <span [matTooltip]="(row.created_at | date: 'medium') ?? ''">{{ row.created_at | relativeTime }}</span>
+    </ng-template>
+
+    <ng-template appCell="updated_at" let-row>
+      <span [matTooltip]="(row.updated_at | date: 'medium') ?? ''">{{ row.updated_at | relativeTime }}</span>
+    </ng-template>
+
+    <a tableEmptyAction mat-flat-button routerLink="/tickets/new">
+      <mat-icon>add</mat-icon>
+      Raise a ticket
+    </a>
+  </app-data-table>
+</div>
