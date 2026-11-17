@@ -10,6 +10,7 @@ import { TicketStats } from '../../core/models/api.models';
 import { AuthService } from '../../core/services/auth.service';
 import { TicketService } from '../../core/services/ticket.service';
 import { errorMessage } from '../../core/utils/api-errors';
+import { CountUp } from '../../shared/components/count-up';
 import { LookupBadge } from '../../shared/components/lookup-badge';
 import { PageHeader } from '../../shared/components/page-header';
 import { StatusBadge } from '../../shared/components/status-badge';
@@ -21,7 +22,10 @@ const PIE_RADIUS = 86;
 
 interface StatTile {
   label: string;
-  value: string;
+  /** Numeric value (animated); `null` shows a dash. */
+  value: number | null;
+  decimals?: number;
+  suffix?: string;
   icon: string;
   tone: 'blue' | 'amber' | 'green' | 'slate' | 'violet';
   caption: string;
@@ -43,6 +47,7 @@ interface StatTile {
     StatusBadge,
     LookupBadge,
     UserAvatar,
+    CountUp,
     RelativeTimePipe,
   ],
   templateUrl: './dashboard-page.html',
@@ -65,13 +70,16 @@ export class DashboardPage implements OnInit {
     const inProgress = count('in_progress');
     const resolved = count('resolved');
     const avg = stats.average_resolution_hours;
-    const avgText = avg === null ? '—' : avg >= 48 ? `${(avg / 24).toFixed(1)} d` : `${avg} h`;
+    const inDays = avg !== null && avg >= 48;
+    const avgValue = avg === null ? null : inDays ? avg / 24 : avg;
+    const avgSuffix = inDays ? ' d' : ' h';
+    const avgText = avgValue === null ? '—' : `${avgValue.toFixed(1)}${avgSuffix}`;
 
     if (this.auth.isAgent()) {
       return [
         {
           label: 'Open queue',
-          value: String(open + inProgress),
+          value: open + inProgress,
           icon: 'inbox',
           tone: 'blue',
           caption: `${stats.unassigned_open ?? 0} waiting for an owner`,
@@ -80,7 +88,7 @@ export class DashboardPage implements OnInit {
         },
         {
           label: 'Assigned to me',
-          value: String(stats.assigned_to_me_open ?? 0),
+          value: stats.assigned_to_me_open ?? 0,
           icon: 'assignment_ind',
           tone: 'violet',
           caption: 'Open or in progress',
@@ -89,7 +97,7 @@ export class DashboardPage implements OnInit {
         },
         {
           label: 'Resolved this week',
-          value: String(stats.resolved_last_7_days),
+          value: stats.resolved_last_7_days,
           icon: 'task_alt',
           tone: 'green',
           caption: `${resolved} resolved in total`,
@@ -98,7 +106,9 @@ export class DashboardPage implements OnInit {
         },
         {
           label: 'Avg. resolution time',
-          value: avgText,
+          value: avgValue,
+          decimals: 1,
+          suffix: avgSuffix,
           icon: 'timer',
           tone: 'amber',
           caption: `${stats.created_last_7_days} new tickets in 7 days`,
@@ -108,7 +118,7 @@ export class DashboardPage implements OnInit {
     return [
       {
         label: 'My tickets',
-        value: String(stats.total),
+        value: stats.total,
         icon: 'confirmation_number',
         tone: 'slate',
         caption: `${stats.created_last_7_days} raised in the last 7 days`,
@@ -116,7 +126,7 @@ export class DashboardPage implements OnInit {
       },
       {
         label: 'Open',
-        value: String(open),
+        value: open,
         icon: 'radio_button_unchecked',
         tone: 'blue',
         caption: 'Waiting for the support team',
@@ -125,7 +135,7 @@ export class DashboardPage implements OnInit {
       },
       {
         label: 'In progress',
-        value: String(inProgress),
+        value: inProgress,
         icon: 'autorenew',
         tone: 'amber',
         caption: 'An agent is working on it',
@@ -134,7 +144,7 @@ export class DashboardPage implements OnInit {
       },
       {
         label: 'Resolved',
-        value: String(resolved),
+        value: resolved,
         icon: 'check_circle',
         tone: 'green',
         caption: avg === null ? 'No resolved tickets yet' : `Typically resolved in ${avgText}`,

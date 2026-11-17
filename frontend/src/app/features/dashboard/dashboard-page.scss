@@ -14,8 +14,10 @@
 }
 
 .tile {
+  // Each card has a strong accent (--tone) and a light tint of the same hue.
   --tone: #475467;
-  --tone-soft: #f2f4f7;
+  --tone-bg: #f3f5f8;
+  --tone-border: #d9dee6;
   position: relative;
   display: grid;
   grid-template-columns: auto 1fr;
@@ -27,8 +29,8 @@
   column-gap: 10px;
   row-gap: 6px;
   padding: 18px 20px;
-  background: var(--app-surface);
-  border: 1px solid var(--app-border);
+  background: var(--tone-bg);
+  border: 1px solid var(--tone-border);
   border-radius: var(--app-radius-lg);
   box-shadow: var(--app-shadow-xs);
   color: inherit;
@@ -37,29 +39,36 @@
     border-color 0.15s,
     box-shadow 0.15s,
     transform 0.15s;
+  // Cards rise into place one after another.
+  animation: rise 0.55s cubic-bezier(0.2, 0.7, 0.2, 1) backwards;
+  animation-delay: calc(var(--i, 0) * 80ms);
 
   &.tone-blue {
     --tone: #1f4fbf;
-    --tone-soft: #eef3fd;
+    --tone-bg: #eef3fd;
+    --tone-border: #cfdcf8;
   }
   &.tone-amber {
     --tone: #b45309;
-    --tone-soft: #fffaeb;
+    --tone-bg: #fff8e6;
+    --tone-border: #f8dfa8;
   }
   &.tone-green {
     --tone: #15803d;
-    --tone-soft: #ecfdf3;
+    --tone-bg: #ecf9f0;
+    --tone-border: #bfe8cf;
   }
   &.tone-violet {
     --tone: #6d28d9;
-    --tone-soft: #f6f2ff;
+    --tone-bg: #f5f1fe;
+    --tone-border: #ddd0fb;
   }
 }
 
 a.tile:hover {
-  border-color: var(--app-border-strong);
+  border-color: color-mix(in srgb, var(--tone) 35%, white);
   box-shadow: var(--app-shadow-md);
-  transform: translateY(-1px);
+  transform: translateY(-2px);
 
   .tile-go {
     opacity: 1;
@@ -73,7 +82,8 @@ a.tile:hover {
   width: 34px;
   height: 34px;
   border-radius: 9px;
-  background: var(--tone-soft);
+  background: #fff;
+  border: 1px solid var(--tone-border);
   color: var(--tone);
 
   .mat-icon {
@@ -102,8 +112,15 @@ a.tile:hover {
 
 .tile-caption {
   grid-area: caption;
-  color: var(--app-text-muted);
+  color: var(--app-text-secondary);
   font-size: 12.5px;
+}
+
+@keyframes rise {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
 }
 
 .tile-go {
@@ -143,15 +160,25 @@ a.tile:hover {
     stroke-width: 2;
     stroke-linejoin: round;
     cursor: pointer;
-    transform-origin: 90px 90px;
-    transition:
-      opacity 0.15s,
-      transform 0.15s;
+    transition: opacity 0.15s;
 
     &:hover {
-      opacity: 0.88;
-      transform: scale(1.03);
+      opacity: 0.85;
     }
+  }
+
+  // The mask circle is drawn clockwise from 12 o'clock, uncovering the slices.
+  // Its circumference is 2 * PI * (radius / 2) = 2 * PI * 43.
+  .pie-reveal {
+    stroke-dasharray: 270.18;
+    stroke-dashoffset: 0;
+    animation: pie-sweep 1.1s cubic-bezier(0.3, 0.6, 0.2, 1) backwards;
+  }
+}
+
+@keyframes pie-sweep {
+  from {
+    stroke-dashoffset: 270.18;
   }
 }
 
@@ -162,6 +189,11 @@ a.tile:hover {
   display: flex;
   flex-direction: column;
   gap: 4px;
+
+  li {
+    animation: rise 0.45s ease backwards;
+    animation-delay: calc(0.45s + var(--i, 0) * 90ms);
+  }
 
   a {
     display: grid;
@@ -251,6 +283,7 @@ a.tile:hover {
 
 .bar {
   display: block;
+  width: var(--w, 0);
   height: 100%;
   min-width: 4px;
   border-radius: 0 4px 4px 0;
@@ -258,8 +291,18 @@ a.tile:hover {
   transition:
     width 0.4s ease,
     background-color 0.15s;
+  // Bars grow from the left, one row after another.
+  animation: bar-grow 0.8s cubic-bezier(0.2, 0.7, 0.2, 1) backwards;
+  animation-delay: calc(0.15s + var(--i, 0) * 70ms);
 
   &.is-zero {
+    min-width: 0;
+  }
+}
+
+@keyframes bar-grow {
+  from {
+    width: 0;
     min-width: 0;
   }
 }

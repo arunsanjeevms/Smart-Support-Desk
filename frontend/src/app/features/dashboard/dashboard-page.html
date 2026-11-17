@@ -30,20 +30,29 @@
   @if (stats(); as data) {
     <!-- KPI tiles -->
     <section class="tiles" aria-label="Key numbers">
-      @for (tile of tiles(); track tile.label) {
+      @for (tile of tiles(); track tile.label; let i = $index) {
         @if (tile.link) {
-          <a [routerLink]="tile.link" [queryParams]="tile.queryParams" [class]="'tile tone-' + tile.tone">
+          <a
+            [routerLink]="tile.link"
+            [queryParams]="tile.queryParams"
+            [class]="'tile tone-' + tile.tone"
+            [style.--i]="i"
+          >
             <span class="tile-icon"><mat-icon>{{ tile.icon }}</mat-icon></span>
             <span class="tile-label">{{ tile.label }}</span>
-            <span class="tile-value">{{ tile.value }}</span>
+            <span class="tile-value">
+              <app-count-up [value]="tile.value" [decimals]="tile.decimals ?? 0" [suffix]="tile.suffix ?? ''" />
+            </span>
             <span class="tile-caption">{{ tile.caption }}</span>
             <mat-icon class="tile-go" aria-hidden="true">arrow_outward</mat-icon>
           </a>
         } @else {
-          <div [class]="'tile tone-' + tile.tone">
+          <div [class]="'tile tone-' + tile.tone" [style.--i]="i">
             <span class="tile-icon"><mat-icon>{{ tile.icon }}</mat-icon></span>
             <span class="tile-label">{{ tile.label }}</span>
-            <span class="tile-value">{{ tile.value }}</span>
+            <span class="tile-value">
+              <app-count-up [value]="tile.value" [decimals]="tile.decimals ?? 0" [suffix]="tile.suffix ?? ''" />
+            </span>
             <span class="tile-caption">{{ tile.caption }}</span>
           </div>
         }
@@ -67,35 +76,52 @@
               [attr.viewBox]="'0 0 ' + pieSize + ' ' + pieSize"
               [attr.aria-label]="'Pie chart of ' + data.total + ' tickets by status'"
             >
-              @for (slice of pieSlices(); track slice.value) {
-                @if (slice.path) {
-                  <path
-                    class="slice"
-                    [attr.d]="slice.path"
-                    [attr.fill]="slice.color"
-                    [matTooltip]="slice.label + ': ' + slice.count + ' (' + (slice.percent | number: '1.0-0') + '%)'"
-                    matTooltipPosition="above"
-                  />
-                } @else {
+              <!-- A thick circle stroke that "draws" clockwise reveals the pie like a sweeping clock hand. -->
+              <defs>
+                <mask id="pie-reveal" maskUnits="userSpaceOnUse" x="0" y="0" [attr.width]="pieSize" [attr.height]="pieSize">
                   <circle
-                    class="slice"
+                    class="pie-reveal"
+                    fill="none"
+                    stroke="#fff"
                     [attr.cx]="pieCenter"
                     [attr.cy]="pieCenter"
-                    [attr.r]="pieRadius"
-                    [attr.fill]="slice.color"
-                    [matTooltip]="slice.label + ': ' + slice.count + ' (100%)'"
-                    matTooltipPosition="above"
+                    [attr.r]="pieRadius / 2"
+                    [attr.stroke-width]="pieRadius + 2"
+                    [attr.transform]="'rotate(-90 ' + pieCenter + ' ' + pieCenter + ')'"
                   />
+                </mask>
+              </defs>
+              <g mask="url(#pie-reveal)">
+                @for (slice of pieSlices(); track slice.value) {
+                  @if (slice.path) {
+                    <path
+                      class="slice"
+                      [attr.d]="slice.path"
+                      [attr.fill]="slice.color"
+                      [matTooltip]="slice.label + ': ' + slice.count + ' (' + (slice.percent | number: '1.0-0') + '%)'"
+                      matTooltipPosition="above"
+                    />
+                  } @else {
+                    <circle
+                      class="slice"
+                      [attr.cx]="pieCenter"
+                      [attr.cy]="pieCenter"
+                      [attr.r]="pieRadius"
+                      [attr.fill]="slice.color"
+                      [matTooltip]="slice.label + ': ' + slice.count + ' (100%)'"
+                      matTooltipPosition="above"
+                    />
+                  }
                 }
-              }
+              </g>
             </svg>
             <ul class="legend">
-              @for (status of statusShare(); track status.value) {
-                <li>
+              @for (status of statusShare(); track status.value; let i = $index) {
+                <li [style.--i]="i">
                   <a routerLink="/tickets" [queryParams]="{ status: status.value }">
                     <mat-icon [style.color]="status.color">{{ status.icon }}</mat-icon>
                     <span class="legend-label">{{ status.label }}</span>
-                    <span class="legend-value">{{ status.count }}</span>
+                    <span class="legend-value"><app-count-up [value]="status.count" [duration]="1100" /></span>
                     <span class="legend-share">{{ status.percent | number: '1.0-0' }}%</span>
                   </a>
                 </li>
@@ -113,8 +139,8 @@
         </div>
         <div class="card-body">
           <ul class="bars">
-            @for (row of categoryRows(); track row.id) {
-              <li>
+            @for (row of categoryRows(); track row.id; let i = $index) {
+              <li [style.--i]="i">
                 <a class="bar-row" routerLink="/tickets" [queryParams]="{ category: row.id }"
                    [matTooltip]="row.label + ': ' + row.count + ' ticket' + (row.count === 1 ? '' : 's')"
                    matTooltipPosition="above">
@@ -122,8 +148,10 @@
                     <mat-icon [style.color]="row.color || '#667085'">{{ row.icon || 'label' }}</mat-icon>
                     {{ row.label }}
                   </span>
-                  <span class="bar-track"><span class="bar" [class.is-zero]="row.count === 0" [style.width.%]="row.percent"></span></span>
-                  <span class="bar-value">{{ row.count }}</span>
+                  <span class="bar-track">
+                    <span class="bar" [class.is-zero]="row.count === 0" [style.--w]="row.percent + '%'"></span>
+                  </span>
+                  <span class="bar-value"><app-count-up [value]="row.count" [duration]="1000" /></span>
                 </a>
               </li>
             } @empty {
