@@ -19,6 +19,7 @@ class ExportTests(ApiTestCase):
             created_by=self.other_requester, title="Refund for duplicate charge",
             description="We were charged twice for the same invoice.", category=category("billing"),
         )
+        mail.outbox.clear()  # ignore the "ticket received" notifications from the set-up
 
     def test_excel_export_contains_the_filtered_rows(self):
         response = self.client_for(self.agent).get("/api/tickets/export/?file_type=xlsx&search=sign")

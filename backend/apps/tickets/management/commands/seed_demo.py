@@ -79,8 +79,8 @@ class Command(BaseCommand):
         priorities = {v.code: v for v in LookupValue.objects.of_type(LookupTypeCode.TICKET_PRIORITY)}
         agents = [users[a["username"]] for a in AGENTS]
         now = timezone.now()
-        notify = settings.SUPPORT_DESK["NOTIFY_REQUESTER_ON_STATUS_CHANGE"]
-        settings.SUPPORT_DESK["NOTIFY_REQUESTER_ON_STATUS_CHANGE"] = False  # no mail while seeding
+        notify = settings.SUPPORT_DESK["EMAIL_NOTIFICATIONS"]
+        settings.SUPPORT_DESK["EMAIL_NOTIFICATIONS"] = False  # no mail while seeding
 
         try:
             for spec in sorted(TICKETS, key=lambda t: -t["days_ago"]):
@@ -130,6 +130,6 @@ class Command(BaseCommand):
                     updates["resolved_at"] = last
                 Ticket.objects.filter(pk=ticket.pk).update(**updates)
         finally:
-            settings.SUPPORT_DESK["NOTIFY_REQUESTER_ON_STATUS_CHANGE"] = notify
+            settings.SUPPORT_DESK["EMAIL_NOTIFICATIONS"] = notify
 
         self.stdout.write(f"Tickets created: {Ticket.objects.count()}")

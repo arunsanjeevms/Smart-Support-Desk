@@ -1,0 +1,84 @@
+{% extends "emails/base.html" %}
+{% comment %}
+  One layout for every ticket notification. Context:
+    eyebrow, heading, greeting, intro, ticket, ticket_url, button_label, closing, reason
+    status_badge  - current status pill            (optional)
+    old / new     - status change pills             (optional, replaces status_badge)
+    highlight     - {label, text, tone: green|teal} (optional: resolution, comment, description)
+    details       - list of (label, value)
+{% endcomment %}
+
+{% block preheader %}{{ preheader }}{% endblock %}
+
+{% block content %}
+  <p style="margin:0 0 6px;font-size:11px;font-weight:600;letter-spacing:1.4px;text-transform:uppercase;color:#0f766e;">{{ eyebrow }}</p>
+  <h1 style="margin:0 0 14px;font-size:22px;line-height:1.35;font-weight:600;color:#101828;">{{ heading }}</h1>
+  <p style="margin:0 0 24px;">{{ greeting }}<br>{{ intro }}</p>
+
+  <!-- Ticket summary -->
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border:1px solid #e4e7ec;border-radius:10px;border-collapse:separate;">
+    <tr>
+      <td style="padding:16px 18px 14px;{% if old or status_badge %}border-bottom:1px solid #eaecf0;{% endif %}">
+        <span style="display:inline-block;padding:2px 8px;border:1px solid #e4e7ec;border-radius:6px;background:#f9fafb;font-size:12px;font-weight:500;color:#475467;">{{ ticket.reference }}</span>
+        <div style="margin-top:8px;font-size:15px;font-weight:600;line-height:1.45;color:#101828;">{{ ticket.title }}</div>
+      </td>
+    </tr>
+    {% if old or status_badge %}
+    <tr>
+      <td style="padding:14px 18px;">
+        <table role="presentation" cellpadding="0" cellspacing="0">
+          <tr>
+            <td style="padding-right:8px;font-size:12px;color:#667085;">Status</td>
+            {% if old %}
+              <td><span style="display:inline-block;padding:3px 11px;border-radius:999px;border:1px solid {{ old.border }};background:{{ old.background }};color:{{ old.text }};font-size:12px;font-weight:600;">{{ old.label }}</span></td>
+              <td style="padding:0 8px;font-size:14px;color:#98a2b3;">&rarr;</td>
+              <td><span style="display:inline-block;padding:3px 11px;border-radius:999px;border:1px solid {{ new.border }};background:{{ new.background }};color:{{ new.text }};font-size:12px;font-weight:600;">{{ new.label }}</span></td>
+            {% else %}
+              <td><span style="display:inline-block;padding:3px 11px;border-radius:999px;border:1px solid {{ status_badge.border }};background:{{ status_badge.background }};color:{{ status_badge.text }};font-size:12px;font-weight:600;">{{ status_badge.label }}</span></td>
+            {% endif %}
+          </tr>
+        </table>
+      </td>
+    </tr>
+    {% endif %}
+  </table>
+
+  {% if highlight %}
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin-top:18px;">
+    <tr>
+      {% if highlight.tone == "green" %}
+      <td style="padding:16px 18px;background:#f0fbf4;border:1px solid #c6ecd4;border-left:4px solid #16a34a;border-radius:10px;">
+        <div style="font-size:11px;font-weight:600;letter-spacing:1.2px;text-transform:uppercase;color:#15803d;margin-bottom:6px;">{{ highlight.label }}</div>
+      {% else %}
+      <td style="padding:16px 18px;background:#f9fafb;border:1px solid #eaecf0;border-left:4px solid #0f766e;border-radius:10px;">
+        <div style="font-size:11px;font-weight:600;letter-spacing:1.2px;text-transform:uppercase;color:#667085;margin-bottom:6px;">{{ highlight.label }}</div>
+      {% endif %}
+        <div style="font-size:14px;line-height:1.65;color:#1d2939;">{{ highlight.text|linebreaksbr }}</div>
+      </td>
+    </tr>
+  </table>
+  {% endif %}
+
+  {% if details %}
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin-top:22px;font-size:13px;">
+    {% for label, value in details %}
+    <tr>
+      <td width="38%" style="padding:9px 0;border-bottom:1px solid #f2f4f7;color:#667085;">{{ label }}</td>
+      <td style="padding:9px 0;border-bottom:1px solid #f2f4f7;color:#101828;font-weight:500;">{{ value }}</td>
+    </tr>
+    {% endfor %}
+  </table>
+  {% endif %}
+
+  <table role="presentation" cellpadding="0" cellspacing="0" style="margin-top:28px;">
+    <tr>
+      <td style="border-radius:8px;background:#0f766e;">
+        <a href="{{ ticket_url }}" style="display:inline-block;padding:12px 26px;font-family:'Poppins','Segoe UI',Helvetica,Arial,sans-serif;font-size:14px;font-weight:600;color:#ffffff;text-decoration:none;border-radius:8px;">{{ button_label }}</a>
+      </td>
+    </tr>
+  </table>
+
+  {% if closing %}<p style="margin:24px 0 0;font-size:13px;color:#667085;">{{ closing }}</p>{% endif %}
+{% endblock %}
+
+{% block footer %}{{ reason }}{% endblock %}

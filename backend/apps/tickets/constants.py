@@ -58,6 +58,18 @@ ACTIVITY_ICONS = {
     ActivityType.COMMENTED: "chat_bubble",
 }
 
+
+class NotificationEvent:
+    """Codes of the e-mail notification events (values of the "Email notifications" list)."""
+
+    TICKET_RECEIVED = "ticket_received"  # to the requester
+    NEW_TICKET_ALERT = "new_ticket_alert"  # to the support team
+    TICKET_ASSIGNED = "ticket_assigned"  # to the assigned agent
+    STATUS_CHANGED = "status_changed"  # to the requester
+    COMMENT_ADDED = "comment_added"  # to the other side of the conversation
+    DETAILS_UPDATED = "details_updated"  # to the requester
+
+
 TITLE_MIN_LENGTH = 5
 TITLE_MAX_LENGTH = 150
 DESCRIPTION_MIN_LENGTH = 20

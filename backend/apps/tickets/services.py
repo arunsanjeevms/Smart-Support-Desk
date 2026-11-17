@@ -42,6 +42,7 @@ def create_ticket(*, created_by, title, description, category, priority=None) ->
         created_by=created_by,
     )
     log_activity(ticket, created_by, ActivityType.CREATED, "Raised the ticket")
+    notifications.ticket_created(ticket)
     return ticket
 
 
@@ -122,11 +123,19 @@ def update_ticket(*, ticket: Ticket, actor, changes: dict) -> Ticket:
     for activity_type, message, extra in entries:
         log_activity(ticket, actor, activity_type, message, at=now, **extra)
 
+    # E-mail notifications (each one can be switched off on the Configuration screen).
     if new_status != old_status:
         notifications.status_changed(ticket, actor, old_status)
+    if "assigned_to" in update_fields:
+        notifications.ticket_assigned(ticket, actor, ticket.assigned_to)
+    detail_changes = [message for kind, message, _ in entries if kind == ActivityType.DETAILS_UPDATED]
+    if detail_changes:
+        notifications.details_updated(ticket, actor, detail_changes)
     return ticket
 
 
 def add_comment(*, ticket: Ticket, author, message: str) -> TicketActivity:
     ticket.save(update_fields=["updated_at"])
-    return log_activity(ticket, author, ActivityType.COMMENTED, "Added a comment", note=message.strip())
+    entry = log_activity(ticket, author, ActivityType.COMMENTED, "Added a comment", note=message.strip())
+    notifications.comment_added(ticket, author, entry.note)
+    return entry

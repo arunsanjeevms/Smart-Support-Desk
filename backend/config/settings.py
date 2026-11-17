@@ -184,7 +184,9 @@ SUPPORT_DESK = {
     "TICKET_REFERENCE_START": 1000,
     # Hard limit so an export can never pull an unbounded result set.
     "EXPORT_MAX_ROWS": int(os.getenv("EXPORT_MAX_ROWS", "5000")),
-    "NOTIFY_REQUESTER_ON_STATUS_CHANGE": env_bool("NOTIFY_REQUESTER_ON_STATUS_CHANGE", True),
+    # Master switch for notification e-mails. Individual events are switched on/off
+    # in the "Email notifications" list on the Configuration screen.
+    "EMAIL_NOTIFICATIONS": env_bool("EMAIL_NOTIFICATIONS", env_bool("NOTIFY_REQUESTER_ON_STATUS_CHANGE", True)),
     # One-click demo sign-in on the login page. Turn off outside demos.
     "DEMO_MODE": env_bool("DEMO_MODE", True),
     "DEMO_ACCOUNTS": [

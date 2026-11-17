@@ -6,7 +6,7 @@ from apps.tickets import services
 class LookupDefaultsTests(ApiTestCase):
     def test_defaults_are_created_once(self):
         create_default_lookups()  # running again must not duplicate anything
-        self.assertEqual(LookupType.objects.count(), 2)
+        self.assertEqual(LookupType.objects.count(), 3)
         self.assertEqual(LookupValue.objects.of_type("ticket_category").count(), 9)
         self.assertEqual(LookupValue.objects.of_type("ticket_priority").get(is_default=True).code, "medium")
 

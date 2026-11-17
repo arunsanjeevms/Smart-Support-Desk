@@ -2,6 +2,7 @@ from rest_framework import serializers
 
 from apps.core.serializers import MongoModelSerializer, ObjectIdField
 
+from .constants import LookupTypeCode
 from .models import LookupType, LookupValue
 
 
@@ -58,4 +59,14 @@ class LookupValueSerializer(MongoModelSerializer):
             raise serializers.ValidationError({"code": ["This code is already used in this list."]})
         if self.instance and "lookup_type_id" in attrs and attrs["lookup_type_id"] != self.instance.lookup_type_id:
             raise serializers.ValidationError({"lookup_type": ["The type of an existing value cannot change."]})
+
+        # Built-in lists (e.g. e-mail events) are defined by the application.
+        type_code = LookupType.objects.filter(pk=type_id).values_list("code", flat=True).first()
+        if type_code in LookupTypeCode.BUILT_IN_VALUES:
+            if self.instance is None:
+                raise serializers.ValidationError(
+                    {"lookup_type": ["E-mail events are built in. You can rename them or switch them on and off."]}
+                )
+            if code != self.instance.code:
+                raise serializers.ValidationError({"code": ["The code of a built-in value cannot change."]})
         return attrs

@@ -344,6 +344,7 @@ form, filter and badge from the response:
 | Ticket statuses + allowed transitions | `apps/tickets/constants.py` (business rules depend on them) | code - served to the UI via `/api/config/` |
 | Validation limits (title/description length, ...) | `apps/tickets/constants.py` | code - served to the UI via `/api/config/` |
 | Roles | `User.Role` | Django admin (create agents, change roles) |
+| **E-mail notifications** (which actions send an e-mail) | `LookupValue` rows of type `notification_event` | Configuration screen → *Email notifications* (switch each event on/off) |
 | Demo accounts, export row limit, e-mail notifications | `backend/.env` | environment variables |
 
 **Generic lookup pattern.** `LookupType` describes a list (e.g. *Ticket category*), `LookupValue` holds its options.
@@ -393,6 +394,27 @@ accident. To really send mail with Gmail:
 All e-mails are HTML (with a plain-text version) and share one branded layout. The templates are in
 `backend/apps/core/templates/emails/`. The "View ticket" buttons link to `FRONTEND_URL` (default
 `http://localhost:4200`); set it in `backend/.env` when the app runs somewhere else.
+
+---
+
+### Notification e-mails
+
+Every ticket action can send an e-mail. Each event is a row in the **Email notifications** list on the
+Configuration screen: switch it off to stop that e-mail, or rename it. `EMAIL_NOTIFICATIONS=False` in `backend/.env`
+turns all of them off at once.
+
+| Event | Sent to |
+|---|---|
+| Ticket received | the requester (confirmation with their description) |
+| New ticket alert | every active support agent |
+| Ticket assigned | the agent it was assigned to (not when agents assign themselves) |
+| Status changed | the requester, including the resolution note when resolved |
+| New comment | the requester when an agent comments; the assignee (or the whole team if unassigned) when the requester comments |
+| Ticket details changed | the requester when the category or priority changes |
+
+Nobody is e-mailed about their own action. E-mails are sent in the background so the app stays fast, and
+addresses on reserved demo domains (`example.com`, `*.test`, ...) are skipped. To receive the demo e-mails
+yourself, give a demo user your real address in the Django admin.
 
 ---
 

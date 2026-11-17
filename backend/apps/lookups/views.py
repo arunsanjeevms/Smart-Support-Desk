@@ -5,6 +5,7 @@ from rest_framework.response import Response
 from apps.accounts.permissions import IsAgentOrReadOnly
 from apps.core.exports import ExportColumn, ExportMixin
 
+from .constants import LookupTypeCode
 from .models import LookupType, LookupValue
 from .serializers import LookupTypeSerializer, LookupValueSerializer
 
@@ -66,6 +67,11 @@ class LookupValueViewSet(ExportMixin, viewsets.ModelViewSet):
 
     def destroy(self, request, *args, **kwargs):
         value = self.get_object()
+        if value.lookup_type.code in LookupTypeCode.BUILT_IN_VALUES:
+            return Response(
+                {"message": f'"{value.label}" is built in and cannot be deleted. Switch it off instead.', "errors": {}},
+                status=status.HTTP_409_CONFLICT,
+            )
         try:
             value.delete()
         except ProtectedError:

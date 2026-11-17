@@ -1,0 +1,20 @@
+{% autoescape off %}{{ greeting }}
+
+{{ intro }}
+
+  Ticket:   {{ ticket.reference }} - {{ ticket.title }}
+{% if old %}  Status:   {{ old.label }} -> {{ new.label }}
+{% elif status_badge %}  Status:   {{ status_badge.label }}
+{% endif %}{% for label, value in details %}  {{ label }}: {{ value }}
+{% endfor %}{% if highlight %}
+{{ highlight.label }}:
+{{ highlight.text }}
+{% endif %}
+{{ button_label }}: {{ ticket_url }}
+{% if closing %}
+{{ closing }}
+{% endif %}
+--
+{{ brand }}
+{{ reason }}
+{% endautoescape %}

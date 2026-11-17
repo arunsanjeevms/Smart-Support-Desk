@@ -16,7 +16,7 @@ class LoginTests(ApiTestCase):
         self.assertFalse(response.data["user"]["is_agent"])
 
     def test_login_with_email_is_supported(self):
-        response = self.anon.post(self.url, {"username": "MEERA@example.com", "password": PASSWORD}, format="json")
+        response = self.anon.post(self.url, {"username": "MEERA@acme-support.io", "password": PASSWORD}, format="json")
         self.assertEqual(response.status_code, 200)
         self.assertTrue(response.data["user"]["is_agent"])
 
@@ -56,7 +56,7 @@ class RegisterTests(ApiTestCase):
 
     def test_password_mismatch_and_duplicates_are_rejected(self):
         response = self.anon.post(
-            self.url, self.payload(confirm_password="different", email="RIYA@example.com", username="riya"),
+            self.url, self.payload(confirm_password="different", email="RIYA@acme-support.io", username="riya"),
             format="json",
         )
         self.assertEqual(response.status_code, 400)

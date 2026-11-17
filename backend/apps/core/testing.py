@@ -19,17 +19,19 @@ User = get_user_model()
 PASSWORD = "Str0ng-Passw0rd!"
 
 _default_lookups = importlib.import_module("apps.lookups.migrations.0002_default_lookups")
+_notification_events = importlib.import_module("apps.lookups.migrations.0003_notification_events")
 
 
 def create_default_lookups():
-    """Create the same categories/priorities the data migration creates."""
+    """Create the same categories, priorities and e-mail events the data migrations create."""
     _default_lookups.create_defaults(django_apps, None)
+    _notification_events.create_events(django_apps, None)
 
 
 def make_user(username, role=User.Role.REQUESTER, **extra):
     return User.objects.create_user(
         username=username,
-        email=extra.pop("email", f"{username}@example.com"),
+        email=extra.pop("email", f"{username}@acme-support.io"),  # deliverable-looking (tests never really send)
         password=PASSWORD,
         first_name=extra.pop("first_name", username.title()),
         role=role,

@@ -152,6 +152,7 @@ class StatusWorkflowTests(ApiTestCase):
         super().setUp()
         self.ticket = new_ticket(self.requester)
         self.url = f"{URL}{self.ticket.pk}/"
+        mail.outbox.clear()  # ignore the "ticket received" notifications from the set-up
 
     def test_requester_cannot_change_status(self):
         response = self.client_for(self.requester).patch(self.url, {"status": "resolved"}, format="json")
@@ -185,7 +186,7 @@ class StatusWorkflowTests(ApiTestCase):
 
         self.assertEqual(len(mail.outbox), 1)
         message = mail.outbox[0]
-        self.assertEqual(message.to, ["riya@example.com"])
+        self.assertEqual(message.to, ["riya@acme-support.io"])
         self.assertIn("Resolved", message.subject)
         self.assertIn(note, message.body)
         html, html_type = message.alternatives[0]

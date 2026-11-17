@@ -9,3 +9,8 @@ class LookupTypeCode:
 
     TICKET_CATEGORY = "ticket_category"
     TICKET_PRIORITY = "ticket_priority"
+    NOTIFICATION_EVENT = "notification_event"
+
+    # Lists whose values are defined by the application: they can be renamed and
+    # switched on/off, but values cannot be added or deleted.
+    BUILT_IN_VALUES = {NOTIFICATION_EVENT}
