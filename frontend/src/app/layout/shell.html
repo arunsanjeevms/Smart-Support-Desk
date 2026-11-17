@@ -73,8 +73,9 @@
       }
 
       <div class="topbar-greeting">
-        <span class="muted">{{ greeting() }},</span>
-        <strong>{{ auth.user()?.first_name || auth.user()?.username }}</strong>
+        <mat-icon class="wave filled" aria-hidden="true">waving_hand</mat-icon>
+        <span class="greet-text">{{ greeting() }},</span>
+        <strong class="greet-name">{{ auth.user()?.first_name || auth.user()?.username }}</strong>
       </div>
 
       <span class="spacer"></span>
