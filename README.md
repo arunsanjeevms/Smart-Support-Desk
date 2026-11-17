@@ -78,7 +78,7 @@ layout, keyboard-accessible tables.
 |---|---|---|
 | Python | 3.12 or newer | `python --version` |
 | Node.js | 22.12+ or 24+ | `node --version` |
-| MongoDB Server | 6.0 or newer, running locally (the server behind MongoDB Compass) | Compass connects to `mongodb://localhost:27017` |
+| MongoDB Server | 6.0 or newer, running locally (the server behind MongoDB Compass) | Windows *Services* shows **MongoDB Server** as *Running* |
 | Git | any recent | `git --version` |
 
 ### 1. Get the code
@@ -132,9 +132,26 @@ Open <http://localhost:4200> and click one of the demo accounts on the sign-in p
 The backend reads two settings from `backend/.env`:
 
 ```ini
-MONGODB_URI=mongodb://localhost:27017     # the same connection string you use in MongoDB Compass
+MONGODB_URI=mongodb://127.0.0.1:27017     # the same connection string you use in MongoDB Compass
 MONGODB_NAME=smart_support_desk           # database name - created automatically
 ```
+
+> Use `127.0.0.1` rather than `localhost`. A default MongoDB install on Windows only listens on IPv4
+> (`bindIp: 127.0.0.1` in `mongod.cfg`), and `localhost` can resolve to the IPv6 address `::1`, which is refused.
+
+### Viewing the data in MongoDB Compass
+
+Compass only lists connections you have saved, so on a fresh install the list is empty even though the server is
+running. Add one once:
+
+1. Open **MongoDB Compass** → click **+ Add new connection** (or **New connection**).
+2. In **URI** enter `mongodb://127.0.0.1:27017` and give it a name, e.g. *Local MongoDB*.
+3. Click **Save & Connect**. The connection now stays in the left sidebar.
+4. Expand **smart_support_desk** to browse the collections below (run `migrate` and `seed_demo` first).
+   Click a collection, e.g. `tickets_ticket`, and filter with `{ "status": "open" }`.
+
+If Compass says *connect ECONNREFUSED*: open **Services** (`Win + R` → `services.msc`), find **MongoDB Server**, and
+click **Start**.
 
 Using MongoDB Atlas or a password-protected server? Put the full connection string in `MONGODB_URI`, e.g.
 `mongodb+srv://user:password@cluster0.example.mongodb.net/?retryWrites=true`.

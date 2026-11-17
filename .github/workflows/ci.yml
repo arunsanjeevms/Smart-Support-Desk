@@ -36,7 +36,7 @@ jobs:
         working-directory: backend
 
     env:
-      MONGODB_URI: mongodb://localhost:27017
+      MONGODB_URI: mongodb://127.0.0.1:27017
       MONGODB_NAME: smart_support_desk_ci
       DJANGO_SECRET_KEY: ci-only-not-secret
       DJANGO_DEBUG: "False"

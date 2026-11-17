@@ -86,7 +86,9 @@ WSGI_APPLICATION = "config.wsgi.application"
 DATABASES = {
     "default": {
         "ENGINE": "django_mongodb_backend",
-        "HOST": os.getenv("MONGODB_URI", "mongodb://localhost:27017"),
+        # 127.0.0.1 instead of "localhost": a default MongoDB install on Windows only
+        # listens on IPv4, and "localhost" can resolve to the IPv6 address ::1.
+        "HOST": os.getenv("MONGODB_URI", "mongodb://127.0.0.1:27017"),
         "NAME": os.getenv("MONGODB_NAME", "smart_support_desk"),
     },
 }
