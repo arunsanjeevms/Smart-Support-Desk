@@ -54,25 +54,41 @@
       <!-- Status distribution -->
       <section class="card">
         <div class="card-header">
-          <h2><mat-icon>donut_large</mat-icon>Tickets by status</h2>
+          <h2><mat-icon>pie_chart</mat-icon>Tickets by status</h2>
           <span class="muted">{{ data.total | number }} total</span>
         </div>
         <div class="card-body">
           @if (data.total === 0) {
             <p class="muted">No tickets yet.</p>
           } @else {
-            <div class="stack" role="img" [attr.aria-label]="'Status breakdown of ' + data.total + ' tickets'">
-              @for (status of statusShare(); track status.value) {
-                @if (status.count > 0) {
-                  <span
-                    class="segment"
-                    [style.flex-grow]="status.count"
-                    [style.background]="status.color"
-                    [matTooltip]="status.label + ': ' + status.count + ' (' + (status.percent | number: '1.0-0') + '%)'"
-                  ></span>
+            <svg
+              class="pie"
+              role="img"
+              [attr.viewBox]="'0 0 ' + pieSize + ' ' + pieSize"
+              [attr.aria-label]="'Pie chart of ' + data.total + ' tickets by status'"
+            >
+              @for (slice of pieSlices(); track slice.value) {
+                @if (slice.path) {
+                  <path
+                    class="slice"
+                    [attr.d]="slice.path"
+                    [attr.fill]="slice.color"
+                    [matTooltip]="slice.label + ': ' + slice.count + ' (' + (slice.percent | number: '1.0-0') + '%)'"
+                    matTooltipPosition="above"
+                  />
+                } @else {
+                  <circle
+                    class="slice"
+                    [attr.cx]="pieCenter"
+                    [attr.cy]="pieCenter"
+                    [attr.r]="pieRadius"
+                    [attr.fill]="slice.color"
+                    [matTooltip]="slice.label + ': ' + slice.count + ' (100%)'"
+                    matTooltipPosition="above"
+                  />
                 }
               }
-            </div>
+            </svg>
             <ul class="legend">
               @for (status of statusShare(); track status.value) {
                 <li>

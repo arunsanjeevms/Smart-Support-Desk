@@ -16,6 +16,9 @@ import { StatusBadge } from '../../shared/components/status-badge';
 import { UserAvatar } from '../../shared/components/user-avatar';
 import { RelativeTimePipe } from '../../shared/pipes/relative-time.pipe';
 
+const PIE_CENTER = 90;
+const PIE_RADIUS = 86;
+
 interface StatTile {
   label: string;
   value: string;
@@ -141,12 +144,38 @@ export class DashboardPage implements OnInit {
     ];
   });
 
-  /** Status share for the stacked bar (only statuses with tickets). */
+  /** Share of each status, used by both the pie chart and its legend. */
   protected readonly statusShare = computed(() => {
     const stats = this.stats();
     if (!stats || stats.total === 0) return [];
     return stats.by_status.map((s) => ({ ...s, percent: (s.count / stats.total) * 100 }));
   });
+
+  /** SVG pie slices (only statuses that have tickets), drawn clockwise from 12 o'clock. */
+  protected readonly pieSlices = computed(() => {
+    const shares = this.statusShare().filter((s) => s.count > 0);
+    const radius = PIE_RADIUS;
+    let angle = -Math.PI / 2;
+    return shares.map((share) => {
+      // A single status covers the whole circle, which an arc path cannot draw.
+      if (share.percent >= 99.999) {
+        return { ...share, path: null as string | null };
+      }
+      const sweep = (share.percent / 100) * 2 * Math.PI;
+      const start = angle;
+      const end = angle + sweep;
+      angle = end;
+      const point = (a: number) =>
+        `${(PIE_CENTER + radius * Math.cos(a)).toFixed(2)} ${(PIE_CENTER + radius * Math.sin(a)).toFixed(2)}`;
+      const largeArc = sweep > Math.PI ? 1 : 0;
+      const path = `M ${PIE_CENTER} ${PIE_CENTER} L ${point(start)} A ${radius} ${radius} 0 ${largeArc} 1 ${point(end)} Z`;
+      return { ...share, path };
+    });
+  });
+
+  protected readonly pieSize = PIE_CENTER * 2;
+  protected readonly pieRadius = PIE_RADIUS;
+  protected readonly pieCenter = PIE_CENTER;
 
   protected readonly categoryRows = computed(() => {
     const rows = [...(this.stats()?.by_category ?? [])].sort((a, b) => b.count - a.count);

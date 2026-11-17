@@ -129,22 +129,28 @@ a.tile:hover {
   }
 }
 
-// Status stacked bar: thin, 2px surface gaps between segments.
-.stack {
-  display: flex;
-  gap: 2px;
-  height: 12px;
-  border-radius: 6px;
-  overflow: hidden;
-  margin: 6px 0 20px;
+// Status pie chart: slices are separated by a 2px surface-coloured gap.
+.pie {
+  display: block;
+  width: 100%;
+  max-width: 190px;
+  height: auto;
+  margin: 4px auto 20px;
+  overflow: visible;
 
-  .segment {
-    min-width: 6px;
-    flex-basis: 0;
-    transition: opacity 0.15s;
+  .slice {
+    stroke: var(--app-surface);
+    stroke-width: 2;
+    stroke-linejoin: round;
+    cursor: pointer;
+    transform-origin: 90px 90px;
+    transition:
+      opacity 0.15s,
+      transform 0.15s;
 
     &:hover {
-      opacity: 0.8;
+      opacity: 0.88;
+      transform: scale(1.03);
     }
   }
 }
