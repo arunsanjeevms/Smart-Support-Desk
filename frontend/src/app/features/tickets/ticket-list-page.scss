@@ -13,3 +13,10 @@
     color: var(--app-primary);
   }
 }
+
+// "Updated ..." badge in the page header: hidden on small screens to save space.
+.header-live {
+  @media (max-width: 720px) {
+    display: none;
+  }
+}

@@ -51,7 +51,9 @@ export class DataTable<T extends object> implements OnInit {
   readonly source = input.required<TableSource<T>>();
   readonly columns = input.required<TableColumn<T>[]>();
   readonly exportTitle = input('Report');
+  /** Set to false when the page shows the export menu / "Updated" badge itself (e.g. in its header). */
   readonly showExport = input(true);
+  readonly showLiveIndicator = input(true);
   readonly searchPlaceholder = input('Search…');
   /** When set, clicking a row navigates to the returned route. */
   readonly rowLink = input<((row: T) => unknown[]) | null>(null);

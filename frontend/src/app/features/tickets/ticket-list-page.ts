@@ -15,12 +15,14 @@ import { skip } from 'rxjs';
 import { LookupOption, Ticket } from '../../core/models/api.models';
 import { AuthService } from '../../core/services/auth.service';
 import { ConfigService } from '../../core/services/config.service';
+import { LiveIndicator } from '../../shared/components/live-indicator';
 import { LookupBadge } from '../../shared/components/lookup-badge';
 import { PageHeader } from '../../shared/components/page-header';
 import { StatusBadge } from '../../shared/components/status-badge';
 import { UserAvatar } from '../../shared/components/user-avatar';
 import { DataTable } from '../../shared/data-table/data-table';
 import { CellTemplate, TableColumn } from '../../shared/data-table/table-column';
+import { ExportMenu } from '../../shared/export-menu/export-menu';
 import { TableSource } from '../../shared/data-table/table-source';
 import { RelativeTimePipe } from '../../shared/pipes/relative-time.pipe';
 
@@ -55,6 +57,8 @@ function isoDate(date: Date | null): string {
     StatusBadge,
     LookupBadge,
     UserAvatar,
+    LiveIndicator,
+    ExportMenu,
     RelativeTimePipe,
   ],
   templateUrl: './ticket-list-page.html',
@@ -71,6 +75,9 @@ export class TicketListPage {
     sort: { active: 'created_at', direction: 'desc' },
     filters: filtersFrom(this.route.snapshot.queryParamMap),
   });
+
+  /** Search / sort / filters for the Export menu in the page header (same as the table). */
+  protected readonly exportParams = computed(() => this.source.filterParams());
 
   protected readonly statusFilter = computed(() =>
     (this.source.filters()['status'] ?? '').split(',').filter(Boolean),

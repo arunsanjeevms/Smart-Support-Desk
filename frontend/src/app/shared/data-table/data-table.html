@@ -27,7 +27,9 @@
           Clear
         </button>
       }
-      <app-live-indicator class="live" [updatedAt]="source().lastUpdated()" />
+      @if (showLiveIndicator()) {
+        <app-live-indicator class="live" [updatedAt]="source().lastUpdated()" />
+      }
       @if (showExport()) {
         <app-export-menu [endpoint]="source().endpoint" [params]="exportParams()" [title]="exportTitle()" />
       }

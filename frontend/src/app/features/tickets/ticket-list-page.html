@@ -8,6 +8,8 @@
         : 'Issues you have reported and their current status.'
     "
   >
+    <app-live-indicator class="header-live" [updatedAt]="source.lastUpdated()" />
+    <app-export-menu [endpoint]="source.endpoint" [params]="exportParams()" title="Tickets" />
     <a mat-flat-button routerLink="/tickets/new">
       <mat-icon>add</mat-icon>
       New ticket
@@ -18,6 +20,8 @@
     [source]="source"
     [columns]="columns()"
     [rowLink]="rowLink"
+    [showExport]="false"
+    [showLiveIndicator]="false"
     exportTitle="Tickets"
     searchPlaceholder="Search reference, title, description…"
     emptyIcon="confirmation_number"
