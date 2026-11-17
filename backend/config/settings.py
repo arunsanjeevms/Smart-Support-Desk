@@ -155,6 +155,11 @@ REST_FRAMEWORK = {
 CORS_ALLOWED_ORIGINS = env_list(
     "CORS_ALLOWED_ORIGINS", "http://localhost:4200,http://127.0.0.1:4200"
 )
+# While developing, accept the Angular app from any local address and port
+# (localhost, 127.0.0.1 or [::1]), e.g. when `ng serve` picks another port.
+CORS_ALLOWED_ORIGIN_REGEXES = (
+    [r"^http://(localhost|127\.0\.0\.1|\[::1\]):\d+$"] if DEBUG else []
+)
 CORS_EXPOSE_HEADERS = ["Content-Disposition"]
 
 # --------------------------------------------------------------------------
