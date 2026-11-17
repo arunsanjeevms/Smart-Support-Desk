@@ -49,7 +49,7 @@ import { RelativeTimePipe } from '../../shared/pipes/relative-time.pipe';
         emptyTitle="No activity yet"
       >
         <ng-container tableFilters>
-          <mat-form-field class="filter-field wide">
+          <mat-form-field floatLabel="always" class="filter-field wide">
             <mat-label>Activity</mat-label>
             <mat-select
               [value]="source.filters()['activity_type']"
@@ -181,7 +181,7 @@ export class ActivityLogPage {
     { key: 'ticket', label: 'Ticket', sortField: 'ticket__reference' },
     { key: 'activity_type', label: 'Activity', sortField: 'activity_type' },
     { key: 'message', label: 'Details' },
-    { key: 'actor', label: 'By', sortField: 'actor__first_name', hideOnMobile: true },
+    { key: 'actor', label: 'By', sortField: 'actor__first_name', hideBelow: 'sm' },
   ];
 
   protected readonly rowLink = (row: TicketActivity) => ['/tickets', row.ticket.id];

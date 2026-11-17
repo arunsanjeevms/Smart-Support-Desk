@@ -68,7 +68,7 @@
               [mat-sort-header]="column.key"
               [style.width]="column.width"
               [class]="'align-' + (column.align ?? 'start')"
-              [class.hide-mobile]="column.hideOnMobile"
+              [attr.data-hide]="column.hideBelow"
             >
               {{ column.label }}
             </th>
@@ -78,7 +78,7 @@
               *matHeaderCellDef
               [style.width]="column.width"
               [class]="'align-' + (column.align ?? 'start')"
-              [class.hide-mobile]="column.hideOnMobile"
+              [attr.data-hide]="column.hideBelow"
             >
               {{ column.label }}
             </th>
@@ -87,7 +87,7 @@
             mat-cell
             *matCellDef="let row"
             [class]="'align-' + (column.align ?? 'start')"
-            [class.hide-mobile]="column.hideOnMobile"
+            [attr.data-hide]="column.hideBelow"
           >
             @if (templates().get(column.key); as template) {
               <ng-container *ngTemplateOutlet="template; context: { $implicit: row }" />

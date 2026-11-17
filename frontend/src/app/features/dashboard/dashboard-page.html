@@ -106,7 +106,7 @@
                     <mat-icon [style.color]="row.color || '#667085'">{{ row.icon || 'label' }}</mat-icon>
                     {{ row.label }}
                   </span>
-                  <span class="bar-track"><span class="bar" [style.width.%]="row.percent"></span></span>
+                  <span class="bar-track"><span class="bar" [class.is-zero]="row.count === 0" [style.width.%]="row.percent"></span></span>
                   <span class="bar-value">{{ row.count }}</span>
                 </a>
               </li>

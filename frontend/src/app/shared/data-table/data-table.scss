@@ -108,9 +108,7 @@
 // ---------------------------------------------------------------- table
 .table-scroll {
   overflow-x: auto;
-  max-height: calc(100vh - 290px);
   min-height: 140px;
-  overflow-y: auto;
   transition: opacity 0.15s;
 
   &.dimmed {
@@ -127,6 +125,20 @@ th.mat-mdc-header-cell {
   text-transform: uppercase;
   letter-spacing: 0.04em;
   white-space: nowrap;
+}
+
+th.mat-mdc-header-cell,
+td.mat-mdc-cell {
+  padding-left: 12px;
+  padding-right: 12px;
+
+  &:first-child {
+    padding-left: 20px;
+  }
+
+  &:last-child {
+    padding-right: 20px;
+  }
 }
 
 td.mat-mdc-cell {
@@ -160,8 +172,19 @@ tr.mat-mdc-row {
   }
 }
 
-@media (max-width: 900px) {
-  .hide-mobile {
+// Responsive columns (see TableColumn.hideBelow)
+@media (max-width: 1439px) {
+  [data-hide='lg'] {
+    display: none;
+  }
+}
+@media (max-width: 1199px) {
+  [data-hide='md'] {
+    display: none;
+  }
+}
+@media (max-width: 899px) {
+  [data-hide='sm'] {
     display: none;
   }
 }

@@ -35,7 +35,23 @@ html {
       outline-variant: #e4e7ec,
       on-surface: #101828,
       on-surface-variant: #475467,
-      corner-full: 8px,
+    )
+  );
+
+  // Softly rounded (not pill shaped) buttons.
+  @include mat.button-overrides(
+    (
+      filled-container-shape: 8px,
+      outlined-container-shape: 8px,
+      protected-container-shape: 8px,
+      text-container-shape: 8px,
+      tonal-container-shape: 8px,
+    )
+  );
+
+  @include mat.button-toggle-overrides(
+    (
+      shape: 8px,
     )
   );
 

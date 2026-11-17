@@ -26,13 +26,15 @@
   >
     <!-- Filters -->
     <ng-container tableFilters>
-      <mat-form-field class="filter-field">
+      <mat-form-field floatLabel="always" class="filter-field">
         <mat-label>Status</mat-label>
         <mat-select
           multiple
+          placeholder="Any status"
           [value]="statusFilter()"
           (selectionChange)="setFilter('status', $event.value)"
         >
+          <mat-select-trigger>{{ statusSummary() }}</mat-select-trigger>
           @for (status of config.statuses(); track status.value) {
             <mat-option [value]="status.value">
               <span class="option-with-icon">
@@ -44,9 +46,10 @@
         </mat-select>
       </mat-form-field>
 
-      <mat-form-field class="filter-field">
+      <mat-form-field floatLabel="always" class="filter-field">
         <mat-label>Category</mat-label>
         <mat-select [value]="source.filters()['category']" (selectionChange)="setFilter('category', $event.value)">
+          <mat-select-trigger>{{ optionLabel(config.categories(), source.filters()['category'], 'All categories') }}</mat-select-trigger>
           <mat-option value="">All categories</mat-option>
           @for (category of config.categories(); track category.id) {
             <mat-option [value]="category.id">
@@ -59,9 +62,10 @@
         </mat-select>
       </mat-form-field>
 
-      <mat-form-field class="filter-field">
+      <mat-form-field floatLabel="always" class="filter-field">
         <mat-label>Priority</mat-label>
         <mat-select [value]="source.filters()['priority']" (selectionChange)="setFilter('priority', $event.value)">
+          <mat-select-trigger>{{ optionLabel(config.priorities(), source.filters()['priority'], 'Any priority') }}</mat-select-trigger>
           <mat-option value="">Any priority</mat-option>
           @for (priority of config.priorities(); track priority.id) {
             <mat-option [value]="priority.id">
@@ -75,12 +79,13 @@
       </mat-form-field>
 
       @if (auth.isAgent()) {
-        <mat-form-field class="filter-field">
+        <mat-form-field floatLabel="always" class="filter-field">
           <mat-label>Assignee</mat-label>
           <mat-select
             [value]="source.filters()['assigned_to']"
             (selectionChange)="setFilter('assigned_to', $event.value)"
           >
+            <mat-select-trigger>{{ assigneeLabel() }}</mat-select-trigger>
             <mat-option value="">Anyone</mat-option>
             <mat-option value="me">
               <span class="option-with-icon"><mat-icon>assignment_ind</mat-icon>Assigned to me</span>
@@ -95,7 +100,7 @@
         </mat-form-field>
       }
 
-      <mat-form-field class="filter-field wide">
+      <mat-form-field floatLabel="always" class="filter-field wide">
         <mat-label>Created between</mat-label>
         <mat-date-range-input [formGroup]="range" [rangePicker]="picker">
           <input matStartDate formControlName="start" placeholder="From" />
@@ -137,10 +142,6 @@
 
     <ng-template appCell="created_at" let-row>
       <span [matTooltip]="(row.created_at | date: 'medium') ?? ''">{{ row.created_at | relativeTime }}</span>
-    </ng-template>
-
-    <ng-template appCell="updated_at" let-row>
-      <span [matTooltip]="(row.updated_at | date: 'medium') ?? ''">{{ row.updated_at | relativeTime }}</span>
     </ng-template>
 
     <a tableEmptyAction mat-flat-button routerLink="/tickets/new">

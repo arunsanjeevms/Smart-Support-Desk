@@ -46,7 +46,7 @@ import { RelativeTimePipe } from '../../shared/pipes/relative-time.pipe';
         emptyTitle="No users found"
       >
         <ng-container tableFilters>
-          <mat-form-field class="filter-field">
+          <mat-form-field floatLabel="always" class="filter-field">
             <mat-label>Role</mat-label>
             <mat-select
               [value]="source.filters()['role']"
@@ -142,11 +142,11 @@ export class UserListPage {
 
   protected readonly columns: TableColumn<User>[] = [
     { key: 'first_name', label: 'Name', sortField: 'first_name' },
-    { key: 'username', label: 'Username', sortField: 'username', hideOnMobile: true },
+    { key: 'username', label: 'Username', sortField: 'username', hideBelow: 'sm' },
     { key: 'role', label: 'Role', sortField: 'role' },
-    { key: 'job_title', label: 'Job title', hideOnMobile: true },
-    { key: 'is_active', label: 'Status', hideOnMobile: true },
-    { key: 'date_joined', label: 'Joined', sortField: 'date_joined', hideOnMobile: true },
+    { key: 'job_title', label: 'Job title', hideBelow: 'sm' },
+    { key: 'is_active', label: 'Status', hideBelow: 'sm' },
+    { key: 'date_joined', label: 'Joined', sortField: 'date_joined', hideBelow: 'sm' },
     { key: 'last_login', label: 'Last sign-in', sortField: 'last_login' },
   ];
 }

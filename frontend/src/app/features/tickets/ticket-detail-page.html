@@ -83,7 +83,7 @@
         <section class="card">
           <div class="card-header">
             <h2><mat-icon>timeline</mat-icon>Activity</h2>
-            <span class="muted">{{ activities().length }} events</span>
+            <span class="muted">{{ activities().length }} {{ activities().length === 1 ? 'event' : 'events' }}</span>
           </div>
           <ol class="timeline">
             @for (entry of activities(); track entry.id) {
@@ -101,8 +101,10 @@
                       </span>
                     } @else if (entry.activity_type === 'commented') {
                       <span class="muted">commented</span>
+                    } @else if (entry.activity_type === 'created') {
+                      <span class="muted">raised this ticket</span>
                     } @else {
-                      <span class="muted">{{ entry.message }}</span>
+                      <span class="muted">· {{ entry.message }}</span>
                     }
                     <time class="when" [matTooltip]="(entry.created_at | date: 'medium') ?? ''">
                       {{ entry.created_at | relativeTime }}
@@ -176,6 +178,14 @@
               <mat-form-field>
                 <mat-label>Status</mat-label>
                 <mat-select formControlName="status">
+                  <mat-select-trigger>
+                    @if (config.status(manageForm.controls.status.value); as current) {
+                      <span class="option-with-icon">
+                        <mat-icon [style.color]="current.color">{{ current.icon }}</mat-icon>
+                        {{ current.label }}
+                      </span>
+                    }
+                  </mat-select-trigger>
                   @for (status of statusOptions(); track status.value) {
                     <mat-option [value]="status.value">
                       <span class="option-with-icon">
@@ -220,6 +230,7 @@
               <mat-form-field>
                 <mat-label>Assignee</mat-label>
                 <mat-select formControlName="assigned_to">
+                  <mat-select-trigger>{{ agentName(manageForm.controls.assigned_to.value) }}</mat-select-trigger>
                   <mat-option value="">
                     <span class="option-with-icon"><mat-icon>person_off</mat-icon>Unassigned</span>
                   </mat-option>
@@ -238,6 +249,7 @@
                 <mat-form-field>
                   <mat-label>Priority</mat-label>
                   <mat-select formControlName="priority">
+                    <mat-select-trigger>{{ optionLabel(config.priorities(), manageForm.controls.priority.value) }}</mat-select-trigger>
                     @for (priority of config.priorities(); track priority.id) {
                       <mat-option [value]="priority.id">
                         <span class="option-with-icon">
@@ -252,6 +264,7 @@
                 <mat-form-field>
                   <mat-label>Category</mat-label>
                   <mat-select formControlName="category">
+                    <mat-select-trigger>{{ optionLabel(categoryOptions(), manageForm.controls.category.value) }}</mat-select-trigger>
                     @for (category of categoryOptions(); track category.id) {
                       <mat-option [value]="category.id">
                         <span class="option-with-icon">

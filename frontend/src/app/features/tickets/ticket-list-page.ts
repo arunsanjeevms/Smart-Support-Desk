@@ -12,7 +12,7 @@ import { MatTooltipModule } from '@angular/material/tooltip';
 import { ActivatedRoute, ParamMap, Router, RouterLink } from '@angular/router';
 import { skip } from 'rxjs';
 
-import { Ticket } from '../../core/models/api.models';
+import { LookupOption, Ticket } from '../../core/models/api.models';
 import { AuthService } from '../../core/services/auth.service';
 import { ConfigService } from '../../core/services/config.service';
 import { LookupBadge } from '../../shared/components/lookup-badge';
@@ -83,19 +83,18 @@ export class TicketListPage {
   protected readonly columns = computed<TableColumn<Ticket>[]>(() => {
     const agent = this.auth.isAgent();
     return [
-      { key: 'reference', label: 'Ref', sortField: 'reference', width: '110px' },
+      { key: 'reference', label: 'Ref', sortField: 'reference', width: '104px' },
       { key: 'title', label: 'Title', sortField: 'title' },
-      { key: 'category', label: 'Category', sortField: 'category__label', hideOnMobile: true },
-      { key: 'priority', label: 'Priority', sortField: 'priority__sort_order', hideOnMobile: true },
-      { key: 'status', label: 'Status', sortField: 'status', width: '140px' },
+      { key: 'category', label: 'Category', sortField: 'category__label', hideBelow: 'sm' },
+      { key: 'priority', label: 'Priority', sortField: 'priority__sort_order', hideBelow: 'lg' },
+      { key: 'status', label: 'Status', sortField: 'status', width: '130px' },
       ...(agent
-        ? [
-            { key: 'created_by', label: 'Raised by', sortField: 'created_by__first_name', hideOnMobile: true },
-            { key: 'assigned_to', label: 'Assignee', sortField: 'assigned_to__first_name', hideOnMobile: true },
-          ]
-        : [{ key: 'assigned_to', label: 'Handled by', hideOnMobile: true }]),
-      { key: 'created_at', label: 'Created', sortField: 'created_at', width: '130px' },
-      { key: 'updated_at', label: 'Updated', sortField: 'updated_at', width: '130px', hideOnMobile: true },
+        ? ([
+            { key: 'created_by', label: 'Raised by', sortField: 'created_by__first_name', hideBelow: 'md' },
+            { key: 'assigned_to', label: 'Assignee', sortField: 'assigned_to__first_name', hideBelow: 'md' },
+          ] satisfies TableColumn<Ticket>[])
+        : ([{ key: 'assigned_to', label: 'Handled by', hideBelow: 'md' }] satisfies TableColumn<Ticket>[])),
+      { key: 'created_at', label: 'Created', sortField: 'created_at', width: '120px' },
     ];
   });
 
@@ -146,6 +145,24 @@ export class TicketListPage {
       created_from: isoDate(start),
       created_to: isoDate(end),
     });
+  }
+
+  protected statusSummary(): string {
+    const selected = this.statusFilter();
+    if (selected.length === 0) return 'Any status';
+    return selected.map((value) => this.config.status(value)?.label ?? value).join(', ');
+  }
+
+  protected optionLabel(options: LookupOption[], id: string | undefined, fallback: string): string {
+    return options.find((option) => option.id === id)?.label ?? fallback;
+  }
+
+  protected assigneeLabel(): string {
+    const value = this.source.filters()['assigned_to'];
+    if (!value) return 'Anyone';
+    if (value === 'me') return 'Assigned to me';
+    if (value === 'unassigned') return 'Unassigned';
+    return this.config.agents().find((agent) => agent.id === value)?.full_name ?? 'Agent';
   }
 
   protected title(): string {

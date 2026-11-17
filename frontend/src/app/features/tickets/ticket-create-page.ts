@@ -75,6 +75,9 @@ export class TicketCreatePage {
   private readonly values = toSignal(this.form.valueChanges, { initialValue: this.form.getRawValue() });
   protected readonly titleLength = computed(() => this.values().title?.length ?? 0);
   protected readonly descriptionLength = computed(() => this.values().description?.length ?? 0);
+  protected readonly selectedPriority = computed(() =>
+    this.config.priorities().find((p) => p.id === this.values().priority),
+  );
   protected readonly selectedCategory = computed(() =>
     this.config.categories().find((c) => c.id === this.values().category),
   );

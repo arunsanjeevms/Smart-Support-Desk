@@ -50,16 +50,17 @@ export class ConfigurationPage implements OnInit {
   protected readonly source = new TableSource<LookupValue>('lookups/values/', {
     sort: { active: 'sort_order', direction: 'asc' },
     filters: { type: 'ticket_category', is_active: '' },
+    lockedFilters: ['type'],
     pageSize: 25,
   });
 
   protected readonly columns: TableColumn<LookupValue>[] = [
     { key: 'sort_order', label: 'Order', sortField: 'sort_order', width: '90px' },
     { key: 'label', label: 'Value', sortField: 'label' },
-    { key: 'code', label: 'Code', sortField: 'code', hideOnMobile: true },
-    { key: 'is_default', label: 'Default', width: '90px', hideOnMobile: true },
+    { key: 'code', label: 'Code', sortField: 'code', hideBelow: 'sm' },
+    { key: 'is_default', label: 'Default', width: '90px', hideBelow: 'sm' },
     { key: 'is_active', label: 'Active', sortField: 'is_active', width: '110px' },
-    { key: 'updated_at', label: 'Updated', sortField: 'updated_at', hideOnMobile: true, value: (v) => new Date(v.updated_at).toLocaleDateString() },
+    { key: 'updated_at', label: 'Updated', sortField: 'updated_at', hideBelow: 'sm', value: (v) => new Date(v.updated_at).toLocaleDateString() },
     { key: 'actions', label: '', width: '110px', align: 'end' },
   ];
 

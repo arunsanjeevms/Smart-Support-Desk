@@ -11,8 +11,8 @@ export interface TableColumn<T = unknown> {
   value?: (row: T) => string | number | null | undefined;
   width?: string;
   align?: 'start' | 'end' | 'center';
-  /** Hide on narrow screens. */
-  hideOnMobile?: boolean;
+  /** Hide the column when the screen is narrower than this breakpoint (sm < 900px, md < 1200px, lg < 1440px). */
+  hideBelow?: 'sm' | 'md' | 'lg';
 }
 
 /**

@@ -16,6 +16,8 @@ export interface TableSourceOptions {
   sort?: TableSort;
   pageSize?: number;
   filters?: Record<string, string>;
+  /** Filters that define the table itself (e.g. which list) - never cleared or counted as "filtered". */
+  lockedFilters?: string[];
 }
 
 /**
@@ -46,8 +48,13 @@ export class TableSource<T> {
 
   /** True when search or any filter is active (used for empty states). */
   readonly isFiltered = computed(
-    () => !!this.search() || Object.values(this.filters()).some((value) => !!value),
+    () =>
+      !!this.search() ||
+      Object.entries(this.filters()).some(
+        ([key, value]) => !!value && !this.lockedFilters.includes(key),
+      ),
   );
+  private readonly lockedFilters: string[];
 
   constructor(
     readonly endpoint: string,
@@ -56,6 +63,7 @@ export class TableSource<T> {
     this.pageSize = signal(options.pageSize ?? 10);
     this.sort = signal<TableSort>(options.sort ?? { active: '', direction: '' });
     this.filters = signal<Record<string, string>>({ ...(options.filters ?? {}) });
+    this.lockedFilters = options.lockedFilters ?? [];
 
     this.reload$
       .pipe(
@@ -139,7 +147,12 @@ export class TableSource<T> {
   }
 
   clearFilters(): void {
-    const cleared = Object.fromEntries(Object.keys(this.filters()).map((key) => [key, '']));
+    const cleared = Object.fromEntries(
+      Object.entries(this.filters()).map(([key, value]) => [
+        key,
+        this.lockedFilters.includes(key) ? value : '',
+      ]),
+    );
     this.filters.set(cleared);
     this.search.set('');
     this.pageIndex.set(0);

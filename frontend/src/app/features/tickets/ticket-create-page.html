@@ -85,6 +85,14 @@
           <mat-form-field>
             <mat-label>Priority</mat-label>
             <mat-select formControlName="priority">
+              <mat-select-trigger>
+                @if (selectedPriority(); as priority) {
+                  <span class="option-with-icon">
+                    <mat-icon [style.color]="priority.color">{{ priority.icon }}</mat-icon>
+                    {{ priority.label }}
+                  </span>
+                }
+              </mat-select-trigger>
               @for (priority of config.priorities(); track priority.id) {
                 <mat-option [value]="priority.id">
                   <span class="option-with-icon">

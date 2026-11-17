@@ -14,6 +14,7 @@ import { RouterLink } from '@angular/router';
 import { forkJoin } from 'rxjs';
 
 import {
+  LookupOption,
   TicketActivity,
   TicketDetail,
   TicketStatus,
@@ -238,7 +239,13 @@ export class TicketDetailPage {
     });
   }
 
-  protected statusLabel(value: string): string {
-    return this.config.status(value)?.label ?? value;
+  protected agentName(id: string): string {
+    if (!id) return 'Unassigned';
+    const agent = this.config.agents().find((a) => a.id === id);
+    return agent ? agent.full_name + (agent.id === this.auth.user()?.id ? ' (me)' : '') : 'Unknown agent';
+  }
+
+  protected optionLabel(options: LookupOption[], id: string): string {
+    return options.find((option) => option.id === id)?.label ?? '';
   }
 }
