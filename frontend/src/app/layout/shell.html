@@ -77,18 +77,14 @@
         {{ auth.user()?.role_label }}
       </span>
 
-      <a mat-flat-button routerLink="/tickets/new" class="new-ticket">
-        <mat-icon>add</mat-icon>
-        New ticket
-      </a>
-
       <button
         type="button"
         class="user-button"
         [matMenuTriggerFor]="userMenu"
-        aria-label="Account menu"
+        [attr.aria-label]="'Account menu for ' + auth.user()?.full_name"
       >
         <app-user-avatar [user]="auth.user()" [size]="34" [showName]="false" />
+        <span class="user-name">{{ auth.user()?.full_name }}</span>
         <mat-icon class="chevron">expand_more</mat-icon>
       </button>
 
