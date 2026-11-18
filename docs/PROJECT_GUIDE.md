@@ -3,6 +3,9 @@
 This guide is for anyone opening the project without much Angular, Django or MongoDB experience. It follows one
 request from the browser to the database and back, then lists where to look when you want to change something.
 
+Related: [TECH_STACK.md](TECH_STACK.md) (versions and reasons), [WORKFLOWS.md](WORKFLOWS.md) (diagrams of every
+main flow), [ER_DIAGRAMS.md](ER_DIAGRAMS.md) (data model) and [SCREENS.md](SCREENS.md) (every screen).
+
 ---
 
 ## 1. The three pieces in one minute
@@ -48,18 +51,22 @@ config/apps.py          makes Django's own apps use MongoDB ObjectIds
 apps/core/              code shared by all apps
     models.py           TimeStampedModel (created_at / updated_at)
     serializers.py      ObjectId <-> string conversion for DRF
+    renderers.py        JSON renderer that writes MongoDB ObjectIds as strings
     exceptions.py       one error format for the whole API
     pagination.py       ?page=&page_size= for every table
     sequences.py        atomic counters in MongoDB
-    exports/            PDF + Excel writers and the ExportMixin (export + email endpoints)
+    emails.py           builds branded HTML + plain-text e-mails
+    templates/emails/   e-mail layout, ticket notification and shared report templates
+    exports/            PDF + Excel writers, the ExportMixin (export + email endpoints), Poppins fonts for the PDF
 apps/accounts/          the User model (with role), login/register/logout, user directory, permissions
-apps/lookups/           LookupType / LookupValue = configurable lists (categories, priorities)
+apps/lookups/           LookupType / LookupValue = configurable lists (categories, priorities, e-mail notifications)
     migrations/0002_*   creates the default categories and priorities
+    migrations/0003_*   creates the six e-mail notification events
 apps/tickets/
-    constants.py        statuses, allowed transitions, validation limits, activity types
+    constants.py        statuses, allowed transitions, validation limits, activity types, notification events
     models.py           Ticket and TicketActivity
     services.py         create / update / comment - all business rules
-    notifications.py    e-mail to the requester when the status changes
+    notifications.py    the six notification e-mails (who gets what), sent in a background thread
     serializers.py      input validation and JSON output
     views.py            TicketViewSet, ActivityViewSet, ConfigView
     management/commands/seed_demo.py   python manage.py seed_demo
@@ -97,13 +104,25 @@ core/
     services/               api, auth, config, ticket, lookup, export, notify
     guards/auth.guards.ts   authGuard, guestGuard, agentGuard, configGuard
     interceptors/           adds the token, handles expired sessions
+    utils/                  api-errors (server errors → form fields), auto-refresh (30-second reload)
+    app-title.strategy.ts   "<page> · Smart Support Desk" in the browser tab
 shared/
     data-table/             DataTable component + TableSource (search/sort/filter/page state)
     export-menu/            "Export" button and the e-mail dialog
-    components/             status badge, category/priority badge, avatar, page header, confirm dialog
-layout/shell.*          sidebar + top bar around every signed-in page
+    components/             status badge, category/priority badge, avatar, page header, confirm dialog,
+                            live "Updated" badge, count-up numbers
+    pipes/                  relative time ("5 minutes ago")
+layout/
+    shell.*                 sidebar + top bar (greeting, role, account menu) around every signed-in page
+    welcome-intro.*         the short welcome animation after signing in
 features/               one folder per screen
+    auth/                   sign in, sign up, brand panel
+    dashboard/              requester and agent dashboards
+    tickets/                list, new ticket, ticket detail
     tickets/similar-tickets/   "Similar resolved tickets" panel + details dialog
+    activity/, users/       activity log and user directory (agents)
+    configuration/          configurable lists + add/edit dialog (agents)
+    not-found-page.ts       404 page
 styles/                 design tokens (_tokens.scss), Material theme (_material.scss), helpers
 ```
 
@@ -137,4 +156,9 @@ Angular vocabulary:
 | add a new exportable table | DRF `ViewSet` + `ExportMixin` + `export_columns`; in Angular a `TableSource` + `<app-data-table>` |
 | change colours / fonts | `frontend/src/styles/_tokens.scss` and `_material.scss` |
 | send real e-mails | SMTP settings in `backend/.env` (see the README) |
+| stop one kind of notification e-mail | Configuration screen → *Email notifications* → switch the event off. No code. |
+| change who receives a notification | `apps/tickets/notifications.py` |
+| change the e-mail look | `apps/core/templates/emails/` and `apps/core/emails.py` |
+| change how often screens refresh | `AUTO_REFRESH_MS` in `frontend/src/app/core/utils/auto-refresh.ts` |
+| change rate limits | `AUTH_THROTTLE_RATE` / `SIMILAR_THROTTLE_RATE` in `backend/.env` |
 | tune the similar-ticket suggestions | `SIMILARITY_*` in `backend/.env` (minimum score, model, on/off); try them with `python manage.py similar_tickets "<text>"` |

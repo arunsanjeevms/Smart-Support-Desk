@@ -17,5 +17,7 @@ Code layout (`src/app/`):
 |---|---|
 | `core/` | API, auth, config and export services, the auth interceptor, route guards, TypeScript models |
 | `shared/` | reusable UI: `DataTable` + `TableSource`, export menu and e-mail dialog, badges, avatar, dialogs, pipes |
-| `layout/` | the app shell (sidebar, top bar, account menu) |
-| `features/` | one folder per screen: auth, dashboard, tickets, activity, users, configuration |
+| `layout/` | the app shell (sidebar, top bar with greeting, account menu) and the welcome animation after sign-in |
+| `features/` | one folder per screen: auth, dashboard, tickets (with the similar resolved tickets panel), activity, users, configuration, 404 page |
+
+Every screen is described in [docs/SCREENS.md](../docs/SCREENS.md).

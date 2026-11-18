@@ -17,6 +17,8 @@ priorities, statuses, ...) is managed by the backend.
 | **Exports** | ReportLab (PDF), openpyxl (Excel), Django e-mail (SMTP / console) |
 | **CI** | GitHub Actions - backend + frontend tests, build, e-mail with the result |
 
+Full list with versions and the reason for each choice: [docs/TECH_STACK.md](docs/TECH_STACK.md).
+
 ---
 
 ## Contents
@@ -24,23 +26,30 @@ priorities, statuses, ...) is managed by the backend.
 1. [Features](#features)
 2. [Quick start (Windows, no Docker)](#quick-start-windows-no-docker)
 3. [MongoDB configuration](#mongodb-configuration)
-4. [Demo accounts and sample data](#demo-accounts-and-sample-data)
-5. [Architecture](#architecture)
-6. [Data model (ER diagram)](#data-model-er-diagram)
-7. [Configuration managed in the backend](#configuration-managed-in-the-backend)
-8. [Tables, exports and e-mail](#tables-exports-and-e-mail)
-9. [Similar ticket suggestions (AI)](#similar-ticket-suggestions-ai)
-10. [API reference](#api-reference)
-11. [Running the tests](#running-the-tests)
-12. [Continuous integration and e-mail notifications](#continuous-integration-and-e-mail-notifications)
-13. [Key design decisions](#key-design-decisions)
-14. [Limitations and next steps](#limitations-and-next-steps)
+4. [Environment variables](#environment-variables)
+5. [Demo accounts and sample data](#demo-accounts-and-sample-data)
+6. [Architecture](#architecture)
+7. [Data model (ER diagram)](#data-model-er-diagram)
+8. [Configuration managed in the backend](#configuration-managed-in-the-backend)
+9. [Tables, exports and e-mail](#tables-exports-and-e-mail)
+10. [Similar ticket suggestions (AI)](#similar-ticket-suggestions-ai)
+11. [API reference](#api-reference)
+12. [Security](#security)
+13. [Running the tests](#running-the-tests)
+14. [Continuous integration and e-mail notifications](#continuous-integration-and-e-mail-notifications)
+15. [Key design decisions](#key-design-decisions)
+16. [Limitations and next steps](#limitations-and-next-steps)
 
 More documentation:
 
-- [docs/PROJECT_GUIDE.md](docs/PROJECT_GUIDE.md) - a guided tour of the code for people new to Angular, Django or MongoDB
-- [docs/DEMO.md](docs/DEMO.md) - a 3-minute demo script (ticket creation → status update → resolution)
-- [docs/ER_DIAGRAMS.md](docs/ER_DIAGRAMS.md) - ER diagrams of every collection, relationships, indexes and data rules
+| Document | What is inside |
+|---|---|
+| [docs/TECH_STACK.md](docs/TECH_STACK.md) | every technology with its version, what it is used for and why; security measures; runtime requirements |
+| [docs/WORKFLOWS.md](docs/WORKFLOWS.md) | role capabilities, end-to-end ticket workflow, status lifecycle, sequence diagrams (sign-in, raising, resolving, comments, exports, configuration), e-mail notification flow, request pipeline, CI pipeline |
+| [docs/ER_DIAGRAMS.md](docs/ER_DIAGRAMS.md) | ER diagrams of every collection, relationships, indexes, data rules and example documents |
+| [docs/SCREENS.md](docs/SCREENS.md) | every screen with what to capture and an explanation, a screenshot checklist and a suggested outline for a submission document |
+| [docs/PROJECT_GUIDE.md](docs/PROJECT_GUIDE.md) | a guided tour of the code for people new to Angular, Django or MongoDB |
+| [docs/DEMO.md](docs/DEMO.md) | a 3-minute demo script (ticket creation → status update → resolution) |
 
 ---
 
@@ -70,9 +79,20 @@ More documentation:
 **pagination** and **filters**, plus **Export → PDF / Excel / Email report**. Exports always contain exactly what the
 table shows (same search, filters and sort order).
 
-**Also included:** requester e-mail notification when a ticket changes status, human-friendly ticket references
-(`SSD-1001`), helpful validation messages from both the UI and the API, loading / empty / error states, responsive
-layout, keyboard-accessible tables.
+**Also included:**
+
+- E-mail notifications for six ticket events (ticket received, new ticket alert, assigned, status changed, new
+  comment, details changed), each switchable on the Configuration screen.
+- Human-friendly ticket references (`SSD-1001`) from an atomic MongoDB counter.
+- Helpful validation messages from both the UI and the API, shown under the matching field.
+- Live data: the dashboard and every table refresh themselves every 30 seconds, with an *Updated* time badge.
+- Loading, empty and error states on every screen, a friendly *Page not found* page, and page titles in the
+  browser tab.
+- Responsive layout (slide-out menu on phones) and keyboard-accessible tables.
+- Small touches: a short welcome animation after signing in, a time-of-day greeting in the top bar and dashboard
+  numbers that count up.
+
+Every screen is described, with what to capture for screenshots, in [docs/SCREENS.md](docs/SCREENS.md).
 
 ---
 
@@ -175,8 +195,46 @@ collections:
 | `tickets_ticket` | tickets |
 | `tickets_ticketactivity` | activity log / timeline (status changes, assignments, comments) |
 | `core_counters` | atomic counter used for ticket references (`SSD-1001`, `SSD-1002`, ...) |
+| `similarity_ticketembedding` | cached AI embeddings of resolved tickets, for similar ticket suggestions |
 | `authtoken_token` | API tokens of signed-in users |
 | `auth_*`, `django_*` | Django's built-in tables (permissions, sessions, admin log, migrations) |
+
+---
+
+## Environment variables
+
+All backend settings are read from `backend/.env` (copy `backend/.env.example`). Every variable has a default, so
+the app runs with an empty file except for real e-mail delivery.
+
+| Variable | Default | Meaning |
+|---|---|---|
+| `DJANGO_SECRET_KEY` | a development-only key | secret used to sign data; set a long random value outside development |
+| `DJANGO_DEBUG` | `True` | debug pages and relaxed CORS for any local port |
+| `DJANGO_ALLOWED_HOSTS` | `localhost,127.0.0.1` | host names Django answers to |
+| `DJANGO_TIME_ZONE` | `Asia/Kolkata` | time zone for dates, filters and e-mails |
+| `MONGODB_URI` | `mongodb://127.0.0.1:27017` | MongoDB connection string (local, password-protected or Atlas) |
+| `MONGODB_NAME` | `smart_support_desk` | database name |
+| `CORS_ALLOWED_ORIGINS` | `http://localhost:4200,http://127.0.0.1:4200` | where the Angular app is served from |
+| `EMAIL_BACKEND` | console | `django.core.mail.backends.smtp.EmailBackend` to really send |
+| `EMAIL_HOST` / `EMAIL_PORT` / `EMAIL_USE_TLS` | `smtp.gmail.com` / `587` / `True` | SMTP server |
+| `EMAIL_HOST_USER` / `EMAIL_HOST_PASSWORD` | empty | SMTP account (for Gmail an App password) |
+| `DEFAULT_FROM_EMAIL` | `Smart Support Desk <no-reply@smartsupportdesk.local>` | sender of every e-mail |
+| `FRONTEND_URL` | `http://localhost:4200` | used for the *View ticket* links in e-mails |
+| `TICKET_REFERENCE_PREFIX` | `SSD` | prefix of ticket references (numbers start at 1000) |
+| `EXPORT_MAX_ROWS` | `5000` | maximum rows in one export |
+| `EMAIL_NOTIFICATIONS` | `True` | master switch for all notification e-mails |
+| `DEMO_MODE` | `True` | one-click demo sign-in buttons on the login page |
+| `AUTH_THROTTLE_RATE` | `30/minute` | sign-in and sign-up attempts per client |
+| `SIMILAR_THROTTLE_RATE` | `60/minute` | similar ticket searches per user |
+| `SIMILARITY_ENABLED` | `True` | show similar ticket suggestions |
+| `SIMILARITY_ENGINE` | `semantic` | `semantic` (the model) or `keyword` (TF-IDF only) |
+| `SIMILARITY_MODEL` | `sentence-transformers/all-MiniLM-L6-v2` | any Sentence Transformers model |
+| `SIMILARITY_MAX_RESULTS` | `3` | number of suggestions (never more than 3) |
+| `SIMILARITY_MIN_SCORE` | `0.35` | minimum cosine similarity for the model |
+| `SIMILARITY_KEYWORD_MIN_SCORE` | `0.15` | minimum score for the keyword fallback |
+| `SIMILARITY_PRELOAD` | `True` | load the model in the background when the server starts, so the first search is instant |
+
+The frontend has one setting, the API address, in `frontend/src/environments/environment*.ts`.
 
 ---
 
@@ -247,7 +305,7 @@ Smart-Support-Desk/
 │       ├── shared/              DataTable, export menu, badges, avatar, dialogs, pipes
 │       ├── layout/              app shell (sidebar + top bar)
 │       └── features/            auth, dashboard, tickets, activity, users, configuration
-├── docs/                        project guide, demo script and ER diagrams
+├── docs/                        tech stack, workflows, ER diagrams, screen guide, project guide, demo script
 └── .github/workflows/ci.yml     tests + build + result e-mail
 ```
 
@@ -318,7 +376,7 @@ erDiagram
     }
     LOOKUP_TYPE {
         ObjectId _id PK
-        string code UK "ticket_category | ticket_priority"
+        string code UK "ticket_category | ticket_priority | notification_event"
         string name
         string description
         bool is_system
@@ -349,6 +407,9 @@ stateDiagram-v2
     Resolved --> InProgress: re-opened
     Resolved --> Open: re-opened
 ```
+
+Who can make each move, what it records and which e-mail it sends, plus sequence diagrams for every main action, are
+in [docs/WORKFLOWS.md](docs/WORKFLOWS.md).
 
 ---
 
@@ -502,6 +563,18 @@ The first four are also automated tests (`apps/similarity/tests/test_similarity.
 All endpoints are under `http://localhost:8000/api/`. Send `Authorization: Token <token>` (returned by login).
 Errors always look like `{"message": "...", "errors": {"field": ["..."]}}`.
 
+| Status | Meaning |
+|---|---|
+| `400` | validation failed - `errors` has a message per field |
+| `401` | missing or invalid token - the app goes back to the sign-in page |
+| `403` | signed in, but the role is not allowed (e.g. a requester changing a ticket) |
+| `404` | not found, or not visible to this user (a requester opening someone else's ticket) |
+| `409` | a configuration value is used by tickets, or is built in, and cannot be deleted |
+| `429` | too many sign-in attempts or similar ticket searches - try again in a minute |
+
+List endpoints return `{"count", "page", "page_size", "total_pages", "results"}`. Pages hold 10 rows by default;
+`page_size` changes it (up to 100).
+
 | Method | Endpoint | Who | Purpose |
 |---|---|---|---|
 | GET | `/health/` | anyone | API + MongoDB health |
@@ -527,6 +600,24 @@ Errors always look like `{"message": "...", "errors": {"field": ["..."]}}`.
 
 ---
 
+## Security
+
+| Area | How it is handled |
+|---|---|
+| Passwords | hashed by Django; at least 8 characters, not common, not only digits, not close to the username |
+| Authentication | one API token per user in the `Authorization` header; signing out deletes it on the server |
+| Roles | requesters only see and export their own tickets; activity log, users and configuration changes are agents only, checked by the API and by Angular route guards |
+| Sign-up | always creates a requester; agents are created by an administrator |
+| Rate limits | sign-in / sign-up 30 per minute, similar ticket searches 60 per minute (`429` after that) |
+| Validation | every input is validated by the API, and again in the browser for quick feedback |
+| CORS | only the configured frontend origins may call the API |
+| AI privacy | the model runs on the server, nothing is sent to an outside service; suggestions never show who raised the old ticket |
+| Secrets | in `backend/.env` (ignored by Git) and GitHub repository secrets |
+
+More detail in [docs/TECH_STACK.md](docs/TECH_STACK.md#8-security-measures).
+
+---
+
 ## Running the tests
 
 ```powershell
@@ -535,7 +626,7 @@ cd backend
 .venv\Scripts\activate
 python manage.py test
 
-# Frontend - Vitest unit tests + production build
+# Frontend - 37 Vitest unit tests + production build
 cd frontend
 npm run test:ci
 npm run build
@@ -546,6 +637,9 @@ sort / pagination, the status workflow (resolution note required, auto-assignmen
 comments, configuration CRUD and the "in use" delete guard, the atomic reference counter, PDF/Excel/e-mail
 exports (opening the generated workbook to check its rows), and the similar-ticket suggestions: ranking, the limit
 of three, that nothing is changed, the embedding cache, and the real model matching differently worded issues.
+
+The frontend tests cover the auth service, mapping API errors onto form fields, the table state (`TableSource`), the
+status badge, the relative time pipe, the count-up numbers, the welcome animation and the similar tickets panel.
 
 ---
 
@@ -614,5 +708,6 @@ Until the secrets exist the step is skipped with a notice, so the pipeline stays
   would be faster.
 - Exports are generated synchronously and capped at `EXPORT_MAX_ROWS` (5,000 by default). A background job queue
   would be the next step for much larger exports.
-- No file attachments, SLA timers or real-time updates yet.
+- No file attachments or SLA timers yet. Screens refresh every 30 seconds; pushing changes instantly (WebSockets)
+  would be the next step.
 - Tokens do not expire; JWT with refresh tokens would be the next step before a public deployment.

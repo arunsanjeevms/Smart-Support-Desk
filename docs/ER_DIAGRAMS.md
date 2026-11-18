@@ -148,7 +148,7 @@ erDiagram
     }
     LOOKUP_TYPE {
         ObjectId _id PK
-        string code UK "ticket_category | ticket_priority"
+        string code UK "ticket_category | ticket_priority | notification_event"
         string name
         string description
         bool is_system "used by code, cannot be deleted"
@@ -242,8 +242,9 @@ Activity types (`apps/tickets/constants.py → ActivityType`):
 
 ## 4. Configurable lists (lookups)
 
-Categories and priorities are not hard-coded anywhere. They are rows in two collections that follow the
-"master data" pattern: `LookupType` names a kind of list, `LookupValue` holds its options.
+Categories, priorities and e-mail notification switches are not hard-coded anywhere. They are rows in two
+collections that follow the "master data" pattern: `LookupType` names a kind of list, `LookupValue` holds its
+options.
 
 ```mermaid
 erDiagram
@@ -279,16 +280,22 @@ Both ticket references point at the same `LookupValue` collection. What keeps a 
 is the lookup type: the model limits `category` to values of type `ticket_category` and `priority` to values of type
 `ticket_priority`, and the API serializer additionally rejects inactive values.
 
-Rows created by the migration `apps/lookups/migrations/0002_default_lookups.py`:
+Rows created by the migrations `apps/lookups/migrations/0002_default_lookups.py` and `0003_notification_events.py`:
 
-| Lookup type (`code`) | Values (`code`) | Default |
-|---|---|---|
-| `ticket_category` | `login_access`, `billing`, `bug`, `performance`, `integration`, `account`, `data_reports`, `feature_request`, `other` | - |
-| `ticket_priority` | `low`, `medium`, `high`, `critical` | `medium` |
+| Lookup type (`code`) | Shown as | Values (`code`) | Default |
+|---|---|---|---|
+| `ticket_category` | Ticket category | `login_access`, `billing`, `bug`, `performance`, `integration`, `account`, `data_reports`, `feature_request`, `other` | - |
+| `ticket_priority` | Ticket priority | `low`, `medium`, `high`, `critical` | `medium` |
+| `notification_event` | Email notifications | `ticket_received`, `new_ticket_alert`, `ticket_assigned`, `status_changed`, `comment_added`, `details_updated` | - |
 
-They can be renamed, re-ordered, re-coloured, deactivated or extended from the *Configuration* screen or the Django
-admin without touching code. Adding a brand-new kind of list only needs a new `LookupType` row plus a reference from
-whichever model uses it.
+Categories and priorities can be renamed, re-ordered, re-coloured, deactivated or extended from the *Configuration*
+screen or the Django admin without touching code. Adding a brand-new kind of list only needs a new `LookupType` row
+plus a reference from whichever model uses it.
+
+The `notification_event` list is different: tickets do not reference it. `apps/tickets/notifications.py` looks up
+the value with the event's code before sending an e-mail, and sends nothing if the value is inactive. Because the
+code depends on these rows, they are **built in**: they can be renamed and switched on or off, but not added or
+deleted (`LookupTypeCode.BUILT_IN_VALUES`).
 
 ---
 
@@ -360,6 +367,9 @@ per-user permissions - access is decided by `User.role` - so they are left out o
 | Activity rows are never edited or deleted (except with their ticket) | no update/delete endpoints for activities |
 | An embedding is re-computed when the ticket's text or the model changes | `text_hash` + `model_name` check in `apps/similarity/services.py` |
 | Only *resolved* tickets are suggested; suggestions never change a ticket | `apps/similarity/services.py` (read-only) |
+| A lookup value used by tickets cannot be deleted (`409 Conflict`); deactivate it instead | `PROTECT` + `LookupValueViewSet.destroy` |
+| `notification_event` values cannot be added or deleted, only renamed or switched off | `LookupTypeCode.BUILT_IN_VALUES` in `apps/lookups/constants.py` |
+| An e-mail is only sent if its `notification_event` value is active and `EMAIL_NOTIFICATIONS` is on | `apps/tickets/notifications.py` |
 
 ---
 
@@ -388,7 +398,8 @@ stateDiagram-v2
 | Resolved → Open / In Progress | `status_changed` | `status`; `resolved_by` and `resolved_at` cleared |
 | back to queue | `status_changed` | `status` |
 
-Each status change also e-mails the requester (`apps/tickets/notifications.py`).
+Each status change also e-mails the requester, and other events e-mail the agents (`apps/tickets/notifications.py`).
+Who gets which e-mail, and the sequence diagrams for each move, are in [WORKFLOWS.md](WORKFLOWS.md).
 
 ---
 
