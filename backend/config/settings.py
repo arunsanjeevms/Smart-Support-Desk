@@ -48,6 +48,7 @@ INSTALLED_APPS = [
     "apps.accounts",
     "apps.lookups",
     "apps.tickets",
+    "apps.similarity",
 ]
 
 MIDDLEWARE = [
@@ -145,7 +146,10 @@ REST_FRAMEWORK = {
     ],
     "EXCEPTION_HANDLER": "apps.core.exceptions.api_exception_handler",
     "DEFAULT_THROTTLE_CLASSES": ["rest_framework.throttling.ScopedRateThrottle"],
-    "DEFAULT_THROTTLE_RATES": {"auth": os.getenv("AUTH_THROTTLE_RATE", "30/minute")},
+    "DEFAULT_THROTTLE_RATES": {
+        "auth": os.getenv("AUTH_THROTTLE_RATE", "30/minute"),
+        "similar": os.getenv("SIMILAR_THROTTLE_RATE", "60/minute"),
+    },
     "DATETIME_FORMAT": "iso-8601",
 }
 
@@ -187,6 +191,21 @@ SUPPORT_DESK = {
     # Master switch for notification e-mails. Individual events are switched on/off
     # in the "Email notifications" list on the Configuration screen.
     "EMAIL_NOTIFICATIONS": env_bool("EMAIL_NOTIFICATIONS", env_bool("NOTIFY_REQUESTER_ON_STATUS_CHANGE", True)),
+    # Similar ticket suggestions - an open-source model that runs locally (apps/similarity).
+    "SIMILARITY": {
+        "ENABLED": env_bool("SIMILARITY_ENABLED", True),
+        # "semantic": Sentence Transformers model (understands different wording)
+        # "keyword":  TF-IDF word overlap (no model; also the automatic fallback)
+        "ENGINE": os.getenv("SIMILARITY_ENGINE", "semantic"),
+        "MODEL": os.getenv("SIMILARITY_MODEL", "sentence-transformers/all-MiniLM-L6-v2"),
+        # The brief allows up to three suggestions.
+        "MAX_RESULTS": min(int(os.getenv("SIMILARITY_MAX_RESULTS", "3")), 3),
+        # Cosine similarity a resolved ticket needs before it is suggested.
+        "MIN_SCORE": float(os.getenv("SIMILARITY_MIN_SCORE", "0.35")),
+        "KEYWORD_MIN_SCORE": float(os.getenv("SIMILARITY_KEYWORD_MIN_SCORE", "0.15")),
+        # Load the model in the background when the web server starts (first search is then instant).
+        "PRELOAD": env_bool("SIMILARITY_PRELOAD", True),
+    },
     # One-click demo sign-in on the login page. Turn off outside demos.
     "DEMO_MODE": env_bool("DEMO_MODE", True),
     "DEMO_ACCOUNTS": [
@@ -202,5 +221,12 @@ LOGGING = {
     "disable_existing_loggers": False,
     "handlers": {"console": {"class": "logging.StreamHandler"}},
     "root": {"handlers": ["console"], "level": "INFO"},
-    "loggers": {"django.db.backends": {"level": "WARNING"}},
+    "loggers": {
+        "django.db.backends": {"level": "WARNING"},
+        # The similarity model's libraries are chatty at INFO level.
+        "sentence_transformers": {"level": "WARNING"},
+        "transformers": {"level": "WARNING"},
+        "huggingface_hub": {"level": "WARNING"},
+        "httpx": {"level": "WARNING"},
+    },
 }

@@ -5,7 +5,7 @@ URL map of the backend.
     /api/health/     API + database health check
     /api/auth/...    login, register, logout, current user
     /api/config/     statuses, categories, priorities, ... for the UI
-    /api/tickets/    tickets (+ /export, /export/email, /stats, /<id>/activities, /<id>/comments)
+    /api/tickets/    tickets (+ /export, /export/email, /stats, /similar, /<id>/activities, /<id>/comments)
     /api/activities/ audit log
     /api/users/      user directory
     /api/lookups/... configurable lists and their values

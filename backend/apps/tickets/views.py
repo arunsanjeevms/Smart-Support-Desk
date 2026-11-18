@@ -5,7 +5,7 @@ from django.db.models import Count
 from django.utils import timezone
 from rest_framework import mixins, status, viewsets
 from rest_framework.decorators import action
-from rest_framework.exceptions import PermissionDenied
+from rest_framework.exceptions import NotFound, PermissionDenied
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
@@ -16,6 +16,10 @@ from apps.core.exports.writers import EXPORT_FORMATS
 from apps.lookups.constants import LookupTypeCode
 from apps.lookups.models import LookupValue
 from apps.lookups.serializers import LookupOptionSerializer
+from apps.similarity import services as similarity
+from apps.similarity.constants import QUERY_MIN_LENGTH as SIMILAR_QUERY_MIN_LENGTH
+from apps.similarity.engines import similarity_settings
+from apps.similarity.serializers import SimilarQuerySerializer, similar_payload
 
 from . import services
 from .constants import (
@@ -72,6 +76,7 @@ class TicketViewSet(
 
     lookup_value_regex = OBJECT_ID_RE
     http_method_names = ["get", "post", "patch", "head", "options"]
+    throttle_scope = None  # set per action (see ``similar``)
     search_fields = [
         "reference", "title", "description", "category__label",
         "created_by__first_name", "created_by__last_name", "created_by__username",
@@ -196,6 +201,28 @@ class TicketViewSet(
         entry = services.add_comment(ticket=ticket, author=request.user, message=serializer.validated_data["message"])
         return Response(TicketActivitySerializer(entry).data, status=status.HTTP_201_CREATED)
 
+    @action(detail=False, methods=["post"], throttle_scope="similar")
+    def similar(self, request):
+        """
+        Up to three resolved tickets that look like the given title/description.
+
+        Open to everyone signed in, because a requester raising a new ticket
+        should benefit from fixes found for other people. Only the problem and
+        its resolution are shared, never who raised it. Purely advisory:
+        nothing is changed. POST keeps the typed text out of URLs and logs.
+        """
+        if not similarity_settings()["ENABLED"]:
+            raise NotFound("Similar ticket suggestions are switched off.")
+        serializer = SimilarQuerySerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        data = serializer.validated_data
+        result = similarity.find_similar(
+            title=data.get("title", ""),
+            description=data.get("description", ""),
+            exclude_id=data.get("exclude"),
+        )
+        return Response(similar_payload(result))
+
     @action(detail=False, methods=["get"])
     def stats(self, request):
         """Numbers for the dashboard, scoped to what the user is allowed to see."""
@@ -298,6 +325,11 @@ class ConfigView(APIView):
             "roles": [{"value": r.value, "label": r.label} for r in User.Role],
             "agents": UserSummarySerializer(agents, many=True).data if request.user.is_agent else [],
             "export_formats": [{"value": f.key, "label": f.label} for f in EXPORT_FORMATS.values()],
+            "similarity": {
+                "enabled": similarity_settings()["ENABLED"],
+                "max_results": similarity_settings()["MAX_RESULTS"],
+                "min_length": SIMILAR_QUERY_MIN_LENGTH,
+            },
             "validation": {
                 "title_min": TITLE_MIN_LENGTH,
                 "title_max": TITLE_MAX_LENGTH,

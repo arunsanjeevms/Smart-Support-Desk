@@ -7,6 +7,9 @@ Load demo users and realistic tickets so the app can be explored immediately.
     # Receive the demo accounts' notification e-mails in your own inbox
     # (riya -> you+riya@gmail.com, meera -> you+meera@gmail.com, ...):
     python manage.py seed_demo --inbox you@gmail.com
+
+At the end the resolved tickets are encoded for the similar-ticket
+suggestions (the AI model is downloaded on the first run).
 """
 
 import random
@@ -23,6 +26,9 @@ from django.utils import timezone
 from apps.core.sequences import COUNTERS_COLLECTION
 from apps.lookups.constants import LookupTypeCode
 from apps.lookups.models import LookupValue
+from apps.similarity.constants import SEMANTIC
+from apps.similarity.engines import get_engine, similarity_settings
+from apps.similarity.services import build_index
 from apps.tickets import services
 from apps.tickets.constants import ActivityType, TicketStatus
 from apps.tickets.models import Ticket, TicketActivity
@@ -58,12 +64,27 @@ class Command(BaseCommand):
             self.stdout.write("Tickets already exist - skipping ticket creation (use --reset to reload).")
         else:
             self._create_tickets(users)
+        self._build_similarity_index()
 
         self.stdout.write(self.style.SUCCESS("\nDemo data is ready. Sign in with:"))
         for account in [REQUESTERS[0], AGENTS[0], ADMIN]:
             self.stdout.write(f"  {account['role_label']:<14} {account['username']:<10} / {account['password']}")
 
     # ------------------------------------------------------------------
+    def _build_similarity_index(self):
+        """Encode the resolved tickets now so the first similar-ticket search is instant."""
+        if similarity_settings()["ENGINE"] != SEMANTIC:
+            return
+        engine = get_engine()
+        if engine.name != SEMANTIC:
+            self.stdout.write(self.style.WARNING(
+                "The similarity model could not be loaded, so suggestions use keyword matching for now. "
+                "Run `python manage.py build_similarity_index` once you are online."
+            ))
+            return
+        encoded, total = build_index(engine)
+        self.stdout.write(f"Similar-ticket index: {total} resolved tickets ({encoded} encoded now).")
+
     def _create_users(self):
         created = {}
         for spec in [*REQUESTERS, *AGENTS, ADMIN]:

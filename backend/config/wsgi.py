@@ -14,3 +14,8 @@ from django.core.wsgi import get_wsgi_application
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'config.settings')
 
 application = get_wsgi_application()
+
+# Load the similar-ticket model in the background so the first search is quick.
+from apps.similarity.engines import warm_up_in_background  # noqa: E402
+
+warm_up_in_background()

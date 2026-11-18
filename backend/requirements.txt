@@ -6,3 +6,10 @@ django-cors-headers==4.9.0
 python-dotenv==1.2.4
 reportlab==5.1.0
 openpyxl==3.1.5
+# Similar ticket suggestions (open-source AI, runs on the CPU).
+# On Linux install the CPU build of PyTorch first to avoid the large CUDA wheels:
+#   pip install torch==2.15.0 --index-url https://download.pytorch.org/whl/cpu
+torch==2.15.0
+sentence-transformers==6.2.0
+transformers==5.22.1
+numpy==2.5.4
