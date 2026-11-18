@@ -3,15 +3,17 @@
 [![CI](https://github.com/arunsanjeevms/Smart-Support-Desk/actions/workflows/ci.yml/badge.svg)](https://github.com/arunsanjeevms/Smart-Support-Desk/actions/workflows/ci.yml)
 
 A small, complete support desk: **requesters** report software issues, the **support team** works the queue,
-changes the status and writes resolution notes. Every table can be searched, sorted, filtered and exported to
-**PDF**, **Excel** or **e-mail**, and every option in the UI (categories, priorities, statuses, ...) is managed by
-the backend.
+changes the status and writes resolution notes. While a ticket is being written, an **open-source language model
+running locally** suggests up to three similar tickets that were already resolved. Every table can be searched,
+sorted, filtered and exported to **PDF**, **Excel** or **e-mail**, and every option in the UI (categories,
+priorities, statuses, ...) is managed by the backend.
 
 | | |
 |---|---|
 | **Frontend** | Angular 21 (standalone components, signals, zoneless) + Angular Material 3 |
 | **Backend** | Django 6 + Django REST Framework (JSON REST API) |
 | **Database** | MongoDB 8 through the official **Django MongoDB Backend** |
+| **AI** | Sentence Transformers (`all-MiniLM-L6-v2`, open source) on the CPU, inside the Django backend |
 | **Exports** | ReportLab (PDF), openpyxl (Excel), Django e-mail (SMTP / console) |
 | **CI** | GitHub Actions - backend + frontend tests, build, e-mail with the result |
 
@@ -27,11 +29,12 @@ the backend.
 6. [Data model (ER diagram)](#data-model-er-diagram)
 7. [Configuration managed in the backend](#configuration-managed-in-the-backend)
 8. [Tables, exports and e-mail](#tables-exports-and-e-mail)
-9. [API reference](#api-reference)
-10. [Running the tests](#running-the-tests)
-11. [Continuous integration and e-mail notifications](#continuous-integration-and-e-mail-notifications)
-12. [Key design decisions](#key-design-decisions)
-13. [Limitations and next steps](#limitations-and-next-steps)
+9. [Similar ticket suggestions (AI)](#similar-ticket-suggestions-ai)
+10. [API reference](#api-reference)
+11. [Running the tests](#running-the-tests)
+12. [Continuous integration and e-mail notifications](#continuous-integration-and-e-mail-notifications)
+13. [Key design decisions](#key-design-decisions)
+14. [Limitations and next steps](#limitations-and-next-steps)
 
 More documentation:
 
@@ -49,6 +52,8 @@ More documentation:
 |---|:---:|:---:|
 | Sign up / sign in (one-click demo accounts) | ✅ | ✅ |
 | Create a ticket (title, description, category, priority) with validation | ✅ | ✅ |
+| Ask for up to 3 similar resolved tickets while writing one, and open their details | ✅ | ✅ |
+| See similar resolved tickets on an open ticket and reuse a resolution note | | ✅ |
 | See tickets | Own tickets | All tickets |
 | Filter by status, category, priority, assignee, created date | ✅ | ✅ |
 | Ticket detail with activity timeline and comments | ✅ | ✅ |
@@ -95,10 +100,10 @@ cd Smart-Support-Desk
 cd backend
 python -m venv .venv
 .venv\Scripts\activate            # macOS/Linux: source .venv/bin/activate
-pip install -r requirements.txt
+pip install -r requirements.txt   # includes PyTorch (CPU) for the AI suggestions - about 1 GB
 copy .env.example .env            # macOS/Linux: cp .env.example .env
 python manage.py migrate          # creates the collections + default categories/priorities
-python manage.py seed_demo        # demo users and ~28 realistic tickets
+python manage.py seed_demo        # demo users, ~28 realistic tickets, downloads the AI model once (~90 MB)
 python manage.py runserver        # http://localhost:8000
 ```
 
@@ -124,6 +129,8 @@ Open <http://localhost:4200> and click one of the demo accounts on the sign-in p
 | Reset demo data | `python manage.py seed_demo --reset` |
 | Receive the demo accounts' e-mails in your inbox | `python manage.py seed_demo --inbox you@gmail.com` (riya gets `you+riya@gmail.com`, ...) |
 | Create your own admin | `python manage.py createsuperuser` |
+| Try the AI matching from the terminal | `python manage.py similar_tickets "The analytics page is painfully slow to open"` |
+| (Re)build the similar-ticket index | `python manage.py build_similarity_index` (`--force` to encode everything again) |
 | Django admin | <http://localhost:8000/admin/> (demo admin: `admin` / `Admin@12345`) |
 | Browsable API | <http://localhost:8000/api/> (sign in to the admin first) |
 
@@ -202,6 +209,7 @@ flowchart LR
         B[REST API<br/>/api/...]
         S[Service layer<br/>ticket workflow, activity log]
         X[Export engine<br/>PDF / Excel / e-mail]
+        AI[Similarity engine<br/>Sentence Transformers, CPU]
         ADM[Django admin]
     end
     DB[(MongoDB<br/>smart_support_desk)]
@@ -210,6 +218,8 @@ flowchart LR
     A -- "JSON + Token auth" --> B
     B --> S
     B --> X
+    B --> AI
+    AI --> DB
     S --> DB
     X --> DB
     ADM --> DB
@@ -226,7 +236,8 @@ Smart-Support-Desk/
 │   │   │   └── exports/         pagination, atomic counters, the PDF/Excel/e-mail export engine
 │   │   ├── accounts/            custom User (role), login/register/logout, user directory
 │   │   ├── lookups/             generic configurable lists (categories, priorities, ...)
-│   │   └── tickets/             Ticket + TicketActivity models, services, API, seed command
+│   │   ├── tickets/             Ticket + TicketActivity models, services, API, seed command
+│   │   └── similarity/          similar-ticket suggestions: model, embedding cache, commands
 │   ├── mongo_migrations/        Django's built-in migrations adapted to ObjectId keys
 │   ├── requirements.txt
 │   └── .env.example
@@ -257,6 +268,7 @@ erDiagram
     LOOKUP_TYPE ||--o{ LOOKUP_VALUE : "contains"
     LOOKUP_VALUE ||--o{ TICKET : "category"
     LOOKUP_VALUE |o--o{ TICKET : "priority"
+    TICKET ||--o| TICKET_EMBEDDING : "cached for suggestions"
 
     USER {
         ObjectId _id PK
@@ -295,6 +307,14 @@ erDiagram
         string to_status
         string note "comment or resolution text"
         datetime created_at
+    }
+    TICKET_EMBEDDING {
+        ObjectId _id PK
+        ObjectId ticket_id FK,UK "resolved ticket"
+        string model_name "all-MiniLM-L6-v2"
+        string text_hash "sha256 of title + description"
+        float[] vector "384 numbers"
+        datetime updated_at
     }
     LOOKUP_TYPE {
         ObjectId _id PK
@@ -347,6 +367,7 @@ form, filter and badge from the response:
 | Roles | `User.Role` | Django admin (create agents, change roles) |
 | **E-mail notifications** (which actions send an e-mail) | `LookupValue` rows of type `notification_event` | Configuration screen → *Email notifications* (switch each event on/off) |
 | Demo accounts, export row limit, e-mail notifications | `backend/.env` | environment variables |
+| Similar ticket suggestions (on/off, model, minimum score) | `backend/.env` (`SIMILARITY_*`) | environment variables |
 
 **Generic lookup pattern.** `LookupType` describes a list (e.g. *Ticket category*), `LookupValue` holds its options.
 To add a brand-new configurable list later (say *Product area*), add one `LookupType` row and reference it from a
@@ -419,6 +440,63 @@ yourself, give a demo user your real address in the Django admin.
 
 ---
 
+## Similar ticket suggestions (AI)
+
+While someone writes a new ticket they can click **Find similar tickets**. The backend compares their title and
+description with every **resolved** ticket and returns at most **three** that look alike, each with its resolution
+note. A suggestion opens in a dialog, so the draft is never lost. Agents get the same list on every open ticket and
+can copy a resolution note into the Manage form with **Use this note**.
+
+The suggestions are **advisory**. Nothing is closed or changed automatically, every card says it may not fit the
+issue, and the ticket can always be submitted. Only the problem, its category and the resolution are shared: never
+who raised the old ticket.
+
+### How it works
+
+1. **An open-source model, running locally.** [`sentence-transformers/all-MiniLM-L6-v2`](https://huggingface.co/sentence-transformers/all-MiniLM-L6-v2)
+   (Apache 2.0) runs on the CPU inside Django through the `sentence-transformers` library. It is downloaded once
+   (about 90 MB) and then loaded from the local cache, so no ticket text ever leaves the server.
+2. **Text to numbers.** The model turns `"<title>. <description>"` into an *embedding*: 384 numbers that describe
+   the meaning of the text. Texts that mean the same thing get similar numbers even when they share no words.
+3. **Cached embeddings.** Each resolved ticket is encoded once and stored in the `similarity_ticketembedding` collection,
+   with the model name and a hash of the text. A ticket is only encoded again if its text or the model changes.
+4. **Ranking.** The new text is encoded and compared with every resolved ticket by **cosine similarity** (0 =
+   unrelated, 1 = same meaning). Matches under `SIMILARITY_MIN_SCORE` (0.35) are dropped and the best three are
+   returned. Scores of 0.60 and above are labelled *strong*.
+5. **Fallback.** If the model cannot be loaded (for example no internet for the first download), the same endpoint
+   falls back to TF-IDF keyword matching and the UI says so.
+
+The code is in `backend/apps/similarity/` (`engines.py` for the model and the keyword fallback, `services.py` for
+caching and ranking) and `frontend/src/app/features/tickets/similar-tickets/`.
+
+### Different wording, same problem
+
+Real scores on the demo data (`python manage.py similar_tickets "<text>"` prints this comparison). The new issues
+share almost no words with the resolved tickets, yet the model ranks the right one first. Keyword matching misses
+them, or picks the wrong ticket:
+
+| New issue typed by the user | Resolved ticket suggested by the model | Model score | Keyword matching |
+|---|---|:---:|---|
+| "The analytics page is painfully slow to open" | Dashboard takes more than a minute to load | **0.68** | 0.10, not suggested |
+| "Unable to get into my account since I changed my credentials" | Cannot log in after resetting my password | **0.66** | 0.08, not suggested |
+| "The verification number from my phone is never valid" | Two-factor codes not accepted | **0.48** | 0.00, suggests *Invoice PDF is missing our GST number* instead |
+| "I was billed two times for this month's plan" | Charged twice for the monthly subscription | **0.68** | 0.27 |
+| "The office printer is out of toner" | *nothing* (best is 0.28, under 0.35) | - | - |
+
+The first four are also automated tests (`apps/similarity/tests/test_similarity.py`) that run the real model in CI.
+
+### Settings (`backend/.env`)
+
+| Variable | Default | Meaning |
+|---|---|---|
+| `SIMILARITY_ENABLED` | `True` | show the suggestions at all |
+| `SIMILARITY_ENGINE` | `semantic` | `semantic` (the model) or `keyword` (TF-IDF only, no model) |
+| `SIMILARITY_MODEL` | `sentence-transformers/all-MiniLM-L6-v2` | any Sentence Transformers model name |
+| `SIMILARITY_MAX_RESULTS` | `3` | how many suggestions (never more than 3) |
+| `SIMILARITY_MIN_SCORE` | `0.35` | minimum cosine similarity for a suggestion |
+
+---
+
 ## API reference
 
 All endpoints are under `http://localhost:8000/api/`. Send `Authorization: Token <token>` (returned by login).
@@ -440,6 +518,7 @@ Errors always look like `{"message": "...", "errors": {"field": ["..."]}}`.
 | GET | `/tickets/{id}/activities/` | owner or agent | timeline |
 | POST | `/tickets/{id}/comments/` | owner or agent | `{message}` |
 | GET | `/tickets/stats/` | signed in | dashboard numbers (scoped to the user) |
+| POST | `/tickets/similar/` | signed in | `{title?, description?, exclude?}` → up to 3 similar resolved tickets with `score` and `match`, plus `engine` and `model` |
 | GET | `/activities/` | agent | audit log - `activity_type` filter |
 | GET | `/users/` | agent | user directory - `role` filter |
 | GET | `/lookups/types/` | signed in | configurable lists |
@@ -451,7 +530,7 @@ Errors always look like `{"message": "...", "errors": {"field": ["..."]}}`.
 ## Running the tests
 
 ```powershell
-# Backend - 63 API tests against a temporary MongoDB database (test_smart_support_desk)
+# Backend - 90 tests against a temporary MongoDB database (test_smart_support_desk)
 cd backend
 .venv\Scripts\activate
 python manage.py test
@@ -464,8 +543,9 @@ npm run build
 
 The backend tests cover authentication and roles, ticket validation messages, visibility rules, search / filter /
 sort / pagination, the status workflow (resolution note required, auto-assignment, re-opening), notifications,
-comments, configuration CRUD and the "in use" delete guard, the atomic reference counter, and PDF/Excel/e-mail
-exports (opening the generated workbook to check its rows).
+comments, configuration CRUD and the "in use" delete guard, the atomic reference counter, PDF/Excel/e-mail
+exports (opening the generated workbook to check its rows), and the similar-ticket suggestions: ranking, the limit
+of three, that nothing is changed, the embedding cache, and the real model matching differently worded issues.
 
 ---
 
@@ -473,8 +553,9 @@ exports (opening the generated workbook to check its rows).
 
 `.github/workflows/ci.yml` runs on every push to `main`, on pull requests and on demand:
 
-1. **Backend** - installs Python 3.13, starts a temporary MongoDB 8 service, runs Django checks, verifies there are
-   no missing migrations, runs the test suite and the seed command.
+1. **Backend** - installs Python 3.13 and the CPU build of PyTorch, starts a temporary MongoDB 8 service, runs Django
+   checks, verifies there are no missing migrations, runs the test suite and the seed command. The AI model is
+   cached between runs.
 2. **Frontend** - installs Node 24, runs the unit tests and a production build.
 3. **Email the result** - always runs and e-mails a summary (per-job result, commit, link to the logs) to
    `msarunsanjeev@gmail.com`.
@@ -517,14 +598,18 @@ Until the secrets exist the step is skipped with a notice, so the pipeline stays
    (≈140 kB initial transfer). Reusable building blocks (DataTable, ExportMenu, badges) keep the pages small.
 10. **Token authentication with two roles** (`requester`, `agent`). It is simple, stateless for the SPA and easy to test.
     Agents are created by an administrator; self sign-up always creates requesters.
+11. **A small local model with cached embeddings for suggestions.** `all-MiniLM-L6-v2` is fast on a normal CPU
+    (milliseconds per ticket), open source and needs no API key or external service. Embeddings are cached per
+    ticket, so a search only encodes the new text. The comparison runs in numpy because a local MongoDB server has no
+    vector search; that is fast for tens of thousands of resolved tickets.
 
 ---
 
 ## Limitations and next steps
 
-- **Similar-ticket suggestions** (text similarity on resolved tickets) are not part of this version. The ticket form,
-  `/api/config/` and the service layer are structured so a `/api/tickets/similar/` endpoint and a suggestions panel
-  can be added without touching the existing flows.
+- Similar-ticket suggestions compare against all resolved tickets in memory. With millions of tickets, a vector
+  index (MongoDB Atlas Vector Search) would replace the numpy comparison. The default model is English only; a
+  multilingual Sentence Transformers model can be set with `SIMILARITY_MODEL`.
 - Search uses case-insensitive regular expressions. For very large data sets a MongoDB text or Atlas Search index
   would be faster.
 - Exports are generated synchronously and capped at `EXPORT_MAX_ROWS` (5,000 by default). A background job queue

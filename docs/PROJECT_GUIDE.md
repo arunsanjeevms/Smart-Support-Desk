@@ -64,6 +64,11 @@ apps/tickets/
     views.py            TicketViewSet, ActivityViewSet, ConfigView
     management/commands/seed_demo.py   python manage.py seed_demo
     tests/              API tests
+apps/similarity/        similar-ticket suggestions (the AI part)
+    engines.py          the Sentence Transformers model (+ a keyword fallback)
+    services.py         embedding cache + ranking resolved tickets by cosine similarity
+    models.py           TicketEmbedding - one cached vector per resolved ticket
+    management/commands build_similarity_index, similar_tickets "<text>"
 ```
 
 Django vocabulary:
@@ -74,6 +79,13 @@ Django vocabulary:
 - **Serializer** - converts JSON ↔ Python and validates input.
 - **ViewSet** - a group of API endpoints (list, create, retrieve, update) for one resource.
 - **Admin** - automatic back-office UI at `/admin/`, configured in each app's `admin.py`.
+
+AI vocabulary (similar-ticket suggestions):
+
+- **Embedding** - a list of numbers (384 here) that a language model produces for a text; texts with similar
+  meaning get similar numbers.
+- **Cosine similarity** - how closely two embeddings point the same way: 1 = same meaning, 0 = unrelated.
+- **Sentence Transformers** - the open-source Python library that runs the model (`all-MiniLM-L6-v2`) on the CPU.
 
 ## 4. Frontend tour (`frontend/src/app/`)
 
@@ -91,6 +103,7 @@ shared/
     components/             status badge, category/priority badge, avatar, page header, confirm dialog
 layout/shell.*          sidebar + top bar around every signed-in page
 features/               one folder per screen
+    tickets/similar-tickets/   "Similar resolved tickets" panel + details dialog
 styles/                 design tokens (_tokens.scss), Material theme (_material.scss), helpers
 ```
 
@@ -124,3 +137,4 @@ Angular vocabulary:
 | add a new exportable table | DRF `ViewSet` + `ExportMixin` + `export_columns`; in Angular a `TableSource` + `<app-data-table>` |
 | change colours / fonts | `frontend/src/styles/_tokens.scss` and `_material.scss` |
 | send real e-mails | SMTP settings in `backend/.env` (see the README) |
+| tune the similar-ticket suggestions | `SIMILARITY_*` in `backend/.env` (minimum score, model, on/off); try them with `python manage.py similar_tickets "<text>"` |

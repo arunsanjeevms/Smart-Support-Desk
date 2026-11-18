@@ -11,6 +11,7 @@ Everything here comes from the Django models:
 | accounts | `User` | `backend/apps/accounts/models.py` |
 | lookups | `LookupType`, `LookupValue` | `backend/apps/lookups/models.py` |
 | tickets | `Ticket`, `TicketActivity` | `backend/apps/tickets/models.py` |
+| similarity | `TicketEmbedding` (cache for the similar-ticket suggestions) | `backend/apps/similarity/models.py` |
 | core | `TimeStampedModel` (abstract base), `core_counters` collection | `backend/apps/core/models.py`, `sequences.py` |
 | DRF | `Token` (sign-in token) | `rest_framework.authtoken` |
 
@@ -40,7 +41,8 @@ Contents
 
 ## 1. Overview
 
-The big picture without fields. Five collections hold the business data; `core_counters` hands out ticket numbers.
+The big picture without fields. Five collections hold the business data, `core_counters` hands out ticket numbers
+and `similarity_ticketembedding` caches the AI embeddings of resolved tickets.
 
 ```mermaid
 erDiagram
@@ -54,6 +56,7 @@ erDiagram
     LOOKUP_VALUE ||--o{ TICKET : "is category of"
     LOOKUP_VALUE |o--o{ TICKET : "is priority of"
     CORE_COUNTER ||..o{ TICKET : "numbers"
+    TICKET ||--o| TICKET_EMBEDDING : "cached for suggestions"
 ```
 
 In one sentence each:
@@ -64,6 +67,8 @@ In one sentence each:
 - **Lookup types** and **lookup values** are the configurable lists (categories, priorities) that the UI is built from.
 - A ticket's **category** and **priority** are lookup values.
 - The **counter** document gives every new ticket its `SSD-xxxx` reference.
+- A **ticket embedding** stores the model's vector for one resolved ticket, so similar-ticket suggestions only encode
+  the new text. It is a cache: deleting the collection is harmless, it is rebuilt on the next search.
 
 ---
 
@@ -83,6 +88,7 @@ erDiagram
     LOOKUP_VALUE ||--o{ TICKET : "category"
     LOOKUP_VALUE |o--o{ TICKET : "priority"
     CORE_COUNTER ||..o{ TICKET : "issues reference"
+    TICKET ||--o| TICKET_EMBEDDING : "cached for suggestions (ticket)"
 
     USER {
         ObjectId _id PK
@@ -119,6 +125,14 @@ erDiagram
         ObjectId resolved_by_id FK "set on resolve, cleared on reopen"
         datetime resolved_at "set on resolve, cleared on reopen"
         datetime created_at
+        datetime updated_at
+    }
+    TICKET_EMBEDDING {
+        ObjectId _id PK
+        ObjectId ticket_id FK, UK "one per resolved ticket"
+        string model_name "sentence-transformers/all-MiniLM-L6-v2"
+        string text_hash "sha256 of title + description"
+        float[] vector "384 numbers, unit length"
         datetime updated_at
     }
     TICKET_ACTIVITY {
@@ -291,6 +305,7 @@ whichever model uses it.
 | TicketActivity | `actor` | User | many → zero/one | no | SET NULL | `ticket_activities` |
 | LookupValue | `lookup_type` | LookupType | many → one | yes | **PROTECT** - blocked | `values` |
 | Token | `user` | User | one → one | yes | CASCADE | `auth_token` |
+| TicketEmbedding | `ticket` | Ticket | one → one | yes | CASCADE | `embedding` |
 
 What PROTECT means in practice: a user who has raised tickets, or a category/priority that tickets use, cannot be
 deleted. Deactivate them instead (`User.is_active = False`, `LookupValue.is_active = False`) - they disappear from
@@ -315,6 +330,7 @@ Collection names follow Django's `<app>_<model>` convention. Indexes are declare
 | TicketActivity | `tickets_ticketactivity` | `ticket_id`, `actor_id`, `activity_type`, `created_at` |
 | LookupType | `lookups_lookuptype` | `code` unique, `created_at` |
 | LookupValue | `lookups_lookupvalue` | `lookup_type_id`, `created_at`, **`unique_lookup_value_code`** (`lookup_type_id`, `code`) unique |
+| TicketEmbedding | `similarity_ticketembedding` | `ticket_id` unique |
 | - | `core_counters` | `_id` is the counter name |
 
 The two compound ticket indexes match the two most common screens: the agent queue filtered by status and sorted
@@ -342,6 +358,8 @@ per-user permissions - access is decided by `User.role` - so they are left out o
 | `resolved_by` / `resolved_at` are set on resolve and cleared on re-open | `apps/tickets/services.py` |
 | Requesters only see tickets where `created_by` is themselves | queryset filtering in `apps/tickets/views.py` |
 | Activity rows are never edited or deleted (except with their ticket) | no update/delete endpoints for activities |
+| An embedding is re-computed when the ticket's text or the model changes | `text_hash` + `model_name` check in `apps/similarity/services.py` |
+| Only *resolved* tickets are suggested; suggestions never change a ticket | `apps/similarity/services.py` (read-only) |
 
 ---
 
