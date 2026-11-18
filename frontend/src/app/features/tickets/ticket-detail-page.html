@@ -143,6 +143,29 @@
             </button>
           </form>
         </section>
+
+        <!-- Details: laid out across the main column so it fills the space under the activity. -->
+        <section class="card">
+          <div class="card-header">
+            <h2><mat-icon>info</mat-icon>Details</h2>
+          </div>
+          <dl class="details">
+            <div><dt>Reference</dt><dd class="mono">{{ t.reference }}</dd></div>
+            <div><dt>Status</dt><dd><app-status-badge [status]="t.status" /></dd></div>
+            <div><dt>Priority</dt><dd><app-lookup-badge [option]="t.priority" [plain]="true" /></dd></div>
+            <div><dt>Category</dt><dd><app-lookup-badge [option]="t.category" [plain]="true" /></dd></div>
+            <div>
+              <dt>Requester</dt>
+              <dd><app-user-avatar [user]="t.created_by" [subtitle]="t.created_by.email" /></dd>
+            </div>
+            <div><dt>Assignee</dt><dd><app-user-avatar [user]="t.assigned_to" /></dd></div>
+            <div><dt>Created</dt><dd>{{ t.created_at | date: 'd MMM y, h:mm a' }}</dd></div>
+            <div><dt>Last update</dt><dd>{{ t.updated_at | date: 'd MMM y, h:mm a' }}</dd></div>
+            @if (t.resolved_at) {
+              <div><dt>Resolved</dt><dd>{{ t.resolved_at | date: 'd MMM y, h:mm a' }}</dd></div>
+            }
+          </dl>
+        </section>
       </div>
 
       <!-- Side column -->
@@ -313,28 +336,6 @@
             </p>
           </section>
         }
-
-        <section class="card">
-          <div class="card-header">
-            <h2><mat-icon>info</mat-icon>Details</h2>
-          </div>
-          <dl class="details">
-            <div><dt>Reference</dt><dd class="mono">{{ t.reference }}</dd></div>
-            <div><dt>Status</dt><dd><app-status-badge [status]="t.status" /></dd></div>
-            <div><dt>Priority</dt><dd><app-lookup-badge [option]="t.priority" [plain]="true" /></dd></div>
-            <div><dt>Category</dt><dd><app-lookup-badge [option]="t.category" [plain]="true" /></dd></div>
-            <div>
-              <dt>Requester</dt>
-              <dd><app-user-avatar [user]="t.created_by" [subtitle]="t.created_by.email" /></dd>
-            </div>
-            <div><dt>Assignee</dt><dd><app-user-avatar [user]="t.assigned_to" /></dd></div>
-            <div><dt>Created</dt><dd>{{ t.created_at | date: 'd MMM y, h:mm a' }}</dd></div>
-            <div><dt>Last update</dt><dd>{{ t.updated_at | date: 'd MMM y, h:mm a' }}</dd></div>
-            @if (t.resolved_at) {
-              <div><dt>Resolved</dt><dd>{{ t.resolved_at | date: 'd MMM y, h:mm a' }}</dd></div>
-            }
-          </dl>
-        </section>
       </aside>
     </div>
   }

@@ -308,32 +308,37 @@
   }
 }
 
+// Horizontal grid: label above value, as many columns as the width allows.
 .details {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
+  gap: 18px 24px;
   margin: 0;
-  padding: 8px 20px 16px;
+  padding: 18px 20px 20px;
 
   > div {
-    display: grid;
-    grid-template-columns: 110px 1fr;
-    align-items: center;
-    gap: 12px;
-    padding: 9px 0;
-    border-bottom: 1px dashed var(--app-border);
-
-    &:last-child {
-      border-bottom: 0;
-    }
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    min-width: 0;
   }
 
   dt {
     color: var(--app-text-muted);
-    font-size: 13px;
+    font-size: 12.5px;
   }
 
   dd {
+    display: flex;
+    align-items: center;
+    min-height: 28px;
     margin: 0;
     min-width: 0;
     color: var(--app-text);
+
+    > * {
+      min-width: 0;
+    }
   }
 }
 
