@@ -202,7 +202,7 @@ def ticket_assigned(ticket, actor, assignee) -> None:
     )])
 
 
-def comment_added(ticket, author, comment: str) -> None:
+def comment_added(ticket, author, comment: str, file_names: list[str] | None = None) -> None:
     if not is_enabled(NotificationEvent.COMMENT_ADDED):
         return
     requester = ticket.created_by
@@ -229,7 +229,10 @@ def comment_added(ticket, author, comment: str) -> None:
             intro="There is a new comment on this ticket.",
             status_badge=_status_badge(ticket.status),
             highlight={"label": f"Comment from {author.display_name}", "text": _short(comment, 2000), "tone": "teal"},
-            details=[("Assigned to", ticket.assigned_to.display_name if ticket.assigned_to else "Not assigned yet")],
+            details=[
+                ("Assigned to", ticket.assigned_to.display_name if ticket.assigned_to else "Not assigned yet"),
+                *([("Attached files", ", ".join(file_names))] if file_names else []),
+            ],
             button_label=button,
             reason=reason,
         )

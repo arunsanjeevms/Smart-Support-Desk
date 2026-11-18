@@ -134,8 +134,13 @@ def update_ticket(*, ticket: Ticket, actor, changes: dict) -> Ticket:
     return ticket
 
 
-def add_comment(*, ticket: Ticket, author, message: str) -> TicketActivity:
+def add_comment(*, ticket: Ticket, author, message: str, files=()) -> TicketActivity:
+    """A comment, optionally with files (stored with the comment so the timeline shows them together)."""
+    from apps.attachments import services as attachments  # avoids a circular import
+
+    checked = attachments.validate_files(files) if files else []  # check files before saving anything
     ticket.save(update_fields=["updated_at"])
     entry = log_activity(ticket, author, ActivityType.COMMENTED, "Added a comment", note=message.strip())
-    notifications.comment_added(ticket, author, entry.note)
+    saved = attachments.store(ticket=ticket, user=author, activity=entry, checked=checked) if checked else []
+    notifications.comment_added(ticket, author, entry.note, [item.file_name for item in saved])
     return entry

@@ -49,6 +49,7 @@ INSTALLED_APPS = [
     "apps.lookups",
     "apps.tickets",
     "apps.similarity",
+    "apps.attachments",
 ]
 
 MIDDLEWARE = [
@@ -205,6 +206,15 @@ SUPPORT_DESK = {
         "KEYWORD_MIN_SCORE": float(os.getenv("SIMILARITY_KEYWORD_MIN_SCORE", "0.15")),
         # Load the model in the background when the web server starts (first search is then instant).
         "PRELOAD": env_bool("SIMILARITY_PRELOAD", True),
+    },
+    # Files attached to tickets and comments (stored in MongoDB GridFS - apps/attachments).
+    "ATTACHMENTS": {
+        "MAX_FILE_MB": int(os.getenv("ATTACHMENT_MAX_FILE_MB", "10")),
+        "MAX_FILES": int(os.getenv("ATTACHMENT_MAX_FILES", "5")),
+        # Can only narrow the supported list in apps/attachments/validators.py.
+        "ALLOWED_EXTENSIONS": env_list(
+            "ATTACHMENT_ALLOWED_EXTENSIONS", "png,jpg,jpeg,gif,webp,pdf,txt,log,csv,json,xlsx,docx,zip"
+        ),
     },
     # One-click demo sign-in on the login page. Turn off outside demos.
     "DEMO_MODE": env_bool("DEMO_MODE", True),

@@ -26,6 +26,8 @@ from django.utils import timezone
 from apps.core.sequences import COUNTERS_COLLECTION
 from apps.lookups.constants import LookupTypeCode
 from apps.lookups.models import LookupValue
+from apps.attachments.models import TicketAttachment
+from apps.attachments.services import add_attachments
 from apps.similarity.constants import SEMANTIC
 from apps.similarity.engines import get_engine, similarity_settings
 from apps.similarity.services import build_index
@@ -33,7 +35,17 @@ from apps.tickets import services
 from apps.tickets.constants import ActivityType, TicketStatus
 from apps.tickets.models import Ticket, TicketActivity
 
-from ._demo_data import AGENTS, ADMIN, COMMENTS, REQUESTERS, TICKETS
+from ._demo_data import (
+    ADMIN,
+    AGENTS,
+    COMMENTS,
+    INVOICE,
+    INVOICE_TICKET,
+    REQUESTERS,
+    TICKETS,
+    WEBHOOK_LOG,
+    WEBHOOK_LOG_TICKET,
+)
 
 User = get_user_model()
 
@@ -64,6 +76,7 @@ class Command(BaseCommand):
             self.stdout.write("Tickets already exist - skipping ticket creation (use --reset to reload).")
         else:
             self._create_tickets(users)
+            self._attach_demo_files()
         self._build_similarity_index()
 
         self.stdout.write(self.style.SUCCESS("\nDemo data is ready. Sign in with:"))
@@ -71,6 +84,30 @@ class Command(BaseCommand):
             self.stdout.write(f"  {account['role_label']:<14} {account['username']:<10} / {account['password']}")
 
     # ------------------------------------------------------------------
+    def _attach_demo_files(self):
+        """A log file and an invoice PDF on two tickets, so attachments show up in the demo."""
+        from django.core.files.uploadedfile import SimpleUploadedFile
+
+        samples = {
+            WEBHOOK_LOG_TICKET: ("webhook-errors.log", WEBHOOK_LOG.encode(), "text/plain"),
+            INVOICE_TICKET: (f"invoice-{INVOICE['number']}.pdf", _invoice_pdf(), "application/pdf"),
+        }
+        for title, (name, content, content_type) in samples.items():
+            ticket = Ticket.objects.filter(title=title).first()
+            if ticket is None:
+                continue
+            updated_at = ticket.updated_at
+            saved = add_attachments(
+                ticket=ticket, user=ticket.created_by,
+                files=[SimpleUploadedFile(name, content, content_type=content_type)],
+            )
+            # Pretend the file came with the ticket, and keep the seeded timestamps.
+            when = ticket.created_at + timedelta(minutes=2)
+            TicketActivity.objects.filter(pk=saved[0].activity_id).update(created_at=when)
+            TicketAttachment.objects.filter(pk__in=[item.pk for item in saved]).update(created_at=when)
+            Ticket.objects.filter(pk=ticket.pk).update(updated_at=updated_at)
+        self.stdout.write("Demo attachments added.")
+
     def _build_similarity_index(self):
         """Encode the resolved tickets now so the first similar-ticket search is instant."""
         if similarity_settings()["ENGINE"] != SEMANTIC:
@@ -181,3 +218,36 @@ class Command(BaseCommand):
             settings.SUPPORT_DESK["EMAIL_NOTIFICATIONS"] = notify
 
         self.stdout.write(f"Tickets created: {Ticket.objects.count()}")
+
+
+def _invoice_pdf() -> bytes:
+    """A small, realistic invoice PDF for the demo attachment."""
+    from io import BytesIO
+
+    from reportlab.lib.pagesizes import A4
+    from reportlab.pdfgen import canvas
+
+    buffer = BytesIO()
+    pdf = canvas.Canvas(buffer, pagesize=A4)
+    pdf.setTitle(f"Invoice {INVOICE['number']}")
+    pdf.setFont("Helvetica-Bold", 20)
+    pdf.drawString(56, 780, f"Invoice {INVOICE['number']}")
+    pdf.setFont("Helvetica", 11)
+    pdf.drawString(56, 756, f"Date: {INVOICE['date']}")
+    pdf.drawString(56, 740, f"Billed to: {INVOICE['customer']}")
+    pdf.drawString(56, 724, "GSTIN: (missing)")
+    y = 690
+    pdf.setFont("Helvetica-Bold", 11)
+    for x, label in ((56, "Item"), (360, "Qty"), (430, "Amount")):
+        pdf.drawString(x, y, label)
+    pdf.setFont("Helvetica", 11)
+    for item, qty, amount in INVOICE["lines"]:
+        y -= 20
+        pdf.drawString(56, y, item)
+        pdf.drawString(360, y, qty)
+        pdf.drawString(430, y, amount)
+    pdf.setFont("Helvetica-Bold", 12)
+    pdf.drawString(56, y - 36, f"Total: {INVOICE['total']}")
+    pdf.showPage()
+    pdf.save()
+    return buffer.getvalue()

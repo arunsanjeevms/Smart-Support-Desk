@@ -255,3 +255,25 @@ COMMENTS = {
     "Webhook deliveries failing with 401 Unauthorized":
         "Signature checks fail since 14:05 yesterday, right when new API keys were generated in your workspace.",
 }
+
+# Sample attachments (added by seed_demo so the feature is visible in the demo).
+WEBHOOK_LOG_TICKET = "Webhook deliveries failing with 401 Unauthorized"
+WEBHOOK_LOG = """2026-10-08 09:14:02 INFO  POST /hooks/orders  event=order.created  id=evt_8841
+2026-10-08 09:14:02 WARN  signature check failed: expected sha256=4be1...c09a, got sha256=91d0...7f2e
+2026-10-08 09:14:02 ERROR responded 401 Unauthorized (signature mismatch)
+2026-10-08 09:19:02 INFO  retry 1/5 for evt_8841
+2026-10-08 09:19:02 ERROR responded 401 Unauthorized (signature mismatch)
+2026-10-08 09:29:02 INFO  retry 2/5 for evt_8841
+2026-10-08 09:29:02 ERROR responded 401 Unauthorized (signature mismatch)
+2026-10-08 09:31:47 INFO  POST /hooks/orders  event=order.paid  id=evt_8843
+2026-10-08 09:31:47 ERROR responded 401 Unauthorized (signature mismatch)
+"""
+
+INVOICE_TICKET = "Invoice PDF is missing our GST number"
+INVOICE = {
+    "number": "INV-2026-0142",
+    "date": "1 October 2026",
+    "customer": "Menon Traders Pvt Ltd",
+    "lines": [("Pro plan - 12 seats", "1", "Rs 18,000.00"), ("Priority support add-on", "1", "Rs 3,000.00")],
+    "total": "Rs 24,780.00 (incl. 18% GST)",
+}

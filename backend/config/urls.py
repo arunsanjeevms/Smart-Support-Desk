@@ -5,7 +5,9 @@ URL map of the backend.
     /api/health/     API + database health check
     /api/auth/...    login, register, logout, current user
     /api/config/     statuses, categories, priorities, ... for the UI
-    /api/tickets/    tickets (+ /export, /export/email, /stats, /similar, /<id>/activities, /<id>/comments)
+    /api/tickets/    tickets (+ /export, /export/email, /stats, /similar, /<id>/activities, /<id>/comments,
+                     /<id>/attachments)
+    /api/attachments/<id>/  attachment details, /download, delete
     /api/activities/ audit log
     /api/users/      user directory
     /api/lookups/... configurable lists and their values
@@ -16,6 +18,7 @@ from django.urls import include, path
 from rest_framework.routers import DefaultRouter
 
 from apps.accounts.views import UserViewSet
+from apps.attachments.views import AttachmentViewSet
 from apps.core.views import HealthView
 from apps.lookups.views import LookupTypeViewSet, LookupValueViewSet
 from apps.tickets.views import ActivityViewSet, ConfigView, TicketViewSet
@@ -27,6 +30,7 @@ admin.site.index_title = "Configuration & data"
 router = DefaultRouter()
 router.register("tickets", TicketViewSet, basename="ticket")
 router.register("activities", ActivityViewSet, basename="activity")
+router.register("attachments", AttachmentViewSet, basename="attachment")
 router.register("users", UserViewSet, basename="user")
 router.register("lookups/types", LookupTypeViewSet, basename="lookup-type")
 router.register("lookups/values", LookupValueViewSet, basename="lookup-value")

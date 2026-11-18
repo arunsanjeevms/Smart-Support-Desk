@@ -47,6 +47,8 @@ class ActivityType(models.TextChoices):
     RESOLUTION_UPDATED = "resolution_updated", "Resolution note updated"
     DETAILS_UPDATED = "details_updated", "Details updated"
     COMMENTED = "commented", "Comment added"
+    ATTACHMENT_ADDED = "attachment_added", "File attached"
+    ATTACHMENT_REMOVED = "attachment_removed", "File removed"
 
 
 ACTIVITY_ICONS = {
@@ -56,6 +58,8 @@ ACTIVITY_ICONS = {
     ActivityType.RESOLUTION_UPDATED: "task_alt",
     ActivityType.DETAILS_UPDATED: "edit_note",
     ActivityType.COMMENTED: "chat_bubble",
+    ActivityType.ATTACHMENT_ADDED: "attach_file",
+    ActivityType.ATTACHMENT_REMOVED: "delete",
 }
 
 

@@ -5,12 +5,15 @@ from django.db.models import Count
 from django.utils import timezone
 from rest_framework import mixins, status, viewsets
 from rest_framework.decorators import action
-from rest_framework.exceptions import NotFound, PermissionDenied
+from rest_framework.exceptions import NotFound, PermissionDenied, ValidationError
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from apps.accounts.permissions import IsAgent
 from apps.accounts.serializers import UserSummarySerializer
+from apps.attachments import services as attachment_services
+from apps.attachments.serializers import AttachmentSerializer
+from apps.attachments.validators import allowed_extensions, attachment_settings
 from apps.core.exports import ExportColumn, ExportMixin
 from apps.core.exports.writers import EXPORT_FORMATS
 from apps.lookups.constants import LookupTypeCode
@@ -190,16 +193,43 @@ class TicketViewSet(
     @action(detail=True, methods=["get"])
     def activities(self, request, pk=None):
         ticket = self.get_object()
-        entries = ticket.activities.select_related("actor", "ticket").order_by("created_at")
-        return Response(TicketActivitySerializer(entries, many=True).data)
+        entries = (
+            ticket.activities.select_related("actor", "ticket")
+            .prefetch_related("attachments__uploaded_by")
+            .order_by("created_at")
+        )
+        return Response(TicketActivitySerializer(entries, many=True, context=self.get_serializer_context()).data)
 
     @action(detail=True, methods=["post"])
     def comments(self, request, pk=None):
+        """JSON ``{message}``, or multipart with ``message`` and/or ``files``."""
         ticket = self.get_object()
         serializer = CommentSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        entry = services.add_comment(ticket=ticket, author=request.user, message=serializer.validated_data["message"])
-        return Response(TicketActivitySerializer(entry).data, status=status.HTTP_201_CREATED)
+        message = serializer.validated_data.get("message", "")
+        files = request.FILES.getlist("files")
+        if not message and not files:
+            raise ValidationError({"message": ["Write a comment first, or attach a file."]})
+        if message:
+            entry = services.add_comment(ticket=ticket, author=request.user, message=message, files=files)
+        else:
+            entry = attachment_services.add_attachments(ticket=ticket, user=request.user, files=files)[0].activity
+        entry = TicketActivity.objects.select_related("actor", "ticket").get(pk=entry.pk)
+        data = TicketActivitySerializer(entry, context=self.get_serializer_context()).data
+        return Response(data, status=status.HTTP_201_CREATED)
+
+    @action(detail=True, methods=["get", "post"])
+    def attachments(self, request, pk=None):
+        """List the ticket's files, or upload new ones (multipart field ``files``)."""
+        ticket = self.get_object()
+        context = self.get_serializer_context()
+        if request.method == "POST":
+            saved = attachment_services.add_attachments(
+                ticket=ticket, user=request.user, files=request.FILES.getlist("files")
+            )
+            return Response(AttachmentSerializer(saved, many=True, context=context).data, status=status.HTTP_201_CREATED)
+        files = ticket.attachments.select_related("uploaded_by").order_by("created_at")
+        return Response(AttachmentSerializer(files, many=True, context=context).data)
 
     @action(detail=False, methods=["post"], throttle_scope="similar")
     def similar(self, request):
@@ -285,7 +315,7 @@ class ActivityViewSet(ExportMixin, viewsets.ReadOnlyModelViewSet):
     ]
 
     def get_queryset(self):
-        queryset = TicketActivity.objects.select_related("ticket", "actor")
+        queryset = TicketActivity.objects.select_related("ticket", "actor").prefetch_related("attachments__uploaded_by")
         activity_type = self.request.query_params.get("activity_type")
         if activity_type in ActivityType.values:
             queryset = queryset.filter(activity_type=activity_type)
@@ -325,6 +355,11 @@ class ConfigView(APIView):
             "roles": [{"value": r.value, "label": r.label} for r in User.Role],
             "agents": UserSummarySerializer(agents, many=True).data if request.user.is_agent else [],
             "export_formats": [{"value": f.key, "label": f.label} for f in EXPORT_FORMATS.values()],
+            "attachments": {
+                "max_file_mb": attachment_settings()["MAX_FILE_MB"],
+                "max_files": attachment_settings()["MAX_FILES"],
+                "allowed_extensions": allowed_extensions(),
+            },
             "similarity": {
                 "enabled": similarity_settings()["ENABLED"],
                 "max_results": similarity_settings()["MAX_RESULTS"],

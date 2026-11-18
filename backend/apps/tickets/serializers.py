@@ -2,6 +2,7 @@ from django.contrib.auth import get_user_model
 from rest_framework import serializers
 
 from apps.accounts.serializers import UserSummarySerializer
+from apps.attachments.serializers import AttachmentSerializer
 from apps.core.serializers import MongoModelSerializer, ObjectIdField
 from apps.lookups.constants import LookupTypeCode
 from apps.lookups.models import LookupValue
@@ -102,10 +103,11 @@ class TicketDetailSerializer(TicketListSerializer):
     resolved_by = UserSummarySerializer(read_only=True)
     allowed_statuses = serializers.SerializerMethodField()
     can_manage = serializers.SerializerMethodField()
+    attachments = serializers.SerializerMethodField()
 
     class Meta(TicketListSerializer.Meta):
         fields = TicketListSerializer.Meta.fields + [
-            "description", "resolution_note", "resolved_by", "allowed_statuses", "can_manage",
+            "description", "resolution_note", "resolved_by", "allowed_statuses", "can_manage", "attachments",
         ]
         read_only_fields = fields
 
@@ -115,6 +117,10 @@ class TicketDetailSerializer(TicketListSerializer):
 
     def get_can_manage(self, obj) -> bool:
         return self._is_agent()
+
+    def get_attachments(self, obj) -> list[dict]:
+        files = obj.attachments.select_related("uploaded_by").order_by("created_at")
+        return AttachmentSerializer(files, many=True, context=self.context).data
 
     def get_allowed_statuses(self, obj) -> list[dict]:
         if not self._is_agent():
@@ -127,12 +133,13 @@ class TicketActivitySerializer(MongoModelSerializer):
     activity_label = serializers.CharField(source="get_activity_type_display", read_only=True)
     icon = serializers.SerializerMethodField()
     ticket = serializers.SerializerMethodField()
+    attachments = serializers.SerializerMethodField()
 
     class Meta:
         model = TicketActivity
         fields = [
             "id", "ticket", "actor", "activity_type", "activity_label", "icon", "message",
-            "from_status", "to_status", "note", "created_at",
+            "from_status", "to_status", "note", "attachments", "created_at",
         ]
         read_only_fields = fields
 
@@ -142,6 +149,10 @@ class TicketActivitySerializer(MongoModelSerializer):
     def get_ticket(self, obj) -> dict:
         ticket = obj.ticket
         return {"id": str(ticket.pk), "reference": ticket.reference, "title": ticket.title}
+
+    def get_attachments(self, obj) -> list[dict]:
+        # Uses the prefetched files when the view asked for them (no query per entry).
+        return AttachmentSerializer(obj.attachments.all(), many=True, context=self.context).data
 
 
 # ---------------------------------------------------------------------------
@@ -226,7 +237,15 @@ class TicketUpdateSerializer(serializers.Serializer):
 
 
 class CommentSerializer(serializers.Serializer):
+    """A comment, optionally with files. Files alone are fine too (sent as multipart ``files``)."""
+
     message = serializers.CharField(
-        min_length=2, max_length=2000,
-        error_messages={"blank": "Write a comment first.", "required": "Write a comment first."},
+        required=False, allow_blank=True, max_length=2000,
+        error_messages={"max_length": "A comment cannot be longer than 2000 characters."},
     )
+
+    def validate_message(self, value):
+        value = value.strip()
+        if value and len(value) < 2:
+            raise serializers.ValidationError("Write a little more, or attach a file.")
+        return value
