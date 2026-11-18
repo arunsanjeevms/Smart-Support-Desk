@@ -18,7 +18,7 @@
 **A complete help desk: requesters raise tickets, the support team resolves them, and an open-source language model
 running inside the backend suggests the category and finds similar fixes.**
 
-[Features](#-features) · [Quick start](#-quick-start) · [Architecture](#-architecture) · [AI](#-ai-similar-tickets-and-category-suggestion) · [API](#-api-reference) · [Docs](#-documentation)
+[Features](#-features) · [Screenshots](#-screenshots) · [Quick start](#-quick-start) · [Architecture](#-architecture) · [AI](#-ai-similar-tickets-and-category-suggestion) · [API](#-api-reference) · [Docs](#-documentation)
 
 </div>
 
@@ -133,6 +133,316 @@ table shows - the same search, filters and sort order.
   alternating row colours and a favicon / home-screen icon set.
 
 Every screen, with what to capture for screenshots, is described in [docs/SCREENS.md](docs/SCREENS.md).
+
+<div align="right"><a href="#readme-top">↑ Back to top</a></div>
+
+---
+
+## 📸 Screenshots
+
+All 40 screens of the app, in the order of the [Word handbook](docs/handbook/Smart-Support-Desk-Handbook.docx).
+Click any picture to open it full size; what each screen shows is explained in [docs/SCREENS.md](docs/SCREENS.md).
+
+<table>
+<tr>
+<td width="50%" valign="top" align="center">
+<a href="docs/screenshots/09-dashboard-agent.jpg"><img src="docs/screenshots/09-dashboard-agent.jpg" alt="Agent dashboard - queue, workload and resolution time" width="100%"></a>
+<br><sub><b>Agent dashboard</b> · queue, workload and resolution time</sub>
+</td>
+<td width="50%" valign="top" align="center">
+<a href="docs/screenshots/13-new-ticket-category-suggestion.jpg"><img src="docs/screenshots/13-new-ticket-category-suggestion.jpg" alt="Suggested category (AI) - appears while the title is typed" width="100%"></a>
+<br><sub><b>Suggested category (AI)</b> · appears while the title is typed</sub>
+</td>
+</tr>
+<tr>
+<td width="50%" valign="top" align="center">
+<a href="docs/screenshots/15-similar-tickets.jpg"><img src="docs/screenshots/15-similar-tickets.jpg" alt="Similar resolved tickets (AI) - found for a newly typed issue" width="100%"></a>
+<br><sub><b>Similar resolved tickets (AI)</b> · found for a newly typed issue</sub>
+</td>
+<td width="50%" valign="top" align="center">
+<a href="docs/screenshots/22-ticket-agent-view.jpg"><img src="docs/screenshots/22-ticket-agent-view.jpg" alt="Ticket - agent view - Manage panel on an open, unassigned ticket" width="100%"></a>
+<br><sub><b>Ticket - agent view</b> · Manage panel on an open, unassigned ticket</sub>
+</td>
+</tr>
+</table>
+
+<details>
+<summary><b>🔐 Sign-in, welcome and the app shell (7)</b></summary>
+
+<br>
+
+<table>
+<tr>
+<td width="50%" valign="top" align="center">
+<a href="docs/screenshots/01-sign-in.jpg"><img src="docs/screenshots/01-sign-in.jpg" alt="Sign in - one-click demo accounts from the backend" width="100%"></a>
+<br><sub><b>Sign in</b> · one-click demo accounts from the backend</sub>
+</td>
+<td width="50%" valign="top" align="center">
+<a href="docs/screenshots/02-sign-up-validation.jpg"><img src="docs/screenshots/02-sign-up-validation.jpg" alt="Sign up - validation messages under each field" width="100%"></a>
+<br><sub><b>Sign up</b> · validation messages under each field</sub>
+</td>
+</tr>
+<tr>
+<td width="50%" valign="top" align="center">
+<a href="docs/screenshots/03-welcome-animation.jpg"><img src="docs/screenshots/03-welcome-animation.jpg" alt="Welcome animation - shown once after signing in" width="100%"></a>
+<br><sub><b>Welcome animation</b> · shown once after signing in</sub>
+</td>
+<td width="50%" valign="top" align="center">
+<a href="docs/screenshots/04-app-shell-account-menu.jpg"><img src="docs/screenshots/04-app-shell-account-menu.jpg" alt="App shell - dark sidebar, greeting and account menu" width="100%"></a>
+<br><sub><b>App shell</b> · dark sidebar, greeting and account menu</sub>
+</td>
+</tr>
+</table>
+
+<table>
+<tr>
+<td width="33%" valign="top" align="center">
+<a href="docs/screenshots/05-mobile-dashboard.jpg"><img src="docs/screenshots/05-mobile-dashboard.jpg" alt="Phone - dashboard" width="82%"></a>
+<br><sub><b>Phone</b> · dashboard</sub>
+</td>
+<td width="33%" valign="top" align="center">
+<a href="docs/screenshots/06-mobile-menu.jpg"><img src="docs/screenshots/06-mobile-menu.jpg" alt="Phone - slide-out menu" width="82%"></a>
+<br><sub><b>Phone</b> · slide-out menu</sub>
+</td>
+<td width="33%" valign="top" align="center">
+<a href="docs/screenshots/07-mobile-ticket-list.jpg"><img src="docs/screenshots/07-mobile-ticket-list.jpg" alt="Phone - ticket list" width="82%"></a>
+<br><sub><b>Phone</b> · ticket list</sub>
+</td>
+</tr>
+</table>
+
+</details>
+
+<details>
+<summary><b>📈 Dashboards and ticket lists (4)</b></summary>
+
+<br>
+
+<table>
+<tr>
+<td width="50%" valign="top" align="center">
+<a href="docs/screenshots/08-dashboard-requester.jpg"><img src="docs/screenshots/08-dashboard-requester.jpg" alt="Requester dashboard - own tickets by status and category" width="100%"></a>
+<br><sub><b>Requester dashboard</b> · own tickets by status and category</sub>
+</td>
+<td width="50%" valign="top" align="center">
+<a href="docs/screenshots/09-dashboard-agent.jpg"><img src="docs/screenshots/09-dashboard-agent.jpg" alt="Agent dashboard - queue, workload and resolution time" width="100%"></a>
+<br><sub><b>Agent dashboard</b> · queue, workload and resolution time</sub>
+</td>
+</tr>
+<tr>
+<td width="50%" valign="top" align="center">
+<a href="docs/screenshots/10-my-tickets.jpg"><img src="docs/screenshots/10-my-tickets.jpg" alt="My tickets - a requester only sees their own tickets" width="100%"></a>
+<br><sub><b>My tickets</b> · a requester only sees their own tickets</sub>
+</td>
+<td width="50%" valign="top" align="center">
+<a href="docs/screenshots/11-all-tickets-filtered.jpg"><img src="docs/screenshots/11-all-tickets-filtered.jpg" alt="All tickets - agent view filtered to open and unassigned" width="100%"></a>
+<br><sub><b>All tickets</b> · agent view filtered to open and unassigned</sub>
+</td>
+</tr>
+</table>
+
+</details>
+
+<details>
+<summary><b>📝 Raising a ticket with AI help (6)</b></summary>
+
+<br>
+
+<table>
+<tr>
+<td width="50%" valign="top" align="center">
+<a href="docs/screenshots/12-new-ticket-validation.jpg"><img src="docs/screenshots/12-new-ticket-validation.jpg" alt="New ticket - helpful messages after an empty submit" width="100%"></a>
+<br><sub><b>New ticket</b> · helpful messages after an empty submit</sub>
+</td>
+<td width="50%" valign="top" align="center">
+<a href="docs/screenshots/13-new-ticket-category-suggestion.jpg"><img src="docs/screenshots/13-new-ticket-category-suggestion.jpg" alt="Suggested category (AI) - appears while the title is typed" width="100%"></a>
+<br><sub><b>Suggested category (AI)</b> · appears while the title is typed</sub>
+</td>
+</tr>
+<tr>
+<td width="50%" valign="top" align="center">
+<a href="docs/screenshots/14-new-ticket-attachments.jpg"><img src="docs/screenshots/14-new-ticket-attachments.jpg" alt="Attachments on a new ticket - two files ready, a rejected .exe" width="100%"></a>
+<br><sub><b>Attachments on a new ticket</b> · two files ready, a rejected .exe</sub>
+</td>
+<td width="50%" valign="top" align="center">
+<a href="docs/screenshots/15-similar-tickets.jpg"><img src="docs/screenshots/15-similar-tickets.jpg" alt="Similar resolved tickets (AI) - found for a newly typed issue" width="100%"></a>
+<br><sub><b>Similar resolved tickets (AI)</b> · found for a newly typed issue</sub>
+</td>
+</tr>
+<tr>
+<td width="50%" valign="top" align="center">
+<a href="docs/screenshots/16-similar-ticket-details.jpg"><img src="docs/screenshots/16-similar-ticket-details.jpg" alt="Similar ticket details - opened over the draft, nothing is lost" width="100%"></a>
+<br><sub><b>Similar ticket details</b> · opened over the draft, nothing is lost</sub>
+</td>
+<td width="50%" valign="top" align="center">
+<a href="docs/screenshots/17-ticket-requester-view.jpg"><img src="docs/screenshots/17-ticket-requester-view.jpg" alt="Ticket - requester view - status, details and a help panel" width="100%"></a>
+<br><sub><b>Ticket - requester view</b> · status, details and a help panel</sub>
+</td>
+</tr>
+</table>
+
+</details>
+
+<details>
+<summary><b>📎 Following a ticket and its attachments (5)</b></summary>
+
+<br>
+
+<table>
+<tr>
+<td width="50%" valign="top" align="center">
+<a href="docs/screenshots/18-ticket-timeline-comments.jpg"><img src="docs/screenshots/18-ticket-timeline-comments.jpg" alt="Timeline and comments - activity history and the comment box" width="100%"></a>
+<br><sub><b>Timeline and comments</b> · activity history and the comment box</sub>
+</td>
+<td width="50%" valign="top" align="center">
+<a href="docs/screenshots/19-ticket-attachment-pdf.jpg"><img src="docs/screenshots/19-ticket-attachment-pdf.jpg" alt="Attached invoice PDF - on a resolved ticket" width="100%"></a>
+<br><sub><b>Attached invoice PDF</b> · on a resolved ticket</sub>
+</td>
+</tr>
+<tr>
+<td width="100%" valign="top" align="center" colspan="2">
+<a href="docs/screenshots/20-attachments-card.jpg"><img src="docs/screenshots/20-attachments-card.jpg" alt="Attachments card - image thumbnail, download and remove" width="100%"></a>
+<br><sub><b>Attachments card</b> · image thumbnail, download and remove</sub>
+</td>
+</tr>
+<tr>
+<td width="50%" valign="top" align="center">
+<a href="docs/screenshots/21-image-preview.jpg"><img src="docs/screenshots/21-image-preview.jpg" alt="Image preview - full size, with a download button" width="100%"></a>
+<br><sub><b>Image preview</b> · full size, with a download button</sub>
+</td>
+<td width="50%" valign="top" align="center">
+<a href="docs/screenshots/26-resolved-ticket-history.jpg"><img src="docs/screenshots/26-resolved-ticket-history.jpg" alt="Full ticket history - every change, file and comment" width="100%"></a>
+<br><sub><b>Full ticket history</b> · every change, file and comment</sub>
+</td>
+</tr>
+</table>
+
+</details>
+
+<details>
+<summary><b>🎧 The support agent's workflow (4)</b></summary>
+
+<br>
+
+<table>
+<tr>
+<td width="50%" valign="top" align="center">
+<a href="docs/screenshots/22-ticket-agent-view.jpg"><img src="docs/screenshots/22-ticket-agent-view.jpg" alt="Ticket - agent view - Manage panel on an open, unassigned ticket" width="100%"></a>
+<br><sub><b>Ticket - agent view</b> · Manage panel on an open, unassigned ticket</sub>
+</td>
+<td width="50%" valign="top" align="center">
+<a href="docs/screenshots/23-agent-similar-tickets.jpg"><img src="docs/screenshots/23-agent-similar-tickets.jpg" alt="Similar tickets for agents - shown automatically - Use this note" width="100%"></a>
+<br><sub><b>Similar tickets for agents</b> · shown automatically - Use this note</sub>
+</td>
+</tr>
+</table>
+
+<table>
+<tr>
+<td width="26%" valign="top" align="center">
+<a href="docs/screenshots/24-resolve-without-note.jpg"><img src="docs/screenshots/24-resolve-without-note.jpg" alt="Note required - resolving needs a resolution note" width="100%"></a>
+<br><sub><b>Note required</b> · resolving needs a resolution note</sub>
+</td>
+<td width="74%" valign="top" align="center">
+<a href="docs/screenshots/25-resolved-ticket.jpg"><img src="docs/screenshots/25-resolved-ticket.jpg" alt="Resolved ticket - Resolution card and an attached log file" width="100%"></a>
+<br><sub><b>Resolved ticket</b> · Resolution card and an attached log file</sub>
+</td>
+</tr>
+</table>
+
+</details>
+
+<details>
+<summary><b>📊 Exports and e-mail (5)</b></summary>
+
+<br>
+
+<table>
+<tr>
+<td width="50%" valign="top" align="center">
+<a href="docs/screenshots/27-export-menu.jpg"><img src="docs/screenshots/27-export-menu.jpg" alt="Export menu - PDF, Excel or e-mail above every table" width="100%"></a>
+<br><sub><b>Export menu</b> · PDF, Excel or e-mail above every table</sub>
+</td>
+<td width="50%" valign="top" align="center">
+<a href="docs/screenshots/28-pdf-report.jpg"><img src="docs/screenshots/28-pdf-report.jpg" alt="PDF report - branded, set in Poppins" width="100%"></a>
+<br><sub><b>PDF report</b> · branded, set in Poppins</sub>
+</td>
+</tr>
+<tr>
+<td width="50%" valign="top" align="center">
+<a href="docs/screenshots/29-excel-export.jpg"><img src="docs/screenshots/29-excel-export.jpg" alt="Excel export - the same rows, frozen header and filters" width="100%"></a>
+<br><sub><b>Excel export</b> · the same rows, frozen header and filters</sub>
+</td>
+<td width="50%" valign="top" align="center">
+<a href="docs/screenshots/30-email-report-dialog.jpg"><img src="docs/screenshots/30-email-report-dialog.jpg" alt="E-mail a report - as a PDF or Excel attachment" width="100%"></a>
+<br><sub><b>E-mail a report</b> · as a PDF or Excel attachment</sub>
+</td>
+</tr>
+<tr>
+<td width="100%" valign="top" align="center" colspan="2">
+<a href="docs/screenshots/31-notification-email.jpg"><img src="docs/screenshots/31-notification-email.jpg" alt="Notification e-mail - what a requester receives on resolve" width="42%"></a>
+<br><sub><b>Notification e-mail</b> · what a requester receives on resolve</sub>
+</td>
+</tr>
+</table>
+
+</details>
+
+<details>
+<summary><b>🛠️ Team tools: activity log, users, configuration and admin (9)</b></summary>
+
+<br>
+
+<table>
+<tr>
+<td width="50%" valign="top" align="center">
+<a href="docs/screenshots/32-activity-log.jpg"><img src="docs/screenshots/32-activity-log.jpg" alt="Activity log - every change on every ticket" width="100%"></a>
+<br><sub><b>Activity log</b> · every change on every ticket</sub>
+</td>
+<td width="50%" valign="top" align="center">
+<a href="docs/screenshots/33-activity-log-filtered.jpg"><img src="docs/screenshots/33-activity-log-filtered.jpg" alt="Activity log, filtered - status changes only" width="100%"></a>
+<br><sub><b>Activity log, filtered</b> · status changes only</sub>
+</td>
+</tr>
+<tr>
+<td width="50%" valign="top" align="center">
+<a href="docs/screenshots/34-users.jpg"><img src="docs/screenshots/34-users.jpg" alt="Users - searchable user directory" width="100%"></a>
+<br><sub><b>Users</b> · searchable user directory</sub>
+</td>
+<td width="50%" valign="top" align="center">
+<a href="docs/screenshots/35-configuration-categories.jpg"><img src="docs/screenshots/35-configuration-categories.jpg" alt="Configuration - ticket categories managed in the backend" width="100%"></a>
+<br><sub><b>Configuration</b> · ticket categories managed in the backend</sub>
+</td>
+</tr>
+<tr>
+<td width="50%" valign="top" align="center">
+<a href="docs/screenshots/36-configuration-add-category.jpg"><img src="docs/screenshots/36-configuration-add-category.jpg" alt="Add a category - with a live preview" width="100%"></a>
+<br><sub><b>Add a category</b> · with a live preview</sub>
+</td>
+<td width="50%" valign="top" align="center">
+<a href="docs/screenshots/37-configuration-email-notifications.jpg"><img src="docs/screenshots/37-configuration-email-notifications.jpg" alt="E-mail notifications - switch each event on or off" width="100%"></a>
+<br><sub><b>E-mail notifications</b> · switch each event on or off</sub>
+</td>
+</tr>
+<tr>
+<td width="50%" valign="top" align="center">
+<a href="docs/screenshots/38-django-admin.jpg"><img src="docs/screenshots/38-django-admin.jpg" alt="Django admin - administration home" width="100%"></a>
+<br><sub><b>Django admin</b> · administration home</sub>
+</td>
+<td width="50%" valign="top" align="center">
+<a href="docs/screenshots/39-django-admin-users.jpg"><img src="docs/screenshots/39-django-admin-users.jpg" alt="Django admin - users - manage users and roles" width="100%"></a>
+<br><sub><b>Django admin - users</b> · manage users and roles</sub>
+</td>
+</tr>
+<tr>
+<td width="100%" valign="top" align="center" colspan="2">
+<a href="docs/screenshots/40-page-not-found.jpg"><img src="docs/screenshots/40-page-not-found.jpg" alt="Page not found - a friendly page for unknown addresses" width="60%"></a>
+<br><sub><b>Page not found</b> · a friendly page for unknown addresses</sub>
+</td>
+</tr>
+</table>
+
+</details>
 
 <div align="right"><a href="#readme-top">↑ Back to top</a></div>
 
