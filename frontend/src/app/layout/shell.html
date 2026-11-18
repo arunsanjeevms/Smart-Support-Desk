@@ -1,4 +1,8 @@
-<mat-sidenav-container class="shell" autosize>
+<!-- Welcome intro right after signing in; the app is built (and animates in) once it finishes. -->
+@if (showIntro()) {
+  <app-welcome-intro [user]="auth.user()" [kind]="welcomeKind" (finished)="showIntro.set(false)" />
+} @else {
+<mat-sidenav-container class="shell" [class.enter]="playEntrance" autosize>
   <mat-sidenav
     class="sidebar"
     [mode]="isMobile() ? 'over' : 'side'"
@@ -124,3 +128,4 @@
     </main>
   </mat-sidenav-content>
 </mat-sidenav-container>
+}

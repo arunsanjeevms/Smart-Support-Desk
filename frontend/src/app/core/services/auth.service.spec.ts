@@ -60,6 +60,15 @@ describe('AuthService', () => {
     expect(localStorage.getItem('ssd.token')).toBe('abc123');
   });
 
+  it('asks for the welcome intro once after signing in', () => {
+    expect(service.consumeWelcome()).toBeNull();
+    service.login('meera', 'secret').subscribe();
+    http.expectOne(`${environment.apiUrl}/auth/login/`).flush({ token: 'abc123', user: agent });
+
+    expect(service.consumeWelcome()).toBe('back');
+    expect(service.consumeWelcome()).toBeNull(); // only once
+  });
+
   it('forgets the session on logout', () => {
     service.login('meera', 'secret').subscribe();
     http.expectOne(`${environment.apiUrl}/auth/login/`).flush({ token: 'abc123', user: agent });

@@ -8,6 +8,9 @@ import { ConfigService } from './config.service';
 
 const TOKEN_KEY = 'ssd.token';
 
+/** "back" after signing in, "new" after creating an account. */
+export type WelcomeKind = 'back' | 'new';
+
 /**
  * Keeps track of who is signed in.
  *
@@ -28,6 +31,9 @@ export class AuthService {
   readonly isAuthenticated = computed(() => !!this.userSignal() && !!this.tokenSignal());
   readonly isAgent = computed(() => this.userSignal()?.is_agent ?? false);
 
+  /** Set right after signing in / up so the app can play its welcome intro once. */
+  private welcome: WelcomeKind | null = null;
+
   /** Called once at start-up to restore an existing session. */
   async restoreSession(): Promise<void> {
     if (!this.tokenSignal()) return;
@@ -44,13 +50,24 @@ export class AuthService {
   login(username: string, password: string): Observable<AuthResponse> {
     return this.api
       .post<AuthResponse>('auth/login/', { username, password })
-      .pipe(tap((response) => this.startSession(response)));
+      .pipe(tap((response) => this.startSession(response, 'back')));
   }
 
   register(payload: RegisterPayload): Observable<AuthResponse> {
     return this.api
       .post<AuthResponse>('auth/register/', payload)
-      .pipe(tap((response) => this.startSession(response)));
+      .pipe(tap((response) => this.startSession(response, 'new')));
+  }
+
+  /**
+   * Returns how to welcome the user ("back" after sign-in, "new" after sign-up)
+   * the first time it is called after signing in, then null. Restoring a session
+   * on page refresh never triggers the welcome intro.
+   */
+  consumeWelcome(): WelcomeKind | null {
+    const kind = this.welcome;
+    this.welcome = null;
+    return kind;
   }
 
   demoAccounts(): Observable<DemoAccount[]> {
@@ -72,10 +89,11 @@ export class AuthService {
     this.config.clear();
   }
 
-  private startSession({ token, user }: AuthResponse): void {
+  private startSession({ token, user }: AuthResponse, welcome: WelcomeKind): void {
     writeToken(token);
     this.tokenSignal.set(token);
     this.userSignal.set(user);
+    this.welcome = welcome;
   }
 }
 

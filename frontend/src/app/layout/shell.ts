@@ -12,6 +12,7 @@ import { filter, map } from 'rxjs';
 
 import { AuthService } from '../core/services/auth.service';
 import { UserAvatar } from '../shared/components/user-avatar';
+import { WelcomeIntro } from './welcome-intro';
 
 interface NavItem {
   label: string;
@@ -35,6 +36,7 @@ interface NavItem {
     MatDividerModule,
     MatTooltipModule,
     UserAvatar,
+    WelcomeIntro,
   ],
   templateUrl: './shell.html',
   styleUrl: './shell.scss',
@@ -42,6 +44,12 @@ interface NavItem {
 export class Shell {
   protected readonly auth = inject(AuthService);
   private readonly router = inject(Router);
+
+  /** Right after signing in: show the welcome intro, then animate the app in. */
+  private readonly welcome = this.auth.consumeWelcome();
+  protected readonly welcomeKind = this.welcome ?? 'back';
+  protected readonly showIntro = signal(this.welcome !== null);
+  protected readonly playEntrance = this.welcome !== null;
 
   protected readonly isMobile = toSignal(
     inject(BreakpointObserver)

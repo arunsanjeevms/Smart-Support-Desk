@@ -3,6 +3,42 @@
   background: var(--app-bg);
 }
 
+// Entrance after the welcome intro: sidebar slides in, top bar drops in, page rises.
+.shell.enter {
+  .sidebar {
+    animation: side-in 0.6s cubic-bezier(0.2, 0.7, 0.2, 1) both;
+  }
+
+  .topbar {
+    animation: drop-in 0.5s ease-out 0.15s both;
+  }
+
+  .content {
+    animation: page-rise 0.6s ease-out 0.25s both;
+  }
+}
+
+@keyframes side-in {
+  from {
+    opacity: 0;
+    transform: translateX(-28px);
+  }
+}
+
+@keyframes drop-in {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+}
+
+@keyframes page-rise {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+}
+
 // ---------------------------------------------------------------- sidebar
 // Dark sidebar: deep teal-charcoal base, fine diagonal pinstripes and a large
 // faded headset icon as a watermark.
