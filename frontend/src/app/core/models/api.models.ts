@@ -133,6 +133,31 @@ export interface AppConfig {
     resolution_min: number;
   };
   similarity: SimilarityConfig;
+  attachments: AttachmentConfig;
+}
+
+/** Upload limits for attachments, as configured in the backend. */
+export interface AttachmentConfig {
+  max_file_mb: number;
+  max_files: number;
+  /** Lower-case extensions without the dot, e.g. ['png', 'pdf', 'log']. */
+  allowed_extensions: string[];
+}
+
+/** A file attached to a ticket or comment (the bytes live in MongoDB GridFS). */
+export interface Attachment {
+  id: string;
+  file_name: string;
+  extension: string;
+  content_type: string;
+  /** Bytes. */
+  size: number;
+  is_image: boolean;
+  uploaded_by: UserSummary | null;
+  created_at: string;
+  /** Path relative to the API root. */
+  download_url: string;
+  can_delete: boolean;
 }
 
 /** Similar ticket suggestions, as configured in the backend. */
@@ -165,6 +190,7 @@ export interface TicketDetail extends Ticket {
   resolved_by: UserSummary | null;
   allowed_statuses: ValueLabel[];
   can_manage: boolean;
+  attachments: Attachment[];
 }
 
 export interface TicketCreatePayload {
@@ -193,6 +219,7 @@ export interface TicketActivity {
   from_status: TicketStatus | '';
   to_status: TicketStatus | '';
   note: string;
+  attachments: Attachment[];
   created_at: string;
 }
 

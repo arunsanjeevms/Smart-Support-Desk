@@ -65,6 +65,43 @@
           <div class="card-body prose">{{ t.description }}</div>
         </section>
 
+        <!-- Attachments -->
+        <section class="card attachments-card">
+          <div class="card-header">
+            <h2>
+              <mat-icon>attach_file</mat-icon>Attachments
+              <span class="count">{{ t.attachments.length }}</span>
+            </h2>
+            <input
+              #attachInput
+              class="native-file"
+              type="file"
+              multiple
+              tabindex="-1"
+              aria-hidden="true"
+              [accept]="accept()"
+              (change)="onFilesChosen($event)"
+            />
+            <button mat-stroked-button type="button" (click)="chooseFiles()" [disabled]="uploadPercent() !== null">
+              <mat-icon>upload_file</mat-icon>
+              Add files
+            </button>
+          </div>
+          @if (uploadPercent() !== null) {
+            <mat-progress-bar mode="determinate" [value]="uploadPercent()" aria-label="Upload progress" />
+          }
+          <div class="card-body">
+            @if (t.attachments.length) {
+              <app-attachment-list [attachments]="t.attachments" (removed)="onAttachmentRemoved($event)" />
+            } @else {
+              <p class="no-files">
+                <mat-icon>add_photo_alternate</mat-icon>
+                No files yet. Screenshots, logs or documents help the support team understand the problem.
+              </p>
+            }
+          </div>
+        </section>
+
         <!-- Agents: resolved tickets that read like this one (advisory). -->
         @if (t.can_manage && t.status !== 'resolved') {
           <section class="card">
@@ -129,6 +166,9 @@
                   @if (entry.note) {
                     <div class="event-note" [class.comment]="entry.activity_type === 'commented'">{{ entry.note }}</div>
                   }
+                  @if (entry.attachments.length) {
+                    <app-attachment-list [attachments]="entry.attachments" [compact]="true" />
+                  }
                 </div>
               </li>
             }
@@ -136,6 +176,7 @@
 
           <form class="composer" [formGroup]="commentForm" (ngSubmit)="postComment()">
             <app-user-avatar [user]="auth.user()" [showName]="false" [size]="32" />
+            <div class="composer-main">
             <mat-form-field>
               <mat-label>Add a comment</mat-label>
               <textarea
@@ -146,9 +187,11 @@
                 [placeholder]="auth.isAgent() ? 'Ask for details or share progress…' : 'Add more information for the support team…'"
               ></textarea>
               @if (commentForm.controls.message.hasError('required')) {
-                <mat-error>Write a comment first.</mat-error>
+                <mat-error>Write a comment or attach a file.</mat-error>
               }
             </mat-form-field>
+            <app-file-picker [(files)]="commentFiles" [compact]="true" [disabled]="posting()" />
+            </div>
             <button mat-flat-button type="submit" [disabled]="posting()">
               @if (posting()) {
                 <mat-progress-spinner diameter="18" mode="indeterminate" />

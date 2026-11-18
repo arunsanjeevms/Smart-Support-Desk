@@ -34,8 +34,15 @@ export class TicketService {
     return this.api.get<TicketActivity[]>(`tickets/${id}/activities/`);
   }
 
-  comment(id: string, message: string): Observable<TicketActivity> {
-    return this.api.post<TicketActivity>(`tickets/${id}/comments/`, { message });
+  /** A comment, optionally with files (sent as multipart when there are files). */
+  comment(id: string, message: string, files: File[] = []): Observable<TicketActivity> {
+    if (!files.length) {
+      return this.api.post<TicketActivity>(`tickets/${id}/comments/`, { message });
+    }
+    const body = new FormData();
+    body.append('message', message);
+    files.forEach((file) => body.append('files', file, file.name));
+    return this.api.post<TicketActivity>(`tickets/${id}/comments/`, body);
   }
 
   /** Up to three resolved tickets that look like this text (advisory only). */

@@ -15,6 +15,36 @@
   gap: 18px;
 }
 
+.attachments-field {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: -2px;
+
+  mat-progress-bar {
+    border-radius: 4px;
+  }
+}
+
+.field-label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13.5px;
+  font-weight: 500;
+  color: var(--app-text-secondary);
+
+  .mat-icon {
+    font-size: 18px;
+    width: 18px;
+    height: 18px;
+    color: var(--app-text-muted);
+  }
+  .muted {
+    font-weight: 400;
+  }
+}
+
 .required-note span {
   color: var(--app-danger);
 }

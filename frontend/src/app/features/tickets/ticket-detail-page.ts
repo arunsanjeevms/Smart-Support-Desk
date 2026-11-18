@@ -24,6 +24,7 @@ import { RouterLink } from '@angular/router';
 import { forkJoin } from 'rxjs';
 
 import {
+  Attachment,
   LookupOption,
   SimilarTicket,
   TicketActivity,
@@ -31,11 +32,15 @@ import {
   TicketStatus,
   TicketUpdatePayload,
 } from '../../core/models/api.models';
+import { AttachmentService } from '../../core/services/attachment.service';
 import { AuthService } from '../../core/services/auth.service';
 import { ConfigService } from '../../core/services/config.service';
 import { NotifyService } from '../../core/services/notify.service';
 import { TicketService } from '../../core/services/ticket.service';
-import { applyServerErrors, errorMessage } from '../../core/utils/api-errors';
+import { applyServerErrors, errorMessage, fileErrorMessage } from '../../core/utils/api-errors';
+import { checkFiles } from '../../core/utils/files';
+import { AttachmentList } from '../../shared/attachments/attachment-list';
+import { FilePicker } from '../../shared/attachments/file-picker';
 import { LookupBadge } from '../../shared/components/lookup-badge';
 import { StatusBadge } from '../../shared/components/status-badge';
 import { UserAvatar } from '../../shared/components/user-avatar';
@@ -61,6 +66,8 @@ import { SimilarTicketsPanel } from './similar-tickets/similar-tickets-panel';
     UserAvatar,
     RelativeTimePipe,
     SimilarTicketsPanel,
+    AttachmentList,
+    FilePicker,
   ],
   templateUrl: './ticket-detail-page.html',
   styleUrl: './ticket-detail-page.scss',
@@ -73,6 +80,7 @@ export class TicketDetailPage {
   protected readonly config = inject(ConfigService);
   private readonly tickets = inject(TicketService);
   private readonly notify = inject(NotifyService);
+  private readonly attachmentFiles = inject(AttachmentService);
   private readonly fb = inject(FormBuilder);
 
   protected readonly ticket = signal<TicketDetail | null>(null);
@@ -94,10 +102,22 @@ export class TicketDetailPage {
     category: [''],
   });
   protected readonly commentForm = this.fb.nonNullable.group({
-    message: ['', [Validators.required, Validators.maxLength(2000)]],
+    message: ['', [Validators.maxLength(2000)]],
   });
 
   private readonly noteField = viewChild<ElementRef<HTMLTextAreaElement>>('noteField');
+  private readonly attachInput = viewChild<ElementRef<HTMLInputElement>>('attachInput');
+
+  /** Files chosen under the comment box. */
+  protected readonly commentFiles = signal<File[]>([]);
+  /** Upload progress of "Add files" in percent, otherwise null. */
+  protected readonly uploadPercent = signal<number | null>(null);
+  protected readonly accept = computed(() =>
+    this.config
+      .attachments()
+      .allowed_extensions.map((extension) => `.${extension}`)
+      .join(','),
+  );
 
   private readonly manageValues = toSignal(this.manageForm.valueChanges, {
     initialValue: this.manageForm.getRawValue(),
@@ -253,22 +273,73 @@ export class TicketDetailPage {
   protected postComment(): void {
     const ticket = this.ticket();
     const message = this.commentForm.getRawValue().message.trim();
-    if (!ticket || !message) {
-      this.commentForm.markAllAsTouched();
+    const files = this.commentFiles();
+    if (!ticket) return;
+    if (!message && !files.length) {
+      const control = this.commentForm.controls.message;
+      control.setErrors({ required: true });
+      control.markAsTouched();
       return;
     }
     this.posting.set(true);
-    this.tickets.comment(ticket.id, message).subscribe({
+    this.tickets.comment(ticket.id, message, files).subscribe({
       next: (entry) => {
         this.posting.set(false);
         this.commentForm.reset();
+        this.commentFiles.set([]);
         this.activities.update((list) => [...list, entry]);
+        if (entry.attachments?.length) this.addAttachments(entry.attachments);
       },
       error: (error: unknown) => {
         this.posting.set(false);
-        this.notify.error(errorMessage(error, 'Your comment could not be posted.'));
+        this.notify.error(fileErrorMessage(error, 'Your comment could not be posted.'));
       },
     });
+  }
+
+  // ---------------------------------------------------------------- attachments
+  protected chooseFiles(): void {
+    this.attachInput()?.nativeElement.click();
+  }
+
+  protected onFilesChosen(event: Event): void {
+    const element = event.target as HTMLInputElement;
+    const chosen = Array.from(element.files ?? []);
+    element.value = '';
+    const { accepted, errors } = checkFiles(chosen, 0, this.config.attachments());
+    if (errors.length) this.notify.error(errors.join(' '));
+    if (accepted.length) this.uploadFiles(accepted);
+  }
+
+  protected onAttachmentRemoved(removed: Attachment): void {
+    this.ticket.update((t) => (t ? { ...t, attachments: t.attachments.filter((a) => a.id !== removed.id) } : t));
+    this.refreshActivities();
+  }
+
+  private uploadFiles(files: File[]): void {
+    const ticket = this.ticket();
+    if (!ticket) return;
+    this.uploadPercent.set(0);
+    this.attachmentFiles.upload(ticket.id, files).subscribe({
+      next: (progress) => {
+        this.uploadPercent.set(progress.percent);
+        if (!progress.attachments) return;
+        this.uploadPercent.set(null);
+        this.addAttachments(progress.attachments);
+        this.refreshActivities();
+        const added = progress.attachments;
+        this.notify.success(added.length === 1 ? `Attached ${added[0].file_name}` : `Attached ${added.length} files`);
+      },
+      error: (error: unknown) => {
+        this.uploadPercent.set(null);
+        this.notify.error(fileErrorMessage(error, 'The files could not be uploaded.'));
+      },
+    });
+  }
+
+  /** Adds new files to the list without reloading the ticket (keeps unsaved Manage changes). */
+  private addAttachments(items: Attachment[]): void {
+    this.ticket.update((t) => (t ? { ...t, attachments: [...t.attachments, ...items] } : t));
   }
 
   protected agentName(id: string): string {

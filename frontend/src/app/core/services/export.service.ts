@@ -3,6 +3,7 @@ import { Injectable, inject } from '@angular/core';
 import { Observable, map } from 'rxjs';
 
 import { ExportFileType } from '../models/api.models';
+import { saveBlob } from '../utils/files';
 import { ApiService, QueryParams, toHttpParams } from './api.service';
 
 export interface EmailExportRequest {
@@ -47,15 +48,4 @@ export class ExportService {
 function filenameFrom(header: string | null, fileType: ExportFileType): string {
   const match = header?.match(/filename="?([^";]+)"?/i);
   return match?.[1] ?? `export.${fileType}`;
-}
-
-function saveBlob(blob: Blob, filename: string): void {
-  const url = URL.createObjectURL(blob);
-  const link = document.createElement('a');
-  link.href = url;
-  link.download = filename;
-  document.body.appendChild(link);
-  link.click();
-  link.remove();
-  setTimeout(() => URL.revokeObjectURL(url), 1000);
 }

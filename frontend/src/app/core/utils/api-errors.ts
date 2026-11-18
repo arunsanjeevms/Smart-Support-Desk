@@ -20,6 +20,17 @@ export function errorMessage(error: unknown, fallback = 'Something went wrong. P
   return fallback;
 }
 
+/** Upload problems: the API lists every rejected file under `files`. */
+export function fileErrorMessage(error: unknown, fallback: string): string {
+  if (error instanceof HttpErrorResponse && error.status === 400) {
+    const files = (error.error as Partial<ApiErrorBody> | null)?.errors?.['files'];
+    if (Array.isArray(files) && files.length) {
+      return files.join(' ');
+    }
+  }
+  return errorMessage(error, fallback);
+}
+
 /** Field errors from a 400 response, e.g. { title: ['This field is required.'] }. */
 export function fieldErrors(error: unknown): Record<string, string> {
   if (!(error instanceof HttpErrorResponse) || error.status !== 400) return {};

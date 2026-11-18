@@ -42,6 +42,15 @@ export class ConfigService {
       },
   );
 
+  readonly attachments = computed(
+    () =>
+      this.configSignal()?.attachments ?? {
+        max_file_mb: 10,
+        max_files: 5,
+        allowed_extensions: ['png', 'jpg', 'jpeg', 'gif', 'webp', 'pdf', 'txt', 'log', 'csv', 'json', 'xlsx', 'docx', 'zip'],
+      },
+  );
+
   readonly similarity = computed(
     () => this.configSignal()?.similarity ?? { enabled: false, max_results: 3, min_length: 10 },
   );

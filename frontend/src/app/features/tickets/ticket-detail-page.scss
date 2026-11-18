@@ -242,7 +242,7 @@
     flex: 1;
   }
 
-  button {
+  > button {
     margin-top: 8px;
 
     mat-progress-spinner {
@@ -366,4 +366,53 @@
   display: flex;
   gap: 10px;
   margin-top: 8px;
+}
+
+// ---------------------------------------------------------------- attachments
+.attachments-card {
+  .count {
+    display: inline-grid;
+    place-items: center;
+    min-width: 22px;
+    height: 22px;
+    padding: 0 6px;
+    border-radius: 999px;
+    background: var(--app-surface-hover);
+    color: var(--app-text-secondary);
+    font-size: 12px;
+    font-weight: 600;
+  }
+
+  mat-progress-bar {
+    margin-top: -1px;
+  }
+}
+
+.native-file {
+  display: none;
+}
+
+.no-files {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 0;
+  font-size: 13px;
+  color: var(--app-text-muted);
+
+  .mat-icon {
+    flex: none;
+    color: var(--app-text-muted);
+  }
+}
+
+.composer-main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+
+  app-file-picker {
+    margin-top: -10px;
+  }
 }

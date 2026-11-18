@@ -131,6 +131,17 @@
           }
         </mat-form-field>
 
+        <div class="attachments-field">
+          <span class="field-label">
+            <mat-icon>attach_file</mat-icon>
+            Attachments <span class="muted">(optional)</span>
+          </span>
+          <app-file-picker [(files)]="files" [disabled]="submitting()" />
+          @if (uploadPercent() !== null) {
+            <mat-progress-bar mode="determinate" [value]="uploadPercent()" aria-label="Upload progress" />
+          }
+        </div>
+
         <!-- Advisory suggestions from resolved tickets; submitting is never blocked. -->
         <app-similar-tickets
           class="similar"
@@ -153,7 +164,11 @@
           } @else {
             <mat-icon>send</mat-icon>
           }
-          {{ submitting() ? 'Submitting…' : 'Submit ticket' }}
+          @if (uploadPercent() !== null) {
+            Uploading files… {{ uploadPercent() }}%
+          } @else {
+            {{ submitting() ? 'Submitting…' : 'Submit ticket' }}
+          }
         </button>
       </div>
     </form>
