@@ -18,9 +18,11 @@ screen instead of a video, follow [SCREENS.md](SCREENS.md).
 | 1 | Sign-in page | "Two roles: requesters raise tickets, the support team resolves them. Demo accounts come from the backend." |
 | 2 | Click **Requester · Riya Menon** → dashboard | "Riya only sees her own numbers: open, in progress, resolved, and her tickets by category." |
 | 3 | **New ticket** → click **Submit ticket** with an empty form | "Validation runs in the browser and again in the API - every field explains what is missing." |
+| 3b | Type *Title*: `Money was taken from our card twice` and wait a second | "While I type, the AI suggests the category from similar past tickets - *Billing & Payments, based on 2 similar tickets*. It never picks it for me: **Use it** applies it." |
 | 4 | Type *Title*: `The analytics page is painfully slow to open` and a short description → **Find similar tickets** | "An open-source language model running inside Django compares the text with resolved tickets. Different words, same problem: it finds *Dashboard takes more than a minute to load*. Suggestions are advisory, so I can still submit." |
 | 4b | Click **View details** on the first suggestion, then **Back to my ticket** | "The resolution opens in a dialog, so my draft stays where it was." |
-| 4c | Change the title to `Invoice download button does nothing`, choose **Billing & Payments** → **Submit** | "Categories and priorities are configured in the backend. The ticket gets a reference like SSD-1028 and lands on its detail page." |
+| 4c | Change the title to `Invoice download button does nothing`, choose **Billing & Payments**, drop a screenshot on **Attachments** → **Submit** | "Categories and priorities are configured in the backend. Files are checked in the browser and again on the server, then stored in MongoDB GridFS. The ticket gets a reference like SSD-1028 and lands on its detail page." |
+| 4d | On the ticket, click the image thumbnail in **Attachments** | "Images open full size; any file can be downloaded, and removing one is recorded in the timeline." |
 | 5 | **My tickets** → type `invoice` in search, sort by *Created*, filter *Status = Open* | "Search, sort, filters and paging all run on the server." |
 | 6 | Account menu → **Sign out**, then **Support Agent · Meera Iyer** | "Agents see the whole queue, their workload and the average resolution time." |
 | 7 | **All tickets** → filter *Assignee = Unassigned* → open the new ticket | "The filters are in the URL, so a filtered view can be bookmarked or shared." |

@@ -32,13 +32,14 @@ Full list with versions and the reason for each choice: [docs/TECH_STACK.md](doc
 7. [Data model (ER diagram)](#data-model-er-diagram)
 8. [Configuration managed in the backend](#configuration-managed-in-the-backend)
 9. [Tables, exports and e-mail](#tables-exports-and-e-mail)
-10. [Similar ticket suggestions (AI)](#similar-ticket-suggestions-ai)
-11. [API reference](#api-reference)
-12. [Security](#security)
-13. [Running the tests](#running-the-tests)
-14. [Continuous integration and e-mail notifications](#continuous-integration-and-e-mail-notifications)
-15. [Key design decisions](#key-design-decisions)
-16. [Limitations and next steps](#limitations-and-next-steps)
+10. [Attachments](#attachments)
+11. [Similar ticket suggestions (AI)](#similar-ticket-suggestions-ai) - including the [category suggestion](#category-suggestion-while-typing)
+12. [API reference](#api-reference)
+13. [Security](#security)
+14. [Running the tests](#running-the-tests)
+15. [Continuous integration and e-mail notifications](#continuous-integration-and-e-mail-notifications)
+16. [Key design decisions](#key-design-decisions)
+17. [Limitations and next steps](#limitations-and-next-steps)
 
 More documentation:
 
@@ -61,6 +62,8 @@ More documentation:
 |---|:---:|:---:|
 | Sign up / sign in (one-click demo accounts) | ✅ | ✅ |
 | Create a ticket (title, description, category, priority) with validation | ✅ | ✅ |
+| Get the likely category suggested while typing a new ticket (AI) | ✅ | ✅ |
+| Attach screenshots, logs and documents to a ticket or a comment, preview images | ✅ | ✅ |
 | Ask for up to 3 similar resolved tickets while writing one, and open their details | ✅ | ✅ |
 | See similar resolved tickets on an open ticket and reuse a resolution note | | ✅ |
 | See tickets | Own tickets | All tickets |
@@ -226,6 +229,10 @@ the app runs with an empty file except for real e-mail delivery.
 | `DEMO_MODE` | `True` | one-click demo sign-in buttons on the login page |
 | `AUTH_THROTTLE_RATE` | `30/minute` | sign-in and sign-up attempts per client |
 | `SIMILAR_THROTTLE_RATE` | `60/minute` | similar ticket searches per user |
+| `SUGGEST_THROTTLE_RATE` | `120/minute` | category suggestions per user (asked while typing) |
+| `ATTACHMENT_MAX_FILE_MB` | `10` | size limit per attached file |
+| `ATTACHMENT_MAX_FILES` | `5` | files per upload |
+| `ATTACHMENT_ALLOWED_EXTENSIONS` | `png,jpg,jpeg,gif,webp,pdf,txt,log,csv,json,xlsx,docx,zip` | allowed file types (can only narrow the types the app supports) |
 | `SIMILARITY_ENABLED` | `True` | show similar ticket suggestions |
 | `SIMILARITY_ENGINE` | `semantic` | `semantic` (the model) or `keyword` (TF-IDF only) |
 | `SIMILARITY_MODEL` | `sentence-transformers/all-MiniLM-L6-v2` | any Sentence Transformers model |
@@ -233,6 +240,11 @@ the app runs with an empty file except for real e-mail delivery.
 | `SIMILARITY_MIN_SCORE` | `0.35` | minimum cosine similarity for the model |
 | `SIMILARITY_KEYWORD_MIN_SCORE` | `0.15` | minimum score for the keyword fallback |
 | `SIMILARITY_PRELOAD` | `True` | load the model in the background when the server starts, so the first search is instant |
+| `SIMILARITY_CATEGORY_SUGGESTIONS` | `True` | suggest the likely category while a new ticket is typed |
+| `SIMILARITY_CATEGORY_MIN_SCORE` | `0.30` | how similar a past ticket must be to vote for its category |
+| `SIMILARITY_CATEGORY_MIN_CONFIDENCE` | `0.5` | share of the vote the winning category needs |
+| `SIMILARITY_CATEGORY_DESCRIPTION_MIN_SCORE` | `0.35` | minimum score when matching the category descriptions instead |
+| `SIMILARITY_CATEGORY_MAX_TICKETS` | `2000` | how many recent tickets are compared |
 
 The frontend has one setting, the API address, in `frontend/src/environments/environment*.ts`.
 
@@ -268,6 +280,7 @@ flowchart LR
         S[Service layer<br/>ticket workflow, activity log]
         X[Export engine<br/>PDF / Excel / e-mail]
         AI[Similarity engine<br/>Sentence Transformers, CPU]
+        F[Attachments<br/>checks + GridFS storage]
         ADM[Django admin]
     end
     DB[(MongoDB<br/>smart_support_desk)]
@@ -277,7 +290,9 @@ flowchart LR
     B --> S
     B --> X
     B --> AI
+    B --> F
     AI --> DB
+    F -- "GridFS files" --> DB
     S --> DB
     X --> DB
     ADM --> DB
@@ -295,14 +310,15 @@ Smart-Support-Desk/
 │   │   ├── accounts/            custom User (role), login/register/logout, user directory
 │   │   ├── lookups/             generic configurable lists (categories, priorities, ...)
 │   │   ├── tickets/             Ticket + TicketActivity models, services, API, seed command
-│   │   └── similarity/          similar-ticket suggestions: model, embedding cache, commands
+│   │   ├── similarity/          AI: similar tickets + category suggestion, embedding cache, commands
+│   │   └── attachments/         files on tickets and comments: checks, GridFS storage, download
 │   ├── mongo_migrations/        Django's built-in migrations adapted to ObjectId keys
 │   ├── requirements.txt
 │   └── .env.example
 ├── frontend/                    Angular workspace
 │   └── src/app/
 │       ├── core/                API/auth/config services, interceptor, guards, models
-│       ├── shared/              DataTable, export menu, badges, avatar, dialogs, pipes
+│       ├── shared/              DataTable, export menu, attachments (picker, list), badges, dialogs, pipes
 │       ├── layout/              app shell (sidebar + top bar)
 │       └── features/            auth, dashboard, tickets, activity, users, configuration
 ├── docs/                        tech stack, workflows, ER diagrams, screen guide, project guide, demo script
@@ -327,6 +343,9 @@ erDiagram
     LOOKUP_VALUE ||--o{ TICKET : "category"
     LOOKUP_VALUE |o--o{ TICKET : "priority"
     TICKET ||--o| TICKET_EMBEDDING : "cached for suggestions"
+    TICKET ||--o{ TICKET_ATTACHMENT : "has files"
+    TICKET_ACTIVITY |o--o{ TICKET_ATTACHMENT : "added with"
+    USER |o--o{ TICKET_ATTACHMENT : "uploads"
 
     USER {
         ObjectId _id PK
@@ -364,6 +383,18 @@ erDiagram
         string from_status
         string to_status
         string note "comment or resolution text"
+        datetime created_at
+    }
+    TICKET_ATTACHMENT {
+        ObjectId _id PK
+        ObjectId ticket_id FK
+        ObjectId activity_id FK "comment or attached-files entry"
+        ObjectId uploaded_by_id FK
+        string file_name
+        string extension "png | pdf | log | ..."
+        string content_type "set by the server"
+        int size "bytes"
+        ObjectId file_id "GridFS file"
         datetime created_at
     }
     TICKET_EMBEDDING {
@@ -428,7 +459,8 @@ form, filter and badge from the response:
 | Roles | `User.Role` | Django admin (create agents, change roles) |
 | **E-mail notifications** (which actions send an e-mail) | `LookupValue` rows of type `notification_event` | Configuration screen → *Email notifications* (switch each event on/off) |
 | Demo accounts, export row limit, e-mail notifications | `backend/.env` | environment variables |
-| Similar ticket suggestions (on/off, model, minimum score) | `backend/.env` (`SIMILARITY_*`) | environment variables |
+| Similar ticket and category suggestions (on/off, model, thresholds) | `backend/.env` (`SIMILARITY_*`) | environment variables |
+| Attachment size, number and allowed types | `backend/.env` (`ATTACHMENT_*`) | environment variables - the UI reads the limits from `/api/config/` |
 
 **Generic lookup pattern.** `LookupType` describes a list (e.g. *Ticket category*), `LookupValue` holds its options.
 To add a brand-new configurable list later (say *Product area*), add one `LookupType` row and reference it from a
@@ -501,6 +533,27 @@ yourself, give a demo user your real address in the Django admin.
 
 ---
 
+## Attachments
+
+Screenshots, logs and documents can be attached to a ticket - on the **New ticket** form, later from the ticket's
+**Attachments** card, or together with a **comment**. Images show as thumbnails and open full size in a preview;
+every file can be downloaded. The person who uploaded a file, or any support agent, can remove it.
+
+| | |
+|---|---|
+| **Where the files live** | in MongoDB itself, with **GridFS** (bucket `attachments`: `attachments.files` + `attachments.chunks`). No separate file server or upload folder to back up. The `attachments_ticketattachment` collection holds the details (name, type, size, who, when) and the GridFS id. |
+| **Allowed types** | `png, jpg, jpeg, gif, webp, pdf, txt, log, csv, json, xlsx, docx, zip` (`ATTACHMENT_ALLOWED_EXTENSIONS`). SVG, HTML and programs are never accepted. |
+| **Limits** | 10 MB per file and 5 files per upload (`ATTACHMENT_MAX_FILE_MB`, `ATTACHMENT_MAX_FILES`). The browser checks them straight away, using the limits from `/api/config/`. |
+| **Server checks** | every file is checked again: allowed type, size, number of files, and the **first bytes must match the type** (a `.png` must really be a PNG, Office files and `.zip` a ZIP, text files contain no binary data). A renamed `.exe` is rejected. If one file fails, nothing is stored. |
+| **Downloads** | always as a download (`Content-Disposition: attachment`) with `X-Content-Type-Options: nosniff`; the type is decided by the server, never by the uploader's browser. The app fetches files with the sign-in token, so links cannot be shared. |
+| **Who sees what** | the same rules as tickets: requesters only reach files on their own tickets (anything else is a `404`), agents see all. |
+| **History** | adding and removing files are recorded in the activity log (*Attached 2 files*, *Removed error.log*), and the comment e-mail lists the attached file names. Deleting a ticket removes its stored files too. |
+
+The demo data includes a log file on the webhook ticket and an invoice PDF on the GST invoice ticket.
+The code is in `backend/apps/attachments/` and `frontend/src/app/shared/attachments/`.
+
+---
+
 ## Similar ticket suggestions (AI)
 
 While someone writes a new ticket they can click **Find similar tickets**. The backend compares their title and
@@ -519,7 +572,7 @@ who raised the old ticket.
    (about 90 MB) and then loaded from the local cache, so no ticket text ever leaves the server.
 2. **Text to numbers.** The model turns `"<title>. <description>"` into an *embedding*: 384 numbers that describe
    the meaning of the text. Texts that mean the same thing get similar numbers even when they share no words.
-3. **Cached embeddings.** Each resolved ticket is encoded once and stored in the `similarity_ticketembedding` collection,
+3. **Cached embeddings.** Each ticket is encoded once and stored in the `similarity_ticketembedding` collection,
    with the model name and a hash of the text. A ticket is only encoded again if its text or the model changes.
 4. **Ranking.** The new text is encoded and compared with every resolved ticket by **cosine similarity** (0 =
    unrelated, 1 = same meaning). Matches under `SIMILARITY_MIN_SCORE` (0.35) are dropped and the best three are
@@ -546,6 +599,42 @@ them, or picks the wrong ticket:
 
 The first four are also automated tests (`apps/similarity/tests/test_similarity.py`) that run the real model in CI.
 
+### Category suggestion while typing
+
+The same model also suggests the **category** while a new ticket is being typed. A small line appears under the
+Category field: *Suggested category: Billing & Payments, based on 2 similar tickets* with a **Use it** button. If a
+different category is already chosen it says *This reads like Billing & Payments* with **Switch**. The category is
+never picked automatically.
+
+How the backend decides (`suggest_category` in `apps/similarity/services.py`):
+
+1. The text is compared with **past tickets of any status** (the 2,000 most recent), using the same cached embeddings.
+2. The **10 most similar** tickets with a score of at least **0.30** each vote for their category, weighted by their
+   score. Only active categories count.
+3. If one category gets **at least half of the vote**, it is suggested. If the similar tickets disagree, nothing is
+   suggested - a wrong guess is worse than none.
+4. If no past ticket is similar enough, the text is compared with each category's **label and description** instead
+   (minimum 0.35, and clearly ahead of the runner-up). This way a category just added on the Configuration screen
+   can be suggested before any ticket uses it.
+
+Only the category is returned, never anything about other people's tickets. The app asks after a short pause in
+typing (600 ms), and outdated requests are cancelled.
+
+**How well it works.** Each of the 29 tickets in the local database (the 28 demo tickets plus one test ticket) was hidden in turn and its category predicted from all
+the others (leave-one-out): a category was suggested for **24**, and **23 of those were right (96%)**. For the other
+5 the vote was unsure, so nothing was suggested. Real answers from the running app:
+
+| Typed by the user | Suggested category | Based on |
+|---|---|---|
+| "Money was taken from our card twice" | Billing & Payments | 2 similar tickets |
+| "The analytics page is painfully slow to open" | Performance | 4 similar tickets |
+| "I cannot sign in to my account" | Login & Access | 5 similar tickets |
+| "Webhook calls to our server keep failing" | Integrations & API | 2 similar tickets |
+| "The office printer is out of toner" | *no suggestion* | - |
+
+The first three are automated tests with the real model; the vote, the description fallback, inactive categories
+and the on/off switch are tested with the keyword engine (`apps/similarity/tests/test_category_suggestion.py`).
+
 ### Settings (`backend/.env`)
 
 | Variable | Default | Meaning |
@@ -555,6 +644,8 @@ The first four are also automated tests (`apps/similarity/tests/test_similarity.
 | `SIMILARITY_MODEL` | `sentence-transformers/all-MiniLM-L6-v2` | any Sentence Transformers model name |
 | `SIMILARITY_MAX_RESULTS` | `3` | how many suggestions (never more than 3) |
 | `SIMILARITY_MIN_SCORE` | `0.35` | minimum cosine similarity for a suggestion |
+| `SIMILARITY_CATEGORY_SUGGESTIONS` | `True` | suggest the category while typing |
+| `SIMILARITY_CATEGORY_MIN_SCORE` / `_MIN_CONFIDENCE` / `_DESCRIPTION_MIN_SCORE` | `0.30` / `0.5` / `0.35` | the thresholds above |
 
 ---
 
@@ -570,7 +661,7 @@ Errors always look like `{"message": "...", "errors": {"field": ["..."]}}`.
 | `403` | signed in, but the role is not allowed (e.g. a requester changing a ticket) |
 | `404` | not found, or not visible to this user (a requester opening someone else's ticket) |
 | `409` | a configuration value is used by tickets, or is built in, and cannot be deleted |
-| `429` | too many sign-in attempts or similar ticket searches - try again in a minute |
+| `429` | too many sign-in attempts, similar ticket searches or category suggestions - try again in a minute |
 
 List endpoints return `{"count", "page", "page_size", "total_pages", "results"}`. Pages hold 10 rows by default;
 `page_size` changes it (up to 100).
@@ -589,9 +680,14 @@ List endpoints return `{"count", "page", "page_size", "total_pages", "results"}`
 | GET | `/tickets/{id}/` | owner or agent | detail (+ `allowed_statuses`, `can_manage`) |
 | PATCH | `/tickets/{id}/` | agent | `{status?, resolution_note?, assigned_to?, priority?, category?}` |
 | GET | `/tickets/{id}/activities/` | owner or agent | timeline |
-| POST | `/tickets/{id}/comments/` | owner or agent | `{message}` |
+| POST | `/tickets/{id}/comments/` | owner or agent | `{message}`, or multipart with `message` and/or `files` |
+| GET | `/tickets/{id}/attachments/` | owner or agent | the ticket's files |
+| POST | `/tickets/{id}/attachments/` | owner or agent | upload: multipart field `files` (up to 5) |
+| GET | `/attachments/{id}/download/` | owner or agent | the file itself |
+| DELETE | `/attachments/{id}/` | uploader or agent | remove a file (recorded in the activity log) |
 | GET | `/tickets/stats/` | signed in | dashboard numbers (scoped to the user) |
 | POST | `/tickets/similar/` | signed in | `{title?, description?, exclude?}` → up to 3 similar resolved tickets with `score` and `match`, plus `engine` and `model` |
+| POST | `/tickets/suggest-category/` | signed in | `{title?, description?}` → `{suggestion: {category, confidence, basis, matches} or null, engine, model}` |
 | GET | `/activities/` | agent | audit log - `activity_type` filter |
 | GET | `/users/` | agent | user directory - `role` filter |
 | GET | `/lookups/types/` | signed in | configurable lists |
@@ -608,7 +704,8 @@ List endpoints return `{"count", "page", "page_size", "total_pages", "results"}`
 | Authentication | one API token per user in the `Authorization` header; signing out deletes it on the server |
 | Roles | requesters only see and export their own tickets; activity log, users and configuration changes are agents only, checked by the API and by Angular route guards |
 | Sign-up | always creates a requester; agents are created by an administrator |
-| Rate limits | sign-in / sign-up 30 per minute, similar ticket searches 60 per minute (`429` after that) |
+| Rate limits | sign-in / sign-up 30 per minute, similar ticket searches 60 per minute, category suggestions 120 per minute (`429` after that) |
+| Uploads | allowed types only, size and count limits, file signature checked against the type, served as downloads with `nosniff`, visible only to the ticket's requester and agents |
 | Validation | every input is validated by the API, and again in the browser for quick feedback |
 | CORS | only the configured frontend origins may call the API |
 | AI privacy | the model runs on the server, nothing is sent to an outside service; suggestions never show who raised the old ticket |
@@ -621,12 +718,12 @@ More detail in [docs/TECH_STACK.md](docs/TECH_STACK.md#8-security-measures).
 ## Running the tests
 
 ```powershell
-# Backend - 90 tests against a temporary MongoDB database (test_smart_support_desk)
+# Backend - 112 tests against a temporary MongoDB database (test_smart_support_desk)
 cd backend
 .venv\Scripts\activate
 python manage.py test
 
-# Frontend - 37 Vitest unit tests + production build
+# Frontend - 51 Vitest unit tests + production build
 cd frontend
 npm run test:ci
 npm run build
@@ -635,11 +732,16 @@ npm run build
 The backend tests cover authentication and roles, ticket validation messages, visibility rules, search / filter /
 sort / pagination, the status workflow (resolution note required, auto-assignment, re-opening), notifications,
 comments, configuration CRUD and the "in use" delete guard, the atomic reference counter, PDF/Excel/e-mail
-exports (opening the generated workbook to check its rows), and the similar-ticket suggestions: ranking, the limit
-of three, that nothing is changed, the embedding cache, and the real model matching differently worded issues.
+exports (opening the generated workbook to check its rows), the similar-ticket suggestions (ranking, the limit
+of three, that nothing is changed, the embedding cache, the real model matching differently worded issues), the
+category suggestion (the vote, the description fallback, inactive categories) and attachments (allowed types,
+fake file signatures, size and count limits, who may download or remove, comments with files, clean-up of the
+stored files).
 
 The frontend tests cover the auth service, mapping API errors onto form fields, the table state (`TableSource`), the
-status badge, the relative time pipe, the count-up numbers, the welcome animation and the similar tickets panel.
+status badge, the relative time pipe, the count-up numbers, the welcome animation, the similar tickets panel, the
+category suggestion (waiting for a pause in typing, Use it / Switch), the file picker checks, the attachment list and
+the upload progress.
 
 ---
 
@@ -696,6 +798,9 @@ Until the secrets exist the step is skipped with a notice, so the pipeline stays
     (milliseconds per ticket), open source and needs no API key or external service. Embeddings are cached per
     ticket, so a search only encodes the new text. The comparison runs in numpy because a local MongoDB server has no
     vector search; that is fast for tens of thousands of resolved tickets.
+12. **Attachments in GridFS.** Files are stored in the same MongoDB database as everything else, so a backup or a
+    move to another server takes the files along, and there is no upload folder to secure. The file details sit in an
+    ordinary model, so attachments follow the ticket permissions and delete rules like any other data.
 
 ---
 
@@ -708,6 +813,7 @@ Until the secrets exist the step is skipped with a notice, so the pipeline stays
   would be faster.
 - Exports are generated synchronously and capped at `EXPORT_MAX_ROWS` (5,000 by default). A background job queue
   would be the next step for much larger exports.
-- No file attachments or SLA timers yet. Screens refresh every 30 seconds; pushing changes instantly (WebSockets)
-  would be the next step.
+- Attachments are checked for type, size and signature but not virus-scanned; a ClamAV scan before storing would be
+  the next step for a public deployment.
+- No SLA timers yet. Screens refresh every 30 seconds; pushing changes instantly (WebSockets) would be the next step.
 - Tokens do not expire; JWT with refresh tokens would be the next step before a public deployment.

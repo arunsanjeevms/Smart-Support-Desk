@@ -10,9 +10,9 @@ Contents
 2. [End-to-end ticket workflow](#2-end-to-end-ticket-workflow)
 3. [Ticket status lifecycle](#3-ticket-status-lifecycle)
 4. [Signing in and restoring a session](#4-signing-in-and-restoring-a-session)
-5. [Raising a ticket (with similar ticket suggestions)](#5-raising-a-ticket-with-similar-ticket-suggestions)
+5. [Raising a ticket (with suggestions and attachments)](#5-raising-a-ticket-with-suggestions-and-attachments)
 6. [Working and resolving a ticket](#6-working-and-resolving-a-ticket)
-7. [Comments](#7-comments)
+7. [Comments and attachments](#7-comments-and-attachments)
 8. [E-mail notifications](#8-e-mail-notifications)
 9. [Exports: PDF, Excel and e-mail](#9-exports-pdf-excel-and-e-mail)
 10. [Configuration changes](#10-configuration-changes)
@@ -35,6 +35,8 @@ flowchart LR
     R --> R1[Sign up / sign in]
     R --> R2[Raise a ticket]
     R --> R3[Find similar resolved tickets]
+    R --> R6[Get a suggested category while typing]
+    R --> R7[Attach screenshots, logs and documents]
     R --> R4[Follow own tickets and comment]
     R --> R5[Own dashboard and exports]
 
@@ -170,7 +172,7 @@ sequenceDiagram
 
 ---
 
-## 5. Raising a ticket (with similar ticket suggestions)
+## 5. Raising a ticket (with suggestions and attachments)
 
 ```mermaid
 sequenceDiagram
@@ -181,6 +183,18 @@ sequenceDiagram
     participant DB as MongoDB
 
     R->>NG: Type title and description
+    NG->>API: POST /api/tickets/suggest-category/ after a 600 ms pause in typing
+    API->>AI: suggest_category()
+    AI->>DB: Recent tickets + cached embeddings
+    AI->>AI: The 10 most similar tickets vote for their category
+    AI-->>API: The category with at least half of the vote, or none
+    API-->>NG: suggestion (category, based on N similar tickets)
+    NG-->>R: Suggested category with a Use it button
+    R->>NG: Use it (optional, never applied automatically)
+
+    R->>NG: Choose files to attach (optional)
+    NG->>NG: Check type, size and count with the limits from /api/config/
+
     R->>NG: Click Find similar tickets
     NG->>API: POST /api/tickets/similar/ (title, description)
     API->>AI: find_similar()
@@ -199,10 +213,21 @@ sequenceDiagram
     API->>DB: insert ticket, insert activity "created"
     API--)R: E-mails in a background thread
     API-->>NG: 201 + ticket
+    opt files were chosen
+        NG->>API: POST /api/tickets/{id}/attachments/ (multipart, progress bar)
+        API->>API: Same checks again + the file signature must match the type
+        API->>DB: Files into GridFS, attachment rows, activity "Attached 2 files"
+        API-->>NG: 201 + attachments
+    end
     NG-->>R: Toast, then the ticket's detail page
 ```
 
 - Suggestions are advisory. They never change or close anything, and the ticket can always be submitted.
+- The category suggestion only fills the field when the user clicks **Use it** (or **Switch** when another category
+  is chosen). When the similar tickets disagree, or nothing is similar, it stays quiet - unless a category's own
+  description clearly matches.
+- If the file upload fails after the ticket was created, the ticket stays and a message says which files to add on
+  the ticket page.
 - If the model cannot be loaded, the same endpoint falls back to TF-IDF keyword matching and the panel says so.
 - If validation fails the API answers `400` with `{"message": ..., "errors": {"field": [...]}}` and the message is
   shown under the matching form field.
@@ -251,10 +276,10 @@ next search and cached.
 
 ---
 
-## 7. Comments
+## 7. Comments and attachments
 
 Both sides can comment on a ticket they can see, at any status (a requester can reply on a resolved ticket if the
-problem comes back).
+problem comes back). A comment can carry files; files can also be sent on their own.
 
 ```mermaid
 sequenceDiagram
@@ -263,9 +288,10 @@ sequenceDiagram
     participant DB as MongoDB
     participant M as Notifications
 
-    W->>API: POST /api/tickets/{id}/comments/ with the message
-    API->>DB: activity row (commented, text in note)
-    API->>M: comment_added()
+    W->>API: POST /api/tickets/{id}/comments/ with the message (and files, as multipart)
+    API->>API: Check the files first, so a bad file stores nothing
+    API->>DB: activity row (commented, text in note), files linked to it
+    API->>M: comment_added() - the e-mail lists the attached file names
     alt the requester wrote
         M--)M: e-mail the assigned agent, or every agent if unassigned
     else an agent wrote
@@ -273,6 +299,35 @@ sequenceDiagram
     end
     API-->>W: 201 + the new timeline entry
 ```
+
+### Adding and removing files
+
+```mermaid
+sequenceDiagram
+    actor U as Requester or agent
+    participant NG as Ticket page
+    participant API as Django API
+    participant FS as GridFS
+    participant DB as MongoDB
+
+    U->>NG: Add files
+    NG->>NG: Check type, size and count with the limits from /api/config/
+    NG->>API: POST /api/tickets/{id}/attachments/ (multipart)
+    API->>API: Same checks again + the file signature must match the type
+    API->>FS: Store each file
+    API->>DB: Attachment rows + activity "Attached 2 files"
+    API-->>NG: 201 + the files
+    NG->>API: GET /api/attachments/{id}/download/ for image thumbnails (with the sign-in token)
+
+    U->>NG: Remove a file (the uploader or any agent)
+    NG->>API: DELETE /api/attachments/{id}/
+    API->>FS: Delete the stored file
+    API->>DB: Delete the row + activity "Removed error.log"
+    API-->>NG: 204
+```
+
+Requesters only reach files on their own tickets (anything else is a `404`). Downloads are always sent as a file
+download with `nosniff`, using the type decided by the server.
 
 ---
 

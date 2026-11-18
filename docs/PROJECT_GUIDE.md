@@ -71,11 +71,17 @@ apps/tickets/
     views.py            TicketViewSet, ActivityViewSet, ConfigView
     management/commands/seed_demo.py   python manage.py seed_demo
     tests/              API tests
-apps/similarity/        similar-ticket suggestions (the AI part)
+apps/similarity/        the AI part: similar resolved tickets + category suggestion
     engines.py          the Sentence Transformers model (+ a keyword fallback)
-    services.py         embedding cache + ranking resolved tickets by cosine similarity
-    models.py           TicketEmbedding - one cached vector per resolved ticket
+    services.py         embedding cache, find_similar() (cosine similarity), suggest_category() (the vote)
+    models.py           TicketEmbedding - one cached vector per ticket
     management/commands build_similarity_index, similar_tickets "<text>"
+apps/attachments/       files on tickets and comments
+    validators.py       allowed types, size / count limits, file signature checks
+    storage.py          put / open / delete in MongoDB GridFS (bucket "attachments")
+    services.py         add files (with an activity entry), remove a file
+    views.py            download (streamed from GridFS) and delete
+    signals.py          deleting an attachment also deletes the stored file
 ```
 
 Django vocabulary:
@@ -104,11 +110,14 @@ core/
     services/               api, auth, config, ticket, lookup, export, notify
     guards/auth.guards.ts   authGuard, guestGuard, agentGuard, configGuard
     interceptors/           adds the token, handles expired sessions
-    utils/                  api-errors (server errors → form fields), auto-refresh (30-second reload)
+    utils/                  api-errors (server errors → form fields), auto-refresh (30-second reload),
+                            files (size format, file icons, the browser-side file checks)
     app-title.strategy.ts   "<page> · Smart Support Desk" in the browser tab
 shared/
     data-table/             DataTable component + TableSource (search/sort/filter/page state)
     export-menu/            "Export" button and the e-mail dialog
+    attachments/            file picker (drag and drop), attachment list (thumbnails, download, remove),
+                            image preview dialog
     components/             status badge, category/priority badge, avatar, page header, confirm dialog,
                             live "Updated" badge, count-up numbers
     pipes/                  relative time ("5 minutes ago")
@@ -120,6 +129,7 @@ features/               one folder per screen
     dashboard/              requester and agent dashboards
     tickets/                list, new ticket, ticket detail
     tickets/similar-tickets/   "Similar resolved tickets" panel + details dialog
+    tickets/category-suggestion/   the "Suggested category" line under the Category field
     activity/, users/       activity log and user directory (agents)
     configuration/          configurable lists + add/edit dialog (agents)
     not-found-page.ts       404 page
@@ -160,5 +170,7 @@ Angular vocabulary:
 | change who receives a notification | `apps/tickets/notifications.py` |
 | change the e-mail look | `apps/core/templates/emails/` and `apps/core/emails.py` |
 | change how often screens refresh | `AUTO_REFRESH_MS` in `frontend/src/app/core/utils/auto-refresh.ts` |
-| change rate limits | `AUTH_THROTTLE_RATE` / `SIMILAR_THROTTLE_RATE` in `backend/.env` |
+| change rate limits | `AUTH_THROTTLE_RATE` / `SIMILAR_THROTTLE_RATE` / `SUGGEST_THROTTLE_RATE` in `backend/.env` |
 | tune the similar-ticket suggestions | `SIMILARITY_*` in `backend/.env` (minimum score, model, on/off); try them with `python manage.py similar_tickets "<text>"` |
+| tune or switch off the category suggestion | `SIMILARITY_CATEGORY_*` in `backend/.env`; the logic is `suggest_category()` in `apps/similarity/services.py` |
+| allow another file type or a bigger size | `ATTACHMENT_ALLOWED_EXTENSIONS` / `ATTACHMENT_MAX_FILE_MB` in `backend/.env`; a brand-new type also needs its content type and signature in `apps/attachments/validators.py` |

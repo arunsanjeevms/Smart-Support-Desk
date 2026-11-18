@@ -11,7 +11,8 @@ Everything here comes from the Django models:
 | accounts | `User` | `backend/apps/accounts/models.py` |
 | lookups | `LookupType`, `LookupValue` | `backend/apps/lookups/models.py` |
 | tickets | `Ticket`, `TicketActivity` | `backend/apps/tickets/models.py` |
-| similarity | `TicketEmbedding` (cache for the similar-ticket suggestions) | `backend/apps/similarity/models.py` |
+| similarity | `TicketEmbedding` (cache for the similar-ticket and category suggestions) | `backend/apps/similarity/models.py` |
+| attachments | `TicketAttachment` (file details); the bytes live in GridFS (`attachments.files`, `attachments.chunks`) | `backend/apps/attachments/models.py`, `storage.py` |
 | core | `TimeStampedModel` (abstract base), `core_counters` collection | `backend/apps/core/models.py`, `sequences.py` |
 | DRF | `Token` (sign-in token) | `rest_framework.authtoken` |
 
@@ -41,8 +42,9 @@ Contents
 
 ## 1. Overview
 
-The big picture without fields. Five collections hold the business data, `core_counters` hands out ticket numbers
-and `similarity_ticketembedding` caches the AI embeddings of resolved tickets.
+The big picture without fields. Six collections hold the business data, `core_counters` hands out ticket numbers,
+`similarity_ticketembedding` caches the AI embeddings of tickets, and GridFS (`attachments.files` +
+`attachments.chunks`) holds the contents of attached files.
 
 ```mermaid
 erDiagram
@@ -57,6 +59,10 @@ erDiagram
     LOOKUP_VALUE |o--o{ TICKET : "is priority of"
     CORE_COUNTER ||..o{ TICKET : "numbers"
     TICKET ||--o| TICKET_EMBEDDING : "cached for suggestions"
+    TICKET ||--o{ TICKET_ATTACHMENT : "has files"
+    TICKET_ACTIVITY |o--o{ TICKET_ATTACHMENT : "added with"
+    USER |o--o{ TICKET_ATTACHMENT : "uploads"
+    TICKET_ATTACHMENT ||--|| GRIDFS_FILE : "contents in"
 ```
 
 In one sentence each:
@@ -67,8 +73,10 @@ In one sentence each:
 - **Lookup types** and **lookup values** are the configurable lists (categories, priorities) that the UI is built from.
 - A ticket's **category** and **priority** are lookup values.
 - The **counter** document gives every new ticket its `SSD-xxxx` reference.
-- A **ticket embedding** stores the model's vector for one resolved ticket, so similar-ticket suggestions only encode
-  the new text. It is a cache: deleting the collection is harmless, it is rebuilt on the next search.
+- A **ticket embedding** stores the model's vector for one ticket, so the similar-ticket and category suggestions only
+  encode the new text. It is a cache: deleting the collection is harmless, it is rebuilt on the next search.
+- A **ticket attachment** describes one file on a ticket (name, type, size, who uploaded it, and the timeline entry it
+  came with); the file itself is stored in **GridFS**.
 
 ---
 
@@ -89,6 +97,10 @@ erDiagram
     LOOKUP_VALUE |o--o{ TICKET : "priority"
     CORE_COUNTER ||..o{ TICKET : "issues reference"
     TICKET ||--o| TICKET_EMBEDDING : "cached for suggestions (ticket)"
+    TICKET ||--o{ TICKET_ATTACHMENT : "has files (ticket)"
+    TICKET_ACTIVITY |o--o{ TICKET_ATTACHMENT : "added with (activity)"
+    USER |o--o{ TICKET_ATTACHMENT : "uploads (uploaded_by)"
+    TICKET_ATTACHMENT ||--|| GRIDFS_FILE : "contents (file_id)"
 
     USER {
         ObjectId _id PK
@@ -127,9 +139,29 @@ erDiagram
         datetime created_at
         datetime updated_at
     }
+    TICKET_ATTACHMENT {
+        ObjectId _id PK
+        ObjectId ticket_id FK
+        ObjectId activity_id FK "comment or attached-files entry"
+        ObjectId uploaded_by_id FK "null if the user was removed"
+        string file_name "max 180, cleaned"
+        string extension "png | jpg | pdf | log | xlsx | zip | ..."
+        string content_type "set by the server from the extension"
+        int size "bytes, max 10 MB by default"
+        ObjectId file_id "GridFS id"
+        datetime created_at
+    }
+    GRIDFS_FILE {
+        ObjectId _id PK "attachments.files"
+        string filename
+        int length "bytes"
+        int chunkSize "255 kB"
+        object metadata "ticket, uploaded_by, contentType"
+        datetime uploadDate
+    }
     TICKET_EMBEDDING {
         ObjectId _id PK
-        ObjectId ticket_id FK, UK "one per resolved ticket"
+        ObjectId ticket_id FK, UK "one per ticket"
         string model_name "sentence-transformers/all-MiniLM-L6-v2"
         string text_hash "sha256 of title + description"
         float[] vector "384 numbers, unit length"
@@ -313,6 +345,9 @@ deleted (`LookupTypeCode.BUILT_IN_VALUES`).
 | LookupValue | `lookup_type` | LookupType | many → one | yes | **PROTECT** - blocked | `values` |
 | Token | `user` | User | one → one | yes | CASCADE | `auth_token` |
 | TicketEmbedding | `ticket` | Ticket | one → one | yes | CASCADE | `embedding` |
+| TicketAttachment | `ticket` | Ticket | many → one | yes | CASCADE - the stored file is deleted too | `attachments` |
+| TicketAttachment | `activity` | TicketActivity | many → zero/one | no | CASCADE | `attachments` |
+| TicketAttachment | `uploaded_by` | User | many → zero/one | no | SET NULL | `ticket_attachments` |
 
 What PROTECT means in practice: a user who has raised tickets, or a category/priority that tickets use, cannot be
 deleted. Deactivate them instead (`User.is_active = False`, `LookupValue.is_active = False`) - they disappear from
@@ -338,6 +373,8 @@ Collection names follow Django's `<app>_<model>` convention. Indexes are declare
 | LookupType | `lookups_lookuptype` | `code` unique, `created_at` |
 | LookupValue | `lookups_lookupvalue` | `lookup_type_id`, `created_at`, **`unique_lookup_value_code`** (`lookup_type_id`, `code`) unique |
 | TicketEmbedding | `similarity_ticketembedding` | `ticket_id` unique |
+| TicketAttachment | `attachments_ticketattachment` | `ticket_id`, `activity_id`, `uploaded_by_id`, `created_at` |
+| - (GridFS) | `attachments.files`, `attachments.chunks` | created by GridFS: `filename` + `uploadDate`, and `files_id` + `n` unique on the chunks |
 | - | `core_counters` | `_id` is the counter name |
 
 The two compound ticket indexes match the two most common screens: the agent queue filtered by status and sorted
@@ -366,7 +403,11 @@ per-user permissions - access is decided by `User.role` - so they are left out o
 | Requesters only see tickets where `created_by` is themselves | queryset filtering in `apps/tickets/views.py` |
 | Activity rows are never edited or deleted (except with their ticket) | no update/delete endpoints for activities |
 | An embedding is re-computed when the ticket's text or the model changes | `text_hash` + `model_name` check in `apps/similarity/services.py` |
-| Only *resolved* tickets are suggested; suggestions never change a ticket | `apps/similarity/services.py` (read-only) |
+| Only *resolved* tickets are suggested as similar; suggestions never change a ticket | `apps/similarity/services.py` (read-only) |
+| A category is only suggested when the similar tickets clearly agree (at least half of the vote), and only active categories can be suggested | `suggest_category()` in `apps/similarity/services.py` |
+| Attachments: allowed types only, 10 MB per file, 5 per upload, and the first bytes must match the type | `apps/attachments/validators.py` (limits from `.env`, served via `/api/config/`) |
+| Deleting an attachment, or its ticket, also deletes the GridFS file | `post_delete` signal in `apps/attachments/signals.py` |
+| Only the uploader or an agent can remove a file; adding and removing files writes an activity row | `apps/attachments/views.py`, `services.py` |
 | A lookup value used by tickets cannot be deleted (`409 Conflict`); deactivate it instead | `PROTECT` + `LookupValueViewSet.destroy` |
 | `notification_event` values cannot be added or deleted, only renamed or switched off | `LookupTypeCode.BUILT_IN_VALUES` in `apps/lookups/constants.py` |
 | An e-mail is only sent if its `notification_event` value is active and `EMAIL_NOTIFICATIONS` is on | `apps/tickets/notifications.py` |
