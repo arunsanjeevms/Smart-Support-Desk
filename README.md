@@ -1,62 +1,97 @@
-# Smart Support Desk
+<a id="readme-top"></a>
+
+<div align="center">
+
+<img src="docs/assets/readme-banner.svg" alt="Smart Support Desk - raise, track and resolve tickets with local AI" width="100%">
+
+<br>
 
 [![CI](https://github.com/arunsanjeevms/Smart-Support-Desk/actions/workflows/ci.yml/badge.svg)](https://github.com/arunsanjeevms/Smart-Support-Desk/actions/workflows/ci.yml)
+![Angular](https://img.shields.io/badge/Angular-21-DD0031?style=flat-square&logo=angular&logoColor=white)
+![Django](https://img.shields.io/badge/Django-6.0-092E20?style=flat-square&logo=django&logoColor=white)
+![DRF](https://img.shields.io/badge/REST%20Framework-3.18-A30000?style=flat-square&logo=django&logoColor=white)
+![MongoDB](https://img.shields.io/badge/MongoDB-8-47A248?style=flat-square&logo=mongodb&logoColor=white)
+![Python](https://img.shields.io/badge/Python-3.13-3776AB?style=flat-square&logo=python&logoColor=white)
+![AI model](https://img.shields.io/badge/AI-all--MiniLM--L6--v2-FFD21E?style=flat-square&logo=huggingface&logoColor=black)
+![Tests](https://img.shields.io/badge/tests-112%20backend%20%C2%B7%2051%20frontend-0f766e?style=flat-square)
 
-A small, complete support desk: **requesters** report software issues, the **support team** works the queue,
-changes the status and writes resolution notes. While a ticket is being written, an **open-source language model
-running locally** suggests up to three similar tickets that were already resolved. Every table can be searched,
-sorted, filtered and exported to **PDF**, **Excel** or **e-mail**, and every option in the UI (categories,
-priorities, statuses, ...) is managed by the backend.
+**A complete help desk: requesters raise tickets, the support team resolves them, and an open-source language model
+running inside the backend suggests the category and finds similar fixes.**
 
-| | |
+[Features](#-features) · [Quick start](#-quick-start) · [Architecture](#-architecture) · [AI](#-ai-similar-tickets-and-category-suggestion) · [API](#-api-reference) · [Docs](#-documentation)
+
+</div>
+
+<br>
+
+| | Technology |
 |---|---|
-| **Frontend** | Angular 21 (standalone components, signals, zoneless) + Angular Material 3 |
-| **Backend** | Django 6 + Django REST Framework (JSON REST API) |
-| **Database** | MongoDB 8 through the official **Django MongoDB Backend** |
-| **AI** | Sentence Transformers (`all-MiniLM-L6-v2`, open source) on the CPU, inside the Django backend |
-| **Exports** | ReportLab (PDF), openpyxl (Excel), Django e-mail (SMTP / console) |
-| **CI** | GitHub Actions - backend + frontend tests, build, e-mail with the result |
+| 🖥️ **Frontend** | Angular 21 (standalone components, signals, zoneless) + Angular Material 3, Poppins, Material Symbols |
+| ⚙️ **Backend** | Django 6 + Django REST Framework (JSON REST API, token authentication) |
+| 🍃 **Database** | MongoDB 8 through the official **Django MongoDB Backend**; files in **GridFS** |
+| 🤖 **AI** | Sentence Transformers (`all-MiniLM-L6-v2`, open source) on the CPU, inside the Django backend |
+| 📄 **Exports** | ReportLab (PDF), openpyxl (Excel), Django e-mail (SMTP / console) |
+| ✅ **CI** | GitHub Actions - backend + frontend tests, production build, result e-mail |
 
-Full list with versions and the reason for each choice: [docs/TECH_STACK.md](docs/TECH_STACK.md).
+Every technology with its version and the reason it was chosen: [docs/TECH_STACK.md](docs/TECH_STACK.md).
 
 ---
 
-## Contents
+## ✨ Features
 
-1. [Features](#features)
-2. [Quick start (Windows, no Docker)](#quick-start-windows-no-docker)
-3. [MongoDB configuration](#mongodb-configuration)
-4. [Environment variables](#environment-variables)
-5. [Demo accounts and sample data](#demo-accounts-and-sample-data)
-6. [Architecture](#architecture)
-7. [Data model (ER diagram)](#data-model-er-diagram)
-8. [Configuration managed in the backend](#configuration-managed-in-the-backend)
-9. [Tables, exports and e-mail](#tables-exports-and-e-mail)
-10. [Attachments](#attachments)
-11. [Similar ticket suggestions (AI)](#similar-ticket-suggestions-ai) - including the [category suggestion](#category-suggestion-while-typing)
-12. [API reference](#api-reference)
-13. [Security](#security)
-14. [Running the tests](#running-the-tests)
-15. [Continuous integration and e-mail notifications](#continuous-integration-and-e-mail-notifications)
-16. [Key design decisions](#key-design-decisions)
-17. [Limitations and next steps](#limitations-and-next-steps)
+<table>
+<tr>
+<td width="33%" valign="top">
 
-More documentation:
+### 🎫 Ticketing
+Raise tickets with validation, follow them on a timeline, comment both ways. Agents move tickets
+**Open → In Progress → Resolved** with a required resolution note.
 
-| Document | What is inside |
-|---|---|
-| [docs/TECH_STACK.md](docs/TECH_STACK.md) | every technology with its version, what it is used for and why; security measures; runtime requirements |
-| [docs/WORKFLOWS.md](docs/WORKFLOWS.md) | role capabilities, end-to-end ticket workflow, status lifecycle, sequence diagrams (sign-in, raising, resolving, comments, exports, configuration), e-mail notification flow, request pipeline, CI pipeline |
-| [docs/ER_DIAGRAMS.md](docs/ER_DIAGRAMS.md) | ER diagrams of every collection, relationships, indexes, data rules and example documents |
-| [docs/SCREENS.md](docs/SCREENS.md) | every screen with what to capture and an explanation, a screenshot checklist and a suggested outline for a submission document |
-| [docs/PROJECT_GUIDE.md](docs/PROJECT_GUIDE.md) | a guided tour of the code for people new to Angular, Django or MongoDB |
-| [docs/DEMO.md](docs/DEMO.md) | a 3-minute demo script (ticket creation → status update → resolution) |
+</td>
+<td width="33%" valign="top">
 
----
+### 🤖 Local AI
+While typing, the **category is suggested** and up to **3 similar resolved tickets** are found - even with
+completely different wording. Runs on the CPU; no data leaves the server.
 
-## Features
+</td>
+<td width="33%" valign="top">
 
-**Two roles**
+### 📎 Attachments
+Screenshots, logs and documents on tickets and comments, stored in **MongoDB GridFS**, with image previews and
+strict server-side checks.
+
+</td>
+</tr>
+<tr>
+<td valign="top">
+
+### 📊 Tables &amp; exports
+Every table has server-side **search, sort, filters and paging**, plus **PDF, Excel and e-mail** exports of
+exactly what is on screen.
+
+</td>
+<td valign="top">
+
+### ✉️ Notifications
+HTML e-mails for six ticket events - each one switchable on the Configuration screen, sent in the background.
+
+</td>
+<td valign="top">
+
+### 🎛️ Backend-managed options
+Categories, priorities, statuses, limits and e-mail events all come from the backend - **nothing is hard-coded**
+in the UI.
+
+</td>
+</tr>
+</table>
+
+<div align="center">
+<img src="docs/assets/readme-workflow.svg" alt="The life of a ticket: raise, local AI helps, open, in progress, resolved - every step logged and e-mailed" width="100%">
+</div>
+
+### What each role can do
 
 | Capability | Requester | Support agent |
 |---|:---:|:---:|
@@ -75,31 +110,53 @@ More documentation:
 | Dashboard | Own numbers | Queue, workload, resolution time |
 | Activity log (audit trail) | | ✅ |
 | User directory | | ✅ |
-| Manage categories / priorities (Configuration screen) | | ✅ |
+| Manage categories, priorities and e-mail events (Configuration screen) | | ✅ |
 | Django admin (users, agents, configuration, tickets) | | Admin only |
 
 **Every table** (tickets, activity log, users, configuration values) has server-side **search**, **sorting**,
 **pagination** and **filters**, plus **Export → PDF / Excel / Email report**. Exports always contain exactly what the
-table shows (same search, filters and sort order).
+table shows - the same search, filters and sort order.
 
-**Also included:**
+### Also included
 
-- E-mail notifications for six ticket events (ticket received, new ticket alert, assigned, status changed, new
+- 🔔 **E-mail notifications** for six ticket events (ticket received, new ticket alert, assigned, status changed, new
   comment, details changed), each switchable on the Configuration screen.
-- Human-friendly ticket references (`SSD-1001`) from an atomic MongoDB counter.
-- Helpful validation messages from both the UI and the API, shown under the matching field.
-- Live data: the dashboard and every table refresh themselves every 30 seconds, with an *Updated* time badge.
-- Loading, empty and error states on every screen, a friendly *Page not found* page, and page titles in the
-  browser tab.
-- Responsive layout (slide-out menu on phones) and keyboard-accessible tables.
-- Small touches: a short welcome animation after signing in, a time-of-day greeting in the top bar and dashboard
-  numbers that count up.
+- 🔢 **Human-friendly references** (`SSD-1001`) from an atomic MongoDB counter.
+- 🧾 **Helpful validation** from both the UI and the API, shown under the matching field.
+- ⏱️ **Live data** - the dashboard and every table refresh themselves every 30 seconds, with an *Updated* badge.
+- 🥧 **Dashboard** with tinted stat tiles, an animated status pie chart, category bars and numbers that count up.
+- 🧭 **Polished states** - loading, empty and error states on every screen, a friendly *Page not found* page and page
+  titles in the browser tab.
+- 📱 **Responsive** layout (slide-out menu on phones), keyboard-accessible tables and `prefers-reduced-motion`
+  support.
+- 🎨 **Small touches** - a welcome animation after signing in, a waving time-of-day greeting, a dark striped sidebar,
+  alternating row colours and a favicon / home-screen icon set.
 
-Every screen is described, with what to capture for screenshots, in [docs/SCREENS.md](docs/SCREENS.md).
+Every screen, with what to capture for screenshots, is described in [docs/SCREENS.md](docs/SCREENS.md).
+
+<div align="right"><a href="#readme-top">↑ Back to top</a></div>
 
 ---
 
-## Quick start (Windows, no Docker)
+## 📚 Documentation
+
+| Document | What is inside |
+|---|---|
+| [docs/TECH_STACK.md](docs/TECH_STACK.md) | every technology with its version, what it is used for and why; security measures; runtime requirements |
+| [docs/WORKFLOWS.md](docs/WORKFLOWS.md) | role capabilities, end-to-end ticket workflow, status lifecycle, sequence diagrams (sign-in, raising, resolving, comments and files, exports, configuration), e-mail flow, request pipeline, CI pipeline |
+| [docs/ER_DIAGRAMS.md](docs/ER_DIAGRAMS.md) | ER diagrams of every collection, relationships, indexes, data rules and example documents |
+| [docs/SCREENS.md](docs/SCREENS.md) | all 34 screens with what to capture and an explanation, a screenshot checklist and an outline for a submission document |
+| [docs/PROJECT_GUIDE.md](docs/PROJECT_GUIDE.md) | a guided tour of the code for people new to Angular, Django or MongoDB |
+| [docs/DEMO.md](docs/DEMO.md) | a 3-minute demo script (ticket creation → AI suggestions → resolution → exports) |
+
+<div align="right"><a href="#readme-top">↑ Back to top</a></div>
+
+---
+
+## 🚀 Quick start
+
+> [!NOTE]
+> Windows, **no Docker**. The commands work on macOS / Linux too - see the comments next to the two that differ.
 
 ### Prerequisites
 
@@ -109,15 +166,16 @@ Every screen is described, with what to capture for screenshots, in [docs/SCREEN
 | Node.js | 22.12+ or 24+ | `node --version` |
 | MongoDB Server | 6.0 or newer, running locally (the server behind MongoDB Compass) | Windows *Services* shows **MongoDB Server** as *Running* |
 | Git | any recent | `git --version` |
+| CPU | 64-bit with AVX / SSE4.2 (any PC from the last decade) | needed by MongoDB 5+ and the AI libraries |
 
-### 1. Get the code
+### 1 · Get the code
 
 ```powershell
 git clone https://github.com/arunsanjeevms/Smart-Support-Desk.git
 cd Smart-Support-Desk
 ```
 
-### 2. Backend (Django API) - terminal #1
+### 2 · Backend (Django API) - terminal #1
 
 ```powershell
 cd backend
@@ -130,9 +188,10 @@ python manage.py seed_demo        # demo users, ~28 realistic tickets, downloads
 python manage.py runserver        # http://localhost:8000
 ```
 
-Check it works: <http://localhost:8000/api/health/> should return `{"status": "ok", "database": "up"}`.
+> [!TIP]
+> Check it works: <http://localhost:8000/api/health/> should return `{"status": "ok", "database": "up"}`.
 
-### 3. Frontend (Angular) - terminal #2
+### 3 · Frontend (Angular) - terminal #2
 
 ```powershell
 cd frontend
@@ -140,8 +199,9 @@ npm install
 npm start                         # http://localhost:4200
 ```
 
-Open <http://localhost:4200> and click one of the demo accounts on the sign-in page.
+Open <http://localhost:4200> and click one of the demo accounts on the sign-in page. 🎉
 
+> [!IMPORTANT]
 > The Angular app talks to `http://localhost:8000/api` (see `frontend/src/environments/`). If you change the
 > backend port, update that file and `CORS_ALLOWED_ORIGINS` in `backend/.env`.
 
@@ -153,13 +213,15 @@ Open <http://localhost:4200> and click one of the demo accounts on the sign-in p
 | Receive the demo accounts' e-mails in your inbox | `python manage.py seed_demo --inbox you@gmail.com` (riya gets `you+riya@gmail.com`, ...) |
 | Create your own admin | `python manage.py createsuperuser` |
 | Try the AI matching from the terminal | `python manage.py similar_tickets "The analytics page is painfully slow to open"` |
-| (Re)build the similar-ticket index | `python manage.py build_similarity_index` (`--force` to encode everything again) |
+| (Re)build the AI index | `python manage.py build_similarity_index` (`--force` to encode everything again) |
 | Django admin | <http://localhost:8000/admin/> (demo admin: `admin` / `Admin@12345`) |
 | Browsable API | <http://localhost:8000/api/> (sign in to the admin first) |
 
+<div align="right"><a href="#readme-top">↑ Back to top</a></div>
+
 ---
 
-## MongoDB configuration
+## 🍃 MongoDB configuration
 
 The backend reads two settings from `backend/.env`:
 
@@ -168,10 +230,17 @@ MONGODB_URI=mongodb://127.0.0.1:27017     # the same connection string you use i
 MONGODB_NAME=smart_support_desk           # database name - created automatically
 ```
 
+> [!WARNING]
 > Use `127.0.0.1` rather than `localhost`. A default MongoDB install on Windows only listens on IPv4
 > (`bindIp: 127.0.0.1` in `mongod.cfg`), and `localhost` can resolve to the IPv6 address `::1`, which is refused.
 
-### Viewing the data in MongoDB Compass
+Using MongoDB Atlas or a password-protected server? Put the full connection string in `MONGODB_URI`, e.g.
+`mongodb+srv://user:password@cluster0.example.mongodb.net/?retryWrites=true`.
+
+<details>
+<summary><b>Viewing the data in MongoDB Compass</b></summary>
+
+<br>
 
 Compass only lists connections you have saved, so on a fresh install the list is empty even though the server is
 running. Add one once:
@@ -185,54 +254,89 @@ running. Add one once:
 If Compass says *connect ECONNREFUSED*: open **Services** (`Win + R` → `services.msc`), find **MongoDB Server**, and
 click **Start**.
 
-Using MongoDB Atlas or a password-protected server? Put the full connection string in `MONGODB_URI`, e.g.
-`mongodb+srv://user:password@cluster0.example.mongodb.net/?retryWrites=true`.
-
 After `migrate` + `seed_demo`, refresh Compass and you will see the `smart_support_desk` database with these
 collections:
 
 | Collection | Contents |
 |---|---|
 | `accounts_user` | users (requesters, agents, admin) |
-| `lookups_lookuptype` / `lookups_lookupvalue` | configurable lists - categories, priorities |
+| `lookups_lookuptype` / `lookups_lookupvalue` | configurable lists - categories, priorities, e-mail events |
 | `tickets_ticket` | tickets |
-| `tickets_ticketactivity` | activity log / timeline (status changes, assignments, comments) |
+| `tickets_ticketactivity` | activity log / timeline (status changes, assignments, comments, files) |
+| `attachments_ticketattachment` | details of attached files (name, type, size, who, when) |
+| `attachments.files` / `attachments.chunks` | the attached files themselves, stored by GridFS |
 | `core_counters` | atomic counter used for ticket references (`SSD-1001`, `SSD-1002`, ...) |
-| `similarity_ticketembedding` | cached AI embeddings of resolved tickets, for similar ticket suggestions |
+| `similarity_ticketembedding` | cached AI embeddings of tickets, for the similar-ticket and category suggestions |
 | `authtoken_token` | API tokens of signed-in users |
 | `auth_*`, `django_*` | Django's built-in tables (permissions, sessions, admin log, migrations) |
 
+</details>
+
+<div align="right"><a href="#readme-top">↑ Back to top</a></div>
+
 ---
 
-## Environment variables
+## 🔧 Environment variables
 
 All backend settings are read from `backend/.env` (copy `backend/.env.example`). Every variable has a default, so
-the app runs with an empty file except for real e-mail delivery.
+the app runs with an empty file - only real e-mail delivery needs values.
+
+<details>
+<summary><b>Show all environment variables</b></summary>
+
+<br>
+
+**Django and database**
 
 | Variable | Default | Meaning |
 |---|---|---|
 | `DJANGO_SECRET_KEY` | a development-only key | secret used to sign data; set a long random value outside development |
-| `DJANGO_DEBUG` | `True` | debug pages and relaxed CORS for any local port |
+| `DJANGO_DEBUG` | `True` | debug pages; also lets the Angular app call the API from any local port (`localhost` / `127.0.0.1` / `[::1]`) |
 | `DJANGO_ALLOWED_HOSTS` | `localhost,127.0.0.1` | host names Django answers to |
 | `DJANGO_TIME_ZONE` | `Asia/Kolkata` | time zone for dates, filters and e-mails |
 | `MONGODB_URI` | `mongodb://127.0.0.1:27017` | MongoDB connection string (local, password-protected or Atlas) |
 | `MONGODB_NAME` | `smart_support_desk` | database name |
 | `CORS_ALLOWED_ORIGINS` | `http://localhost:4200,http://127.0.0.1:4200` | where the Angular app is served from |
+
+**E-mail**
+
+| Variable | Default | Meaning |
+|---|---|---|
 | `EMAIL_BACKEND` | console | `django.core.mail.backends.smtp.EmailBackend` to really send |
-| `EMAIL_HOST` / `EMAIL_PORT` / `EMAIL_USE_TLS` | `smtp.gmail.com` / `587` / `True` | SMTP server |
+| `EMAIL_HOST` / `EMAIL_PORT` / `EMAIL_USE_TLS` | `smtp.gmail.com` / `587` / `True` | SMTP server (connection timeout 20 s) |
 | `EMAIL_HOST_USER` / `EMAIL_HOST_PASSWORD` | empty | SMTP account (for Gmail an App password) |
 | `DEFAULT_FROM_EMAIL` | `Smart Support Desk <no-reply@smartsupportdesk.local>` | sender of every e-mail |
+| `EMAIL_NOTIFICATIONS` | `True` | master switch for all notification e-mails (`NOTIFY_REQUESTER_ON_STATUS_CHANGE` is still accepted as an older name) |
 | `FRONTEND_URL` | `http://localhost:4200` | used for the *View ticket* links in e-mails |
+
+**Application**
+
+| Variable | Default | Meaning |
+|---|---|---|
 | `TICKET_REFERENCE_PREFIX` | `SSD` | prefix of ticket references (numbers start at 1000) |
 | `EXPORT_MAX_ROWS` | `5000` | maximum rows in one export |
-| `EMAIL_NOTIFICATIONS` | `True` | master switch for all notification e-mails |
 | `DEMO_MODE` | `True` | one-click demo sign-in buttons on the login page |
+
+**Rate limits**
+
+| Variable | Default | Meaning |
+|---|---|---|
 | `AUTH_THROTTLE_RATE` | `30/minute` | sign-in and sign-up attempts per client |
 | `SIMILAR_THROTTLE_RATE` | `60/minute` | similar ticket searches per user |
 | `SUGGEST_THROTTLE_RATE` | `120/minute` | category suggestions per user (asked while typing) |
+
+**Attachments**
+
+| Variable | Default | Meaning |
+|---|---|---|
 | `ATTACHMENT_MAX_FILE_MB` | `10` | size limit per attached file |
 | `ATTACHMENT_MAX_FILES` | `5` | files per upload |
 | `ATTACHMENT_ALLOWED_EXTENSIONS` | `png,jpg,jpeg,gif,webp,pdf,txt,log,csv,json,xlsx,docx,zip` | allowed file types (can only narrow the types the app supports) |
+
+**AI suggestions**
+
+| Variable | Default | Meaning |
+|---|---|---|
 | `SIMILARITY_ENABLED` | `True` | show similar ticket suggestions |
 | `SIMILARITY_ENGINE` | `semantic` | `semantic` (the model) or `keyword` (TF-IDF only) |
 | `SIMILARITY_MODEL` | `sentence-transformers/all-MiniLM-L6-v2` | any Sentence Transformers model |
@@ -246,29 +350,36 @@ the app runs with an empty file except for real e-mail delivery.
 | `SIMILARITY_CATEGORY_DESCRIPTION_MIN_SCORE` | `0.35` | minimum score when matching the category descriptions instead |
 | `SIMILARITY_CATEGORY_MAX_TICKETS` | `2000` | how many recent tickets are compared |
 
+</details>
+
 The frontend has one setting, the API address, in `frontend/src/environments/environment*.ts`.
+
+<div align="right"><a href="#readme-top">↑ Back to top</a></div>
 
 ---
 
-## Demo accounts and sample data
+## 👥 Demo accounts and sample data
 
 `python manage.py seed_demo` creates (all safe to re-run):
 
 | Role | Username | Password |
 |---|---|---|
-| Requester | `riya` (also `karthik`, `emily`, `daniel`) | `Demo@12345` |
-| Support agent | `meera` (also `sam`) | `Demo@12345` |
-| Admin (agent + Django admin) | `admin` | `Admin@12345` |
+| 🙋 Requester | `riya` (also `karthik`, `emily`, `daniel`) | `Demo@12345` |
+| 🎧 Support agent | `meera` (also `sam`) | `Demo@12345` |
+| 🛡️ Admin (agent + Django admin) | `admin` | `Admin@12345` |
 
-…and 28 realistic tickets across all categories and priorities, with a mix of *Open*, *In Progress* and *Resolved*
-tickets, resolution notes, comments and a complete activity history spread over the last six weeks.
+…plus **28 realistic tickets** across all categories and priorities - a mix of *Open*, *In Progress* and *Resolved*
+tickets with resolution notes, comments, a log file and an invoice PDF attached, and a complete activity history
+spread over the last six weeks. At the end the AI index is built, so the first suggestion is instant.
 
 The sign-in page shows one-click demo buttons. They are controlled by the backend (`DEMO_MODE=True` in `.env`) and
 only appear for accounts that exist.
 
+<div align="right"><a href="#readme-top">↑ Back to top</a></div>
+
 ---
 
-## Architecture
+## 🧱 Architecture
 
 ```mermaid
 flowchart LR
@@ -300,6 +411,11 @@ flowchart LR
     S -- status e-mails --> MAIL
 ```
 
+<details>
+<summary><b>Project structure</b></summary>
+
+<br>
+
 ```
 Smart-Support-Desk/
 ├── backend/                     Django project
@@ -319,18 +435,30 @@ Smart-Support-Desk/
 │   └── src/app/
 │       ├── core/                API/auth/config services, interceptor, guards, models
 │       ├── shared/              DataTable, export menu, attachments (picker, list), badges, dialogs, pipes
-│       ├── layout/              app shell (sidebar + top bar)
+│       ├── layout/              app shell (sidebar + top bar) and the welcome animation
 │       └── features/            auth, dashboard, tickets, activity, users, configuration
 ├── docs/                        tech stack, workflows, ER diagrams, screen guide, project guide, demo script
+│   └── assets/                  the animated README artwork (SVG)
 └── .github/workflows/ci.yml     tests + build + result e-mail
 ```
 
+</details>
+
+A guided tour of the code is in [docs/PROJECT_GUIDE.md](docs/PROJECT_GUIDE.md).
+
+<div align="right"><a href="#readme-top">↑ Back to top</a></div>
+
 ---
 
-## Data model (ER diagram)
+## 💾 Data model
 
-A summary of the collections. [docs/ER_DIAGRAMS.md](docs/ER_DIAGRAMS.md) has the full version with every
-field, delete rules, indexes and example documents.
+A summary of the collections - [docs/ER_DIAGRAMS.md](docs/ER_DIAGRAMS.md) has the full version with every field,
+delete rules, indexes and example documents.
+
+<details>
+<summary><b>Show the ER diagram</b></summary>
+
+<br>
 
 ```mermaid
 erDiagram
@@ -399,7 +527,7 @@ erDiagram
     }
     TICKET_EMBEDDING {
         ObjectId _id PK
-        ObjectId ticket_id FK,UK "resolved ticket"
+        ObjectId ticket_id FK,UK "one per ticket"
         string model_name "all-MiniLM-L6-v2"
         string text_hash "sha256 of title + description"
         float[] vector "384 numbers"
@@ -426,7 +554,9 @@ erDiagram
     }
 ```
 
-Ticket status workflow (business rules live in `backend/apps/tickets/`):
+</details>
+
+**Ticket status workflow** (business rules live in `backend/apps/tickets/`):
 
 ```mermaid
 stateDiagram-v2
@@ -442,9 +572,11 @@ stateDiagram-v2
 Who can make each move, what it records and which e-mail it sends, plus sequence diagrams for every main action, are
 in [docs/WORKFLOWS.md](docs/WORKFLOWS.md).
 
+<div align="right"><a href="#readme-top">↑ Back to top</a></div>
+
 ---
 
-## Configuration managed in the backend
+## 🧰 Configuration managed in the backend
 
 Nothing selectable in the UI is hard-coded in Angular. On sign-in the app calls `GET /api/config/` and builds every
 form, filter and badge from the response:
@@ -454,45 +586,50 @@ form, filter and badge from the response:
 | **Ticket categories** | `LookupValue` rows of type `ticket_category` | Configuration screen (agents) or Django admin → *Configuration* |
 | **Ticket priorities** | `LookupValue` rows of type `ticket_priority` | same as above |
 | Category / priority icon, colour, order, default, active | fields on each `LookupValue` | same as above |
+| **E-mail notifications** (which actions send an e-mail) | `LookupValue` rows of type `notification_event` | Configuration screen → *Email notifications* (switch each event on/off) |
 | Ticket statuses + allowed transitions | `apps/tickets/constants.py` (business rules depend on them) | code - served to the UI via `/api/config/` |
 | Validation limits (title/description length, ...) | `apps/tickets/constants.py` | code - served to the UI via `/api/config/` |
 | Roles | `User.Role` | Django admin (create agents, change roles) |
-| **E-mail notifications** (which actions send an e-mail) | `LookupValue` rows of type `notification_event` | Configuration screen → *Email notifications* (switch each event on/off) |
-| Demo accounts, export row limit, e-mail notifications | `backend/.env` | environment variables |
+| Demo accounts, export row limit, e-mail master switch | `backend/.env` | environment variables |
 | Similar ticket and category suggestions (on/off, model, thresholds) | `backend/.env` (`SIMILARITY_*`) | environment variables |
 | Attachment size, number and allowed types | `backend/.env` (`ATTACHMENT_*`) | environment variables - the UI reads the limits from `/api/config/` |
 
-**Generic lookup pattern.** `LookupType` describes a list (e.g. *Ticket category*), `LookupValue` holds its options.
-To add a brand-new configurable list later (say *Product area*), add one `LookupType` row and reference it from a
-model - no new tables, admin screens or UI components are needed. Values that are already used by tickets cannot be
-deleted (the API answers `409 Conflict` and suggests deactivating instead), so history is never broken.
+> [!TIP]
+> **Generic lookup pattern.** `LookupType` describes a list (e.g. *Ticket category*), `LookupValue` holds its
+> options. To add a brand-new configurable list later (say *Product area*), add one `LookupType` row and reference it
+> from a model - no new tables, admin screens or UI components are needed. Values that are already used by tickets
+> cannot be deleted (the API answers `409 Conflict` and suggests deactivating instead), so history is never broken.
+
+<div align="right"><a href="#readme-top">↑ Back to top</a></div>
 
 ---
 
-## Tables, exports and e-mail
+## 📊 Tables, exports and e-mail
 
 **Live data.** The dashboard and every table reload themselves in the background every 30 seconds (and as soon as you
 return to the browser tab). The reload is silent: rows stay on screen, nothing flickers, and a failed refresh keeps the
-current data. A small "Updated 10:42:05 AM" badge shows when the data was last refreshed. The interval is
+current data. A small *Updated 10:42:05 AM* badge shows when the data was last refreshed. The interval is
 `AUTO_REFRESH_MS` in `frontend/src/app/core/utils/auto-refresh.ts`.
 
 All tables use one reusable Angular `DataTable` component backed by a `TableSource` that keeps search, sort, page
-and filters in signals and calls the API. Sorting, searching, filtering and paging all run **in Django/MongoDB**,
-so they work the same for 30 or 300,000 rows.
+and filters in signals and calls the API. Sorting, searching, filtering and paging all run **in Django/MongoDB**, so
+they work the same for 30 or 300,000 rows. Columns hide themselves on narrow screens, and rows alternate in colour.
 
 Every list endpoint gets two extra endpoints from a single backend mixin (`apps/core/exports/ExportMixin`):
 
 | Endpoint | Result |
 |---|---|
-| `GET /api/<table>/export/?file_type=pdf` | branded landscape PDF set in Poppins: running header and footer, a title block with a summary strip (records, generated, prepared by, filters), coloured status/priority, "Page x of y" |
-| `GET /api/<table>/export/?file_type=xlsx` | Excel sheet with styled header, frozen header row, auto-filter |
-| `POST /api/<table>/export/email/` `{"file_type": "pdf", "recipients": ["a@b.com"], "subject": "", "message": ""}` | the same file sent as an e-mail attachment |
+| `GET /api/<table>/export/?file_type=pdf` | branded landscape PDF set in Poppins: running header and footer, a title block with a summary strip (records, generated, prepared by, filters), coloured status / priority, "Page x of y" |
+| `GET /api/<table>/export/?file_type=xlsx` | Excel sheet with a styled header, frozen header row and auto-filter |
+| `POST /api/<table>/export/email/` `{"file_type": "pdf", "recipients": ["a@b.com"], "subject": "", "message": ""}` | the same file sent as an e-mail attachment (up to 10 recipients) |
 
 Both accept the same query parameters as the list (search, ordering, filters). Requesters can only ever export their
 own tickets because exports reuse the role-aware queryset.
 
-**E-mail delivery.** By default e-mails are printed in the Django terminal (`console` backend) so nothing is sent by
-accident. To really send mail with Gmail:
+### Sending real e-mail
+
+By default e-mails are printed in the Django terminal (`console` backend), so nothing is sent by accident. To really
+send mail with Gmail:
 
 1. Turn on 2-step verification for the Google account and create an **App password**.
 2. In `backend/.env` set:
@@ -504,13 +641,11 @@ accident. To really send mail with Gmail:
    DEFAULT_FROM_EMAIL=Smart Support Desk <your.address@gmail.com>
    ```
 
-3. Restart `runserver`. Export e-mails and status-change notifications are now delivered.
+3. Restart `runserver`. Export e-mails and notifications are now delivered.
 
 All e-mails are HTML (with a plain-text version) and share one branded layout. The templates are in
-`backend/apps/core/templates/emails/`. The "View ticket" buttons link to `FRONTEND_URL` (default
+`backend/apps/core/templates/emails/`. The *View ticket* buttons link to `FRONTEND_URL` (default
 `http://localhost:4200`); set it in `backend/.env` when the app runs somewhere else.
-
----
 
 ### Notification e-mails
 
@@ -520,56 +655,72 @@ turns all of them off at once.
 
 | Event | Sent to |
 |---|---|
-| Ticket received | the requester (confirmation with their description) |
-| New ticket alert | every active support agent |
-| Ticket assigned | the agent it was assigned to (not when agents assign themselves) |
-| Status changed | the requester, including the resolution note when resolved |
-| New comment | the requester when an agent comments; the assignee (or the whole team if unassigned) when the requester comments |
-| Ticket details changed | the requester when the category or priority changes |
+| 📥 Ticket received | the requester (confirmation with their description) |
+| 🚨 New ticket alert | every active support agent |
+| 👤 Ticket assigned | the agent it was assigned to (not when agents assign themselves) |
+| 🔄 Status changed | the requester, including the resolution note when resolved |
+| 💬 New comment | the requester when an agent comments; the assignee (or the whole team if unassigned) when the requester comments - with the names of any attached files |
+| ✏️ Ticket details changed | the requester when the category or priority changes |
 
-Nobody is e-mailed about their own action. E-mails are sent in the background so the app stays fast, and
-addresses on reserved demo domains (`example.com`, `*.test`, ...) are skipped. To receive the demo e-mails
-yourself, give a demo user your real address in the Django admin.
+Nobody is e-mailed about their own action. E-mails are sent in a background thread so the app stays fast, a mail
+server problem is logged and never breaks the request, and addresses on reserved demo domains (`example.com`,
+`*.test`, ...) are skipped. To receive the demo e-mails yourself, run `seed_demo --inbox you@gmail.com`.
+
+<div align="right"><a href="#readme-top">↑ Back to top</a></div>
 
 ---
 
-## Attachments
+## 📎 Attachments
 
-Screenshots, logs and documents can be attached to a ticket - on the **New ticket** form, later from the ticket's
-**Attachments** card, or together with a **comment**. Images show as thumbnails and open full size in a preview;
-every file can be downloaded. The person who uploaded a file, or any support agent, can remove it.
+Screenshots, logs and documents can be attached to a ticket - on the **New ticket** form (drag and drop), later from
+the ticket's **Attachments** card, or together with a **comment**. Images show as thumbnails and open full size in a
+preview; every file can be downloaded. The person who uploaded a file, or any support agent, can remove it.
 
 | | |
 |---|---|
-| **Where the files live** | in MongoDB itself, with **GridFS** (bucket `attachments`: `attachments.files` + `attachments.chunks`). No separate file server or upload folder to back up. The `attachments_ticketattachment` collection holds the details (name, type, size, who, when) and the GridFS id. |
-| **Allowed types** | `png, jpg, jpeg, gif, webp, pdf, txt, log, csv, json, xlsx, docx, zip` (`ATTACHMENT_ALLOWED_EXTENSIONS`). SVG, HTML and programs are never accepted. |
-| **Limits** | 10 MB per file and 5 files per upload (`ATTACHMENT_MAX_FILE_MB`, `ATTACHMENT_MAX_FILES`). The browser checks them straight away, using the limits from `/api/config/`. |
-| **Server checks** | every file is checked again: allowed type, size, number of files, and the **first bytes must match the type** (a `.png` must really be a PNG, Office files and `.zip` a ZIP, text files contain no binary data). A renamed `.exe` is rejected. If one file fails, nothing is stored. |
-| **Downloads** | always as a download (`Content-Disposition: attachment`) with `X-Content-Type-Options: nosniff`; the type is decided by the server, never by the uploader's browser. The app fetches files with the sign-in token, so links cannot be shared. |
-| **Who sees what** | the same rules as tickets: requesters only reach files on their own tickets (anything else is a `404`), agents see all. |
-| **History** | adding and removing files are recorded in the activity log (*Attached 2 files*, *Removed error.log*), and the comment e-mail lists the attached file names. Deleting a ticket removes its stored files too. |
+| 🗄️ **Where the files live** | in MongoDB itself, with **GridFS** (bucket `attachments`: `attachments.files` + `attachments.chunks`). No separate file server or upload folder to back up. The `attachments_ticketattachment` collection holds the details (name, type, size, who, when) and the GridFS id. |
+| 📑 **Allowed types** | `png, jpg, jpeg, gif, webp, pdf, txt, log, csv, json, xlsx, docx, zip` (`ATTACHMENT_ALLOWED_EXTENSIONS`). SVG, HTML and programs are never accepted. |
+| 📏 **Limits** | 10 MB per file and 5 files per upload (`ATTACHMENT_MAX_FILE_MB`, `ATTACHMENT_MAX_FILES`). The browser checks them straight away, using the limits from `/api/config/`. |
+| 🛡️ **Server checks** | every file is checked again: allowed type, size, number of files, and the **first bytes must match the type** (a `.png` must really be a PNG, Office files and `.zip` a ZIP, text files contain no binary data). A renamed `.exe` is rejected. If one file fails, nothing is stored. |
+| ⬇️ **Downloads** | always as a download (`Content-Disposition: attachment`) with `X-Content-Type-Options: nosniff`; the type is decided by the server, never by the uploader's browser. The app fetches files with the sign-in token, so links cannot be shared. |
+| 👀 **Who sees what** | the same rules as tickets: requesters only reach files on their own tickets (anything else is a `404`), agents see all. |
+| 🕓 **History** | adding and removing files are recorded in the activity log (*Attached 2 files*, *Removed error.log*), and the comment e-mail lists the attached file names. Deleting a ticket removes its stored files too. |
 
-The demo data includes a log file on the webhook ticket and an invoice PDF on the GST invoice ticket.
-The code is in `backend/apps/attachments/` and `frontend/src/app/shared/attachments/`.
+The demo data includes a log file on the webhook ticket and an invoice PDF on the GST invoice ticket. The code is in
+`backend/apps/attachments/` and `frontend/src/app/shared/attachments/`.
+
+<div align="right"><a href="#readme-top">↑ Back to top</a></div>
 
 ---
 
-## Similar ticket suggestions (AI)
+## 🤖 AI: similar tickets and category suggestion
 
-While someone writes a new ticket they can click **Find similar tickets**. The backend compares their title and
-description with every **resolved** ticket and returns at most **three** that look alike, each with its resolution
-note. A suggestion opens in a dialog, so the draft is never lost. Agents get the same list on every open ticket and
-can copy a resolution note into the Manage form with **Use this note**.
+<div align="center">
+<img src="docs/assets/readme-ai.svg" alt="Different wording, same problem: the new issue and a resolved ticket get similar embeddings, cosine similarity 0.68, while keyword matching scores 0.10" width="100%">
+</div>
 
-The suggestions are **advisory**. Nothing is closed or changed automatically, every card says it may not fit the
-issue, and the ticket can always be submitted. Only the problem, its category and the resolution are shared: never
-who raised the old ticket.
+<br>
+
+Two features share one open-source model that runs **locally on the CPU**:
+
+| | Similar resolved tickets | Category suggestion |
+|---|---|---|
+| **When** | **Find similar tickets** button on the New ticket form; automatically for agents on open tickets | while a new ticket is being typed (after a 600 ms pause) |
+| **What** | up to **3** resolved tickets with their resolution note and a % match | the likely **category**, *based on N similar tickets* |
+| **Action** | **View details** (dialog, the draft is kept); agents can **Use this note** | **Use it** (or **Switch** if another category is chosen) |
+| **Endpoint** | `POST /api/tickets/similar/` | `POST /api/tickets/suggest-category/` |
+
+> [!NOTE]
+> Both are **advisory**: nothing is closed, changed or selected automatically, every card says it may not fit, and the
+> ticket can always be submitted. Only the problem, its category and the resolution are shared - never who raised the
+> old ticket.
 
 ### How it works
 
 1. **An open-source model, running locally.** [`sentence-transformers/all-MiniLM-L6-v2`](https://huggingface.co/sentence-transformers/all-MiniLM-L6-v2)
    (Apache 2.0) runs on the CPU inside Django through the `sentence-transformers` library. It is downloaded once
-   (about 90 MB) and then loaded from the local cache, so no ticket text ever leaves the server.
+   (about 90 MB) and then loaded from the local cache, so no ticket text ever leaves the server. The server loads it
+   in the background at start-up, so the first search is instant.
 2. **Text to numbers.** The model turns `"<title>. <description>"` into an *embedding*: 384 numbers that describe
    the meaning of the text. Texts that mean the same thing get similar numbers even when they share no words.
 3. **Cached embeddings.** Each ticket is encoded once and stored in the `similarity_ticketembedding` collection,
@@ -577,11 +728,12 @@ who raised the old ticket.
 4. **Ranking.** The new text is encoded and compared with every resolved ticket by **cosine similarity** (0 =
    unrelated, 1 = same meaning). Matches under `SIMILARITY_MIN_SCORE` (0.35) are dropped and the best three are
    returned. Scores of 0.60 and above are labelled *strong*.
-5. **Fallback.** If the model cannot be loaded (for example no internet for the first download), the same endpoint
-   falls back to TF-IDF keyword matching and the UI says so.
+5. **Fallback.** If the model cannot be loaded (for example no internet for the first download), the same endpoints
+   fall back to TF-IDF keyword matching and the UI says so.
 
 The code is in `backend/apps/similarity/` (`engines.py` for the model and the keyword fallback, `services.py` for
-caching and ranking) and `frontend/src/app/features/tickets/similar-tickets/`.
+caching, ranking and the category vote) and `frontend/src/app/features/tickets/` (`similar-tickets/`,
+`category-suggestion/`).
 
 ### Different wording, same problem
 
@@ -601,10 +753,9 @@ The first four are also automated tests (`apps/similarity/tests/test_similarity.
 
 ### Category suggestion while typing
 
-The same model also suggests the **category** while a new ticket is being typed. A small line appears under the
-Category field: *Suggested category: Billing & Payments, based on 2 similar tickets* with a **Use it** button. If a
-different category is already chosen it says *This reads like Billing & Payments* with **Switch**. The category is
-never picked automatically.
+A small line appears under the Category field: *Suggested category: Billing & Payments, based on 2 similar tickets*
+with a **Use it** button. If a different category is already chosen it says *This reads like Billing & Payments*
+with **Switch**. The category is never picked automatically.
 
 How the backend decides (`suggest_category` in `apps/similarity/services.py`):
 
@@ -617,12 +768,13 @@ How the backend decides (`suggest_category` in `apps/similarity/services.py`):
    (minimum 0.35, and clearly ahead of the runner-up). This way a category just added on the Configuration screen
    can be suggested before any ticket uses it.
 
-Only the category is returned, never anything about other people's tickets. The app asks after a short pause in
-typing (600 ms), and outdated requests are cancelled.
+Only the category is returned, never anything about other people's tickets. Outdated requests are cancelled while
+the user keeps typing.
 
-**How well it works.** Each of the 29 tickets in the local database (the 28 demo tickets plus one test ticket) was hidden in turn and its category predicted from all
-the others (leave-one-out): a category was suggested for **24**, and **23 of those were right (96%)**. For the other
-5 the vote was unsure, so nothing was suggested. Real answers from the running app:
+**How well it works.** Each of the 29 tickets in the local database (the 28 demo tickets plus one test ticket) was
+hidden in turn and its category predicted from all the others (leave-one-out): a category was suggested for **24**,
+and **23 of those were right (96%)**. For the other 5 the vote was unsure, so nothing was suggested. Real answers
+from the running app:
 
 | Typed by the user | Suggested category | Based on |
 |---|---|---|
@@ -647,12 +799,22 @@ and the on/off switch are tested with the keyword engine (`apps/similarity/tests
 | `SIMILARITY_CATEGORY_SUGGESTIONS` | `True` | suggest the category while typing |
 | `SIMILARITY_CATEGORY_MIN_SCORE` / `_MIN_CONFIDENCE` / `_DESCRIPTION_MIN_SCORE` | `0.30` / `0.5` / `0.35` | the thresholds above |
 
+<div align="right"><a href="#readme-top">↑ Back to top</a></div>
+
 ---
 
-## API reference
+## 🔌 API reference
 
 All endpoints are under `http://localhost:8000/api/`. Send `Authorization: Token <token>` (returned by login).
 Errors always look like `{"message": "...", "errors": {"field": ["..."]}}`.
+
+List endpoints return `{"count", "page", "page_size", "total_pages", "results"}`. Pages hold 10 rows by default;
+`page_size` changes it (up to 100). Lists also accept `search` and `ordering` (`-` for descending).
+
+<details>
+<summary><b>Status codes</b></summary>
+
+<br>
 
 | Status | Meaning |
 |---|---|
@@ -662,9 +824,11 @@ Errors always look like `{"message": "...", "errors": {"field": ["..."]}}`.
 | `404` | not found, or not visible to this user (a requester opening someone else's ticket) |
 | `409` | a configuration value is used by tickets, or is built in, and cannot be deleted |
 | `429` | too many sign-in attempts, similar ticket searches or category suggestions - try again in a minute |
+| `503` | `/health/` only - MongoDB is down |
 
-List endpoints return `{"count", "page", "page_size", "total_pages", "results"}`. Pages hold 10 rows by default;
-`page_size` changes it (up to 100).
+</details>
+
+**Authentication and configuration**
 
 | Method | Endpoint | Who | Purpose |
 |---|---|---|---|
@@ -674,48 +838,72 @@ List endpoints return `{"count", "page", "page_size", "total_pages", "results"}`
 | POST | `/auth/logout/` | signed in | invalidate the token |
 | GET | `/auth/me/` | signed in | current user |
 | GET | `/auth/demo-accounts/` | anyone | demo sign-in buttons (when `DEMO_MODE`) |
-| GET | `/config/` | signed in | statuses, categories, priorities, agents, validation limits |
+| GET | `/config/` | signed in | statuses, categories, priorities, agents, validation limits, attachment limits, AI switches |
+
+**Tickets**
+
+| Method | Endpoint | Who | Purpose |
+|---|---|---|---|
 | GET | `/tickets/` | signed in | list - `search`, `ordering`, `page`, `page_size`, `status` (comma separated), `category`, `priority`, `assigned_to` (`me`, `unassigned`, id), `created_from`, `created_to` |
 | POST | `/tickets/` | signed in | create `{title, description, category, priority?}` |
-| GET | `/tickets/{id}/` | owner or agent | detail (+ `allowed_statuses`, `can_manage`) |
+| GET | `/tickets/{id}/` | owner or agent | detail (+ `allowed_statuses`, `can_manage`, `attachments`) |
 | PATCH | `/tickets/{id}/` | agent | `{status?, resolution_note?, assigned_to?, priority?, category?}` |
-| GET | `/tickets/{id}/activities/` | owner or agent | timeline |
+| GET | `/tickets/{id}/activities/` | owner or agent | timeline (each entry with its files) |
 | POST | `/tickets/{id}/comments/` | owner or agent | `{message}`, or multipart with `message` and/or `files` |
+| GET | `/tickets/stats/` | signed in | dashboard numbers (scoped to the user) |
+
+**Attachments**
+
+| Method | Endpoint | Who | Purpose |
+|---|---|---|---|
 | GET | `/tickets/{id}/attachments/` | owner or agent | the ticket's files |
 | POST | `/tickets/{id}/attachments/` | owner or agent | upload: multipart field `files` (up to 5) |
 | GET | `/attachments/{id}/download/` | owner or agent | the file itself |
 | DELETE | `/attachments/{id}/` | uploader or agent | remove a file (recorded in the activity log) |
-| GET | `/tickets/stats/` | signed in | dashboard numbers (scoped to the user) |
+
+**AI suggestions**
+
+| Method | Endpoint | Who | Purpose |
+|---|---|---|---|
 | POST | `/tickets/similar/` | signed in | `{title?, description?, exclude?}` → up to 3 similar resolved tickets with `score` and `match`, plus `engine` and `model` |
 | POST | `/tickets/suggest-category/` | signed in | `{title?, description?}` → `{suggestion: {category, confidence, basis, matches} or null, engine, model}` |
+
+**Team data and exports**
+
+| Method | Endpoint | Who | Purpose |
+|---|---|---|---|
 | GET | `/activities/` | agent | audit log - `activity_type` filter |
 | GET | `/users/` | agent | user directory - `role` filter |
 | GET | `/lookups/types/` | signed in | configurable lists |
 | GET, POST, PATCH, DELETE | `/lookups/values/` | read: signed in, write: agent | values - `type`, `is_active` filters |
-| GET / POST | `/<table>/export/`, `/<table>/export/email/` | as the table | exports (see above) |
+| GET / POST | `/<table>/export/`, `/<table>/export/email/` | as the table | exports (see [Tables, exports and e-mail](#-tables-exports-and-e-mail)) |
+
+<div align="right"><a href="#readme-top">↑ Back to top</a></div>
 
 ---
 
-## Security
+## 🔒 Security
 
 | Area | How it is handled |
 |---|---|
-| Passwords | hashed by Django; at least 8 characters, not common, not only digits, not close to the username |
-| Authentication | one API token per user in the `Authorization` header; signing out deletes it on the server |
-| Roles | requesters only see and export their own tickets; activity log, users and configuration changes are agents only, checked by the API and by Angular route guards |
-| Sign-up | always creates a requester; agents are created by an administrator |
-| Rate limits | sign-in / sign-up 30 per minute, similar ticket searches 60 per minute, category suggestions 120 per minute (`429` after that) |
-| Uploads | allowed types only, size and count limits, file signature checked against the type, served as downloads with `nosniff`, visible only to the ticket's requester and agents |
-| Validation | every input is validated by the API, and again in the browser for quick feedback |
-| CORS | only the configured frontend origins may call the API |
-| AI privacy | the model runs on the server, nothing is sent to an outside service; suggestions never show who raised the old ticket |
-| Secrets | in `backend/.env` (ignored by Git) and GitHub repository secrets |
+| 🔑 Passwords | hashed by Django; at least 8 characters, not common, not only digits, not close to the username |
+| 🪪 Authentication | one API token per user in the `Authorization` header; signing out deletes it on the server; an expired session returns to the sign-in page |
+| 👥 Roles | requesters only see and export their own tickets; activity log, users and configuration changes are agents only, checked by the API and by Angular route guards |
+| 📝 Sign-up | always creates a requester; agents are created by an administrator |
+| 🚦 Rate limits | sign-in / sign-up 30 per minute, similar ticket searches 60 per minute, category suggestions 120 per minute (`429` after that) |
+| 📎 Uploads | allowed types only, size and count limits, file signature checked against the type, served as downloads with `nosniff`, visible only to the ticket's requester and agents |
+| ✅ Validation | every input is validated by the API, and again in the browser for quick feedback |
+| 🌐 CORS | only the configured frontend origins may call the API |
+| 🤖 AI privacy | the model runs on the server, nothing is sent to an outside service; suggestions never show who raised the old ticket; the text is sent by POST, so it stays out of URLs and logs |
+| 🗝️ Secrets | in `backend/.env` (ignored by Git) and GitHub repository secrets |
 
 More detail in [docs/TECH_STACK.md](docs/TECH_STACK.md#8-security-measures).
 
+<div align="right"><a href="#readme-top">↑ Back to top</a></div>
+
 ---
 
-## Running the tests
+## 🧪 Running the tests
 
 ```powershell
 # Backend - 112 tests against a temporary MongoDB database (test_smart_support_desk)
@@ -729,45 +917,64 @@ npm run test:ci
 npm run build
 ```
 
-The backend tests cover authentication and roles, ticket validation messages, visibility rules, search / filter /
-sort / pagination, the status workflow (resolution note required, auto-assignment, re-opening), notifications,
-comments, configuration CRUD and the "in use" delete guard, the atomic reference counter, PDF/Excel/e-mail
-exports (opening the generated workbook to check its rows), the similar-ticket suggestions (ranking, the limit
-of three, that nothing is changed, the embedding cache, the real model matching differently worded issues), the
-category suggestion (the vote, the description fallback, inactive categories) and attachments (allowed types,
-fake file signatures, size and count limits, who may download or remove, comments with files, clean-up of the
-stored files).
+<details>
+<summary><b>What the tests cover</b></summary>
 
-The frontend tests cover the auth service, mapping API errors onto form fields, the table state (`TableSource`), the
+<br>
+
+**Backend (112)**
+
+| Suite | Tests | Covers |
+|---|:---:|---|
+| `accounts/tests/test_auth.py` | 15 | sign-in with username or e-mail, sign-up rules, roles, logout, demo accounts, user directory |
+| `tickets/tests/test_tickets.py` | 29 | validation messages, visibility, search / filter / sort / paging, the status workflow, auto-assignment, re-opening, comments, dashboard stats, the config endpoint |
+| `tickets/tests/test_notifications.py` | 9 | who gets which e-mail, per-event switches, undeliverable demo addresses, built-in events that cannot be added or deleted |
+| `lookups/tests/test_lookups.py` | 10 | default lists, one default per list, who may change configuration, validation and duplicate codes, hidden inactive values, the "in use" delete guard |
+| `core/tests/test_exports.py` | 12 | PDF (with the embedded Poppins font) and Excel exports of the filtered rows, requesters exporting only their own tickets, e-mailed reports and recipient checks, the atomic reference counter, the health endpoint |
+| `attachments/tests/test_attachments.py` | 14 | allowed types, fake file signatures, size and count limits, who may download or remove, comments with files, clean-up of stored files |
+| `similarity/tests/test_similarity.py` | 16 | ranking, the limit of three, nothing is changed, the embedding cache, the real model matching differently worded issues |
+| `similarity/tests/test_category_suggestion.py` | 7 | the category vote, open tickets counting, the description fallback, inactive categories, the on/off switch |
+
+**Frontend (51)** - the auth service, mapping API errors onto form fields, the table state (`TableSource`), the
 status badge, the relative time pipe, the count-up numbers, the welcome animation, the similar tickets panel, the
 category suggestion (waiting for a pause in typing, Use it / Switch), the file picker checks, the attachment list and
 the upload progress.
 
+</details>
+
+<div align="right"><a href="#readme-top">↑ Back to top</a></div>
+
 ---
 
-## Continuous integration and e-mail notifications
+## 🔄 Continuous integration
 
 `.github/workflows/ci.yml` runs on every push to `main`, on pull requests and on demand:
+
+```mermaid
+flowchart LR
+    P([push / pull request]) --> BE[Backend<br/>Python 3.13 + CPU PyTorch<br/>MongoDB 8 service<br/>checks, migrations, tests, seed]
+    P --> FE[Frontend<br/>Node 24<br/>unit tests + production build]
+    BE --> M[Email the result<br/>to msarunsanjeev@gmail.com]
+    FE --> M
+```
 
 1. **Backend** - installs Python 3.13 and the CPU build of PyTorch, starts a temporary MongoDB 8 service, runs Django
    checks, verifies there are no missing migrations, runs the test suite and the seed command. The AI model is
    cached between runs.
 2. **Frontend** - installs Node 24, runs the unit tests and a production build.
-3. **Email the result** - always runs and e-mails a summary (per-job result, commit, link to the logs) to
-   `msarunsanjeev@gmail.com`.
+3. **Email the result** - always runs (except when a newer push cancels the run) and e-mails a summary: per-job
+   result, commit and a link to the logs.
 
-To enable the e-mail, add two repository secrets in **GitHub → Settings → Secrets and variables → Actions**:
+> [!TIP]
+> To enable the e-mail, add two repository secrets in **GitHub → Settings → Secrets and variables → Actions**:
+> `MAIL_USERNAME` (the Gmail address that sends the mail) and `MAIL_PASSWORD` (a Gmail **App password** for that
+> account). Until the secrets exist the step is skipped with a notice, so the pipeline stays green.
 
-| Secret | Value |
-|---|---|
-| `MAIL_USERNAME` | the Gmail address that sends the mail |
-| `MAIL_PASSWORD` | a Gmail **App password** for that account |
-
-Until the secrets exist the step is skipped with a notice, so the pipeline stays green.
+<div align="right"><a href="#readme-top">↑ Back to top</a></div>
 
 ---
 
-## Key design decisions
+## 🧭 Key design decisions
 
 1. **Django MongoDB Backend instead of plain PyMongo.** The official backend lets us keep Django's ORM, migrations,
    authentication, the admin and Django REST Framework while storing everything in MongoDB. That gave us user roles,
@@ -792,28 +999,46 @@ Until the secrets exist the step is skipped with a notice, so the pipeline stays
    message right under the matching field.
 9. **Angular with standalone components, signals and lazy routes.** Each page is downloaded only when opened
    (≈140 kB initial transfer). Reusable building blocks (DataTable, ExportMenu, badges) keep the pages small.
-10. **Token authentication with two roles** (`requester`, `agent`). It is simple, stateless for the SPA and easy to test.
-    Agents are created by an administrator; self sign-up always creates requesters.
+10. **Token authentication with two roles** (`requester`, `agent`). It is simple, stateless for the SPA and easy to
+    test. Agents are created by an administrator; self sign-up always creates requesters.
 11. **A small local model with cached embeddings for suggestions.** `all-MiniLM-L6-v2` is fast on a normal CPU
     (milliseconds per ticket), open source and needs no API key or external service. Embeddings are cached per
     ticket, so a search only encodes the new text. The comparison runs in numpy because a local MongoDB server has no
-    vector search; that is fast for tens of thousands of resolved tickets.
+    vector search; that is fast for tens of thousands of tickets.
 12. **Attachments in GridFS.** Files are stored in the same MongoDB database as everything else, so a backup or a
     move to another server takes the files along, and there is no upload folder to secure. The file details sit in an
     ordinary model, so attachments follow the ticket permissions and delete rules like any other data.
 
+<div align="right"><a href="#readme-top">↑ Back to top</a></div>
+
 ---
 
-## Limitations and next steps
+## 🚧 Limitations and next steps
 
-- Similar-ticket suggestions compare against all resolved tickets in memory. With millions of tickets, a vector
-  index (MongoDB Atlas Vector Search) would replace the numpy comparison. The default model is English only; a
-  multilingual Sentence Transformers model can be set with `SIMILARITY_MODEL`.
-- Search uses case-insensitive regular expressions. For very large data sets a MongoDB text or Atlas Search index
-  would be faster.
-- Exports are generated synchronously and capped at `EXPORT_MAX_ROWS` (5,000 by default). A background job queue
-  would be the next step for much larger exports.
-- Attachments are checked for type, size and signature but not virus-scanned; a ClamAV scan before storing would be
-  the next step for a public deployment.
-- No SLA timers yet. Screens refresh every 30 seconds; pushing changes instantly (WebSockets) would be the next step.
-- Tokens do not expire; JWT with refresh tokens would be the next step before a public deployment.
+- [ ] **Vector index for very large data.** Suggestions compare against tickets in memory; with millions of tickets,
+  MongoDB Atlas Vector Search would replace the numpy comparison. The default model is English only - a multilingual
+  Sentence Transformers model can be set with `SIMILARITY_MODEL`.
+- [ ] **Faster search.** Search uses case-insensitive regular expressions; for very large data sets a MongoDB text or
+  Atlas Search index would be faster.
+- [ ] **Background exports.** Exports are generated synchronously and capped at `EXPORT_MAX_ROWS` (5,000 by default);
+  a job queue would be the next step for much larger exports.
+- [ ] **Virus scanning.** Attachments are checked for type, size and signature but not virus-scanned; a ClamAV scan
+  before storing would be the next step for a public deployment.
+- [ ] **SLA timers and instant updates.** No SLA timers yet; screens refresh every 30 seconds, and pushing changes
+  instantly (WebSockets) would be the next step.
+- [ ] **Expiring tokens.** Tokens do not expire; JWT with refresh tokens would be the next step before a public
+  deployment.
+
+<div align="right"><a href="#readme-top">↑ Back to top</a></div>
+
+---
+
+<div align="center">
+
+**Smart Support Desk** · Angular · Django · MongoDB · local AI
+
+Developed by **Arun Sanjeev M S**
+
+<a href="#readme-top">↑ Back to top</a>
+
+</div>
