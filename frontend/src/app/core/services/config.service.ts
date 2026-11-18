@@ -52,7 +52,13 @@ export class ConfigService {
   );
 
   readonly similarity = computed(
-    () => this.configSignal()?.similarity ?? { enabled: false, max_results: 3, min_length: 10 },
+    () =>
+      this.configSignal()?.similarity ?? {
+        enabled: false,
+        max_results: 3,
+        min_length: 10,
+        category_suggestions: false,
+      },
   );
 
   private readonly statusMap = computed(

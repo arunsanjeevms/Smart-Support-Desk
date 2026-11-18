@@ -132,7 +132,9 @@ class SimilarTicketsApiTests(SimilarityTestCase):
 
     def test_config_describes_the_feature(self):
         config = self.client_for(self.requester).get("/api/config/").data["similarity"]
-        self.assertEqual(config, {"enabled": True, "max_results": 3, "min_length": 10})
+        self.assertEqual(
+            config, {"enabled": True, "max_results": 3, "min_length": 10, "category_suggestions": True}
+        )
 
     @similarity(ENABLED=False, ENGINE=KEYWORD)
     def test_can_be_switched_off(self):
@@ -225,3 +227,18 @@ class SentenceTransformerTests(SimilarityTestCase):
 
     def test_unrelated_issue_gets_no_suggestions(self):
         self.assertEqual(self.suggestions("The office printer is out of toner"), [])
+
+    def test_category_suggestion_understands_different_wording(self):
+        cases = {
+            "Money was taken from our card twice": "billing",
+            "The analytics page is painfully slow to open": "performance",
+            "I cannot sign in to my account": "login_access",
+        }
+        for text, code in cases.items():
+            with self.subTest(text=text):
+                response = self.client_for(self.requester).post(
+                    "/api/tickets/suggest-category/", {"description": text}, format="json"
+                )
+                self.assertEqual(response.status_code, 200, response.data)
+                self.assertEqual(response.data["engine"], SEMANTIC)
+                self.assertEqual(response.data["suggestion"]["category"]["code"], code)

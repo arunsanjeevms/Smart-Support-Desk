@@ -107,6 +107,15 @@
               <mat-error>{{ form.controls.priority.getError('server') }}</mat-error>
             }
           </mat-form-field>
+
+          <!-- AI: the likely category from similar past tickets. Never picked automatically. -->
+          <app-category-suggestion
+            class="full"
+            [title]="values().title"
+            [description]="values().description"
+            [selectedId]="values().category"
+            (apply)="useCategory($event)"
+          />
         </div>
 
         <mat-form-field>

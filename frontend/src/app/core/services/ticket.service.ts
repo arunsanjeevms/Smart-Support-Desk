@@ -2,6 +2,7 @@ import { Injectable, inject } from '@angular/core';
 import { Observable } from 'rxjs';
 
 import {
+  CategorySuggestionResponse,
   SimilarTicketsQuery,
   SimilarTicketsResponse,
   TicketActivity,
@@ -48,6 +49,11 @@ export class TicketService {
   /** Up to three resolved tickets that look like this text (advisory only). */
   similar(query: SimilarTicketsQuery): Observable<SimilarTicketsResponse> {
     return this.api.post<SimilarTicketsResponse>('tickets/similar/', query);
+  }
+
+  /** The likely category for the text typed so far (advisory). */
+  suggestCategory(query: SimilarTicketsQuery): Observable<CategorySuggestionResponse> {
+    return this.api.post<CategorySuggestionResponse>('tickets/suggest-category/', query);
   }
 
   stats(): Observable<TicketStats> {

@@ -19,6 +19,7 @@ import { TicketService } from '../../core/services/ticket.service';
 import { applyServerErrors, errorMessage, fileErrorMessage } from '../../core/utils/api-errors';
 import { FilePicker } from '../../shared/attachments/file-picker';
 import { PageHeader } from '../../shared/components/page-header';
+import { CategorySuggestionHint } from './category-suggestion/category-suggestion';
 import { SimilarTicketsPanel } from './similar-tickets/similar-tickets-panel';
 
 /** Rejects values that are only whitespace. */
@@ -41,6 +42,7 @@ function notBlank(control: { value: string }) {
     MatSelectModule,
     PageHeader,
     SimilarTicketsPanel,
+    CategorySuggestionHint,
   ],
   templateUrl: './ticket-create-page.html',
   styleUrl: './ticket-create-page.scss',
@@ -114,6 +116,13 @@ export class TicketCreatePage {
           this.error.set(unmatched[0] ?? errorMessage(error, 'The ticket could not be created.'));
         },
       });
+  }
+
+  /** The user accepted the suggested category. */
+  protected useCategory(id: string): void {
+    const control = this.form.controls.category;
+    control.setValue(id);
+    control.markAsDirty();
   }
 
   protected reset(): void {

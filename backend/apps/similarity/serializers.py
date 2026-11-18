@@ -6,7 +6,7 @@ from apps.tickets.constants import DESCRIPTION_MAX_LENGTH, TITLE_MAX_LENGTH
 
 from .constants import QUERY_MIN_LENGTH
 from .engines import ticket_text
-from .services import Match, SimilarResult
+from .services import CategoryResult, Match, SimilarResult
 
 
 class SimilarQuerySerializer(serializers.Serializer):
@@ -63,4 +63,18 @@ def similar_payload(result: SimilarResult) -> dict:
         "model": result.model,
         "compared": result.compared,
         "min_score": result.min_score,
+    }
+
+
+def category_payload(result: CategoryResult) -> dict:
+    suggestion = result.suggestion
+    return {
+        "suggestion": {
+            "category": LookupOptionSerializer(suggestion.category).data,
+            "confidence": suggestion.confidence,
+            "basis": suggestion.basis,
+            "matches": suggestion.matches,
+        } if suggestion else None,
+        "engine": result.engine,
+        "model": result.model,
     }

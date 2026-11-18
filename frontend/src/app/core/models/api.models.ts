@@ -166,6 +166,8 @@ export interface SimilarityConfig {
   max_results: number;
   /** Characters of title + description needed before a search. */
   min_length: number;
+  /** Suggest the likely category while a new ticket is typed. */
+  category_suggestions: boolean;
 }
 
 // ---------------------------------------------------------------- tickets
@@ -254,6 +256,22 @@ export interface SimilarTicketsResponse {
   model: string;
   compared: number;
   min_score: number;
+}
+
+/** The likely category for the text being typed (advisory - never applied automatically). */
+export interface CategorySuggestion {
+  category: LookupOption;
+  /** Share of the similar tickets' vote (or the description score). */
+  confidence: number;
+  basis: 'similar_tickets' | 'category_description';
+  /** How many similar tickets voted for this category. */
+  matches: number;
+}
+
+export interface CategorySuggestionResponse {
+  suggestion: CategorySuggestion | null;
+  engine: SimilarityEngine;
+  model: string;
 }
 
 export interface CountItem {

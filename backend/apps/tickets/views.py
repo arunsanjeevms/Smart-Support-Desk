@@ -22,7 +22,7 @@ from apps.lookups.serializers import LookupOptionSerializer
 from apps.similarity import services as similarity
 from apps.similarity.constants import QUERY_MIN_LENGTH as SIMILAR_QUERY_MIN_LENGTH
 from apps.similarity.engines import similarity_settings
-from apps.similarity.serializers import SimilarQuerySerializer, similar_payload
+from apps.similarity.serializers import SimilarQuerySerializer, category_payload, similar_payload
 
 from . import services
 from .constants import (
@@ -253,6 +253,22 @@ class TicketViewSet(
         )
         return Response(similar_payload(result))
 
+    @action(detail=False, methods=["post"], url_path="suggest-category", throttle_scope="suggest")
+    def suggest_category(self, request):
+        """
+        The likely category for the title/description being typed, from similar
+        past tickets (or the category descriptions). Advisory: the form never
+        picks it by itself, and only the category - no ticket details - is returned.
+        """
+        config = similarity_settings()
+        if not (config["ENABLED"] and config["CATEGORY_SUGGESTIONS"]):
+            raise NotFound("Category suggestions are switched off.")
+        serializer = SimilarQuerySerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        data = serializer.validated_data
+        result = similarity.suggest_category(title=data.get("title", ""), description=data.get("description", ""))
+        return Response(category_payload(result))
+
     @action(detail=False, methods=["get"])
     def stats(self, request):
         """Numbers for the dashboard, scoped to what the user is allowed to see."""
@@ -364,6 +380,8 @@ class ConfigView(APIView):
                 "enabled": similarity_settings()["ENABLED"],
                 "max_results": similarity_settings()["MAX_RESULTS"],
                 "min_length": SIMILAR_QUERY_MIN_LENGTH,
+                "category_suggestions": similarity_settings()["ENABLED"]
+                and similarity_settings()["CATEGORY_SUGGESTIONS"],
             },
             "validation": {
                 "title_min": TITLE_MIN_LENGTH,

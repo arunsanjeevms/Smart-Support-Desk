@@ -150,6 +150,7 @@ REST_FRAMEWORK = {
     "DEFAULT_THROTTLE_RATES": {
         "auth": os.getenv("AUTH_THROTTLE_RATE", "30/minute"),
         "similar": os.getenv("SIMILAR_THROTTLE_RATE", "60/minute"),
+        "suggest": os.getenv("SUGGEST_THROTTLE_RATE", "120/minute"),
     },
     "DATETIME_FORMAT": "iso-8601",
 }
@@ -204,6 +205,13 @@ SUPPORT_DESK = {
         # Cosine similarity a resolved ticket needs before it is suggested.
         "MIN_SCORE": float(os.getenv("SIMILARITY_MIN_SCORE", "0.35")),
         "KEYWORD_MIN_SCORE": float(os.getenv("SIMILARITY_KEYWORD_MIN_SCORE", "0.15")),
+        # Category suggestion while typing a new ticket (calibrated on the demo data, see README).
+        "CATEGORY_SUGGESTIONS": env_bool("SIMILARITY_CATEGORY_SUGGESTIONS", True),
+        "CATEGORY_NEIGHBOURS": 10,
+        "CATEGORY_MIN_SCORE": float(os.getenv("SIMILARITY_CATEGORY_MIN_SCORE", "0.30")),
+        "CATEGORY_MIN_CONFIDENCE": float(os.getenv("SIMILARITY_CATEGORY_MIN_CONFIDENCE", "0.5")),
+        "CATEGORY_DESCRIPTION_MIN_SCORE": float(os.getenv("SIMILARITY_CATEGORY_DESCRIPTION_MIN_SCORE", "0.35")),
+        "CATEGORY_MAX_TICKETS": int(os.getenv("SIMILARITY_CATEGORY_MAX_TICKETS", "2000")),
         # Load the model in the background when the web server starts (first search is then instant).
         "PRELOAD": env_bool("SIMILARITY_PRELOAD", True),
     },
