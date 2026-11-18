@@ -132,6 +132,15 @@ export interface AppConfig {
     description_max: number;
     resolution_min: number;
   };
+  similarity: SimilarityConfig;
+}
+
+/** Similar ticket suggestions, as configured in the backend. */
+export interface SimilarityConfig {
+  enabled: boolean;
+  max_results: number;
+  /** Characters of title + description needed before a search. */
+  min_length: number;
 }
 
 // ---------------------------------------------------------------- tickets
@@ -185,6 +194,39 @@ export interface TicketActivity {
   to_status: TicketStatus | '';
   note: string;
   created_at: string;
+}
+
+// ---------------------------------------------------------------- similar tickets
+export type SimilarityEngine = 'semantic' | 'keyword';
+
+/** A resolved ticket suggested because it looks like the new issue. */
+export interface SimilarTicket {
+  id: string;
+  reference: string;
+  title: string;
+  description: string;
+  resolution_note: string;
+  category: LookupOption;
+  resolved_at: string | null;
+  resolved_by: { full_name: string; initials: string } | null;
+  /** Cosine similarity, 0 (unrelated) to 1 (same meaning). */
+  score: number;
+  match: 'strong' | 'possible';
+}
+
+export interface SimilarTicketsQuery {
+  title?: string;
+  description?: string;
+  /** Leave this ticket out (when looking from an existing ticket). */
+  exclude?: string | null;
+}
+
+export interface SimilarTicketsResponse {
+  results: SimilarTicket[];
+  engine: SimilarityEngine;
+  model: string;
+  compared: number;
+  min_score: number;
 }
 
 export interface CountItem {

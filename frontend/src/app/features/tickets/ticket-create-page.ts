@@ -15,6 +15,7 @@ import { NotifyService } from '../../core/services/notify.service';
 import { TicketService } from '../../core/services/ticket.service';
 import { applyServerErrors, errorMessage } from '../../core/utils/api-errors';
 import { PageHeader } from '../../shared/components/page-header';
+import { SimilarTicketsPanel } from './similar-tickets/similar-tickets-panel';
 
 /** Rejects values that are only whitespace. */
 function notBlank(control: { value: string }) {
@@ -33,6 +34,7 @@ function notBlank(control: { value: string }) {
     MatProgressSpinnerModule,
     MatSelectModule,
     PageHeader,
+    SimilarTicketsPanel,
   ],
   templateUrl: './ticket-create-page.html',
   styleUrl: './ticket-create-page.scss',
@@ -72,7 +74,7 @@ export class TicketCreatePage {
   protected readonly submitting = signal(false);
   protected readonly error = signal<string | null>(null);
 
-  private readonly values = toSignal(this.form.valueChanges, { initialValue: this.form.getRawValue() });
+  protected readonly values = toSignal(this.form.valueChanges, { initialValue: this.form.getRawValue() });
   protected readonly titleLength = computed(() => this.values().title?.length ?? 0);
   protected readonly descriptionLength = computed(() => this.values().description?.length ?? 0);
   protected readonly selectedPriority = computed(() =>

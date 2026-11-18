@@ -130,6 +130,14 @@
             <mat-error>{{ form.controls.description.getError('server') }}</mat-error>
           }
         </mat-form-field>
+
+        <!-- Advisory suggestions from resolved tickets; submitting is never blocked. -->
+        <app-similar-tickets
+          class="similar"
+          [title]="values().title"
+          [description]="values().description"
+          [categoryId]="values().category"
+        />
       </div>
 
       <div class="form-actions">

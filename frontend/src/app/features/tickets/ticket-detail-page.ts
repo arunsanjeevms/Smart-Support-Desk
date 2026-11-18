@@ -1,5 +1,15 @@
 import { DatePipe } from '@angular/common';
-import { Component, computed, effect, inject, input, signal, untracked } from '@angular/core';
+import {
+  Component,
+  ElementRef,
+  computed,
+  effect,
+  inject,
+  input,
+  signal,
+  untracked,
+  viewChild,
+} from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
@@ -15,6 +25,7 @@ import { forkJoin } from 'rxjs';
 
 import {
   LookupOption,
+  SimilarTicket,
   TicketActivity,
   TicketDetail,
   TicketStatus,
@@ -29,6 +40,7 @@ import { LookupBadge } from '../../shared/components/lookup-badge';
 import { StatusBadge } from '../../shared/components/status-badge';
 import { UserAvatar } from '../../shared/components/user-avatar';
 import { RelativeTimePipe } from '../../shared/pipes/relative-time.pipe';
+import { SimilarTicketsPanel } from './similar-tickets/similar-tickets-panel';
 
 @Component({
   selector: 'app-ticket-detail-page',
@@ -48,6 +60,7 @@ import { RelativeTimePipe } from '../../shared/pipes/relative-time.pipe';
     LookupBadge,
     UserAvatar,
     RelativeTimePipe,
+    SimilarTicketsPanel,
   ],
   templateUrl: './ticket-detail-page.html',
   styleUrl: './ticket-detail-page.scss',
@@ -83,6 +96,8 @@ export class TicketDetailPage {
   protected readonly commentForm = this.fb.nonNullable.group({
     message: ['', [Validators.required, Validators.maxLength(2000)]],
   });
+
+  private readonly noteField = viewChild<ElementRef<HTMLTextAreaElement>>('noteField');
 
   private readonly manageValues = toSignal(this.manageForm.valueChanges, {
     initialValue: this.manageForm.getRawValue(),
@@ -160,6 +175,23 @@ export class TicketDetailPage {
   }
 
   // ---------------------------------------------------------------- agent actions
+  /**
+   * Copy a similar ticket's resolution note into the Manage form. Nothing is
+   * saved - the agent reviews and edits it, then decides whether to resolve.
+   */
+  protected useSimilarNote(similar: SimilarTicket): void {
+    const control = this.manageForm.controls.resolution_note;
+    const current = control.value.trim();
+    control.setValue(current ? `${current}\n\n${similar.resolution_note}` : similar.resolution_note);
+    control.markAsDirty();
+    this.notify.info(`Copied the resolution note from ${similar.reference}. Review it, then save.`);
+    const field = this.noteField()?.nativeElement;
+    if (field) {
+      field.scrollIntoView({ block: 'center', behavior: 'smooth' });
+      field.focus({ preventScroll: true });
+    }
+  }
+
   protected save(): void {
     const ticket = this.ticket();
     if (!ticket) return;

@@ -42,6 +42,10 @@ export class ConfigService {
       },
   );
 
+  readonly similarity = computed(
+    () => this.configSignal()?.similarity ?? { enabled: false, max_results: 3, min_length: 10 },
+  );
+
   private readonly statusMap = computed(
     () => new Map(this.statuses().map((status) => [status.value as string, status])),
   );

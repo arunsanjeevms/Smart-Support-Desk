@@ -2,6 +2,8 @@ import { Injectable, inject } from '@angular/core';
 import { Observable } from 'rxjs';
 
 import {
+  SimilarTicketsQuery,
+  SimilarTicketsResponse,
   TicketActivity,
   TicketCreatePayload,
   TicketDetail,
@@ -34,6 +36,11 @@ export class TicketService {
 
   comment(id: string, message: string): Observable<TicketActivity> {
     return this.api.post<TicketActivity>(`tickets/${id}/comments/`, { message });
+  }
+
+  /** Up to three resolved tickets that look like this text (advisory only). */
+  similar(query: SimilarTicketsQuery): Observable<SimilarTicketsResponse> {
+    return this.api.post<SimilarTicketsResponse>('tickets/similar/', query);
   }
 
   stats(): Observable<TicketStats> {

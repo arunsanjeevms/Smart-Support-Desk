@@ -65,6 +65,22 @@
           <div class="card-body prose">{{ t.description }}</div>
         </section>
 
+        <!-- Agents: resolved tickets that read like this one (advisory). -->
+        @if (t.can_manage && t.status !== 'resolved') {
+          <section class="card">
+            <div class="card-body">
+              <app-similar-tickets
+                mode="ticket"
+                [title]="t.title"
+                [description]="t.description"
+                [categoryId]="t.category.id"
+                [excludeId]="t.id"
+                (useNote)="useSimilarNote($event)"
+              />
+            </div>
+          </section>
+        }
+
         @if (t.status === 'resolved' && t.resolution_note) {
           <section class="card resolution">
             <div class="card-header">
@@ -229,6 +245,7 @@
               <mat-form-field>
                 <mat-label>Resolution note{{ resolving() ? ' (required)' : '' }}</mat-label>
                 <textarea
+                  #noteField
                   matInput
                   formControlName="resolution_note"
                   rows="5"

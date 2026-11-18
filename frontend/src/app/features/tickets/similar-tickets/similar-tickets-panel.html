@@ -1,0 +1,151 @@
+@if (enabled()) {
+  <section class="similar" aria-labelledby="similar-heading">
+    <header class="head">
+      <span class="head-icon" aria-hidden="true"><mat-icon>manage_search</mat-icon></span>
+      <div class="head-text">
+        <h3 id="similar-heading">Similar resolved tickets</h3>
+        <p>
+          @if (mode() === 'draft') {
+            Check whether the support team has already solved something like this. Your title and description
+            are compared with resolved tickets.
+          } @else {
+            Resolved tickets that read like this one. Their resolution notes may help.
+          }
+        </p>
+      </div>
+
+      @if (mode() === 'draft') {
+        <button
+          mat-stroked-button
+          type="button"
+          class="find"
+          (click)="search()"
+          [disabled]="!canSearch() || state() === 'loading'"
+        >
+          @if (state() === 'loading') {
+            <mat-progress-spinner diameter="16" mode="indeterminate" />
+          } @else {
+            <mat-icon>{{ state() === 'idle' ? 'travel_explore' : 'refresh' }}</mat-icon>
+          }
+          {{ buttonLabel() }}
+        </button>
+      } @else {
+        <button
+          mat-icon-button
+          type="button"
+          class="refresh"
+          (click)="search()"
+          [disabled]="state() === 'loading'"
+          matTooltip="Search again"
+          aria-label="Search for similar tickets again"
+        >
+          <mat-icon>refresh</mat-icon>
+        </button>
+      }
+    </header>
+
+    @if (mode() === 'draft' && state() === 'idle' && !canSearch()) {
+      <p class="hint">
+        <mat-icon>keyboard</mat-icon>
+        Type a title or a few words of description to enable the search.
+      </p>
+    }
+
+    @if (state() === 'loading' && mode() === 'ticket') {
+      <p class="hint" role="status">
+        <mat-progress-spinner diameter="16" mode="indeterminate" />
+        Searching resolved tickets…
+      </p>
+    }
+
+    @if (stale()) {
+      <p class="stale" role="status">
+        <mat-icon>edit_note</mat-icon>
+        <span>You changed the text since the last search. Search again to update the suggestions.</span>
+      </p>
+    }
+
+    @if (state() === 'error') {
+      <div class="alert error" role="alert">
+        <mat-icon>error</mat-icon>
+        <span class="error-text">{{ error() }}</span>
+        <button mat-button type="button" (click)="search()">Retry</button>
+      </div>
+    }
+
+    @if (state() === 'done' || (state() === 'loading' && results().length)) {
+      @if (results().length) {
+        <p class="advisory" role="note">
+          <mat-icon>info</mat-icon>
+          <span>
+            <strong>Suggestions only.</strong> They are found automatically by comparing text and may not fit
+            {{ mode() === 'draft' ? 'your issue. You can still submit your ticket.' : 'this ticket. Check a note before you reuse it.' }}
+          </span>
+        </p>
+
+        <ol class="results" [class.dimmed]="state() === 'loading'">
+          @for (item of results(); track item.id; let index = $index) {
+            <li class="result" [style.--delay]="index * 70 + 'ms'">
+              <div class="result-top">
+                <span class="ref-chip">{{ item.reference }}</span>
+                <app-lookup-badge [option]="item.category" />
+                @if (sameCategory(item)) {
+                  <span class="same"><mat-icon>check</mat-icon>Same category</span>
+                }
+                <span
+                  class="score"
+                  [class.strong]="item.match === 'strong'"
+                  [matTooltip]="scoreHint(item)"
+                  [attr.aria-label]="percent(item.score) + '% similar'"
+                >
+                  <span class="meter" aria-hidden="true"><span [style.width.%]="percent(item.score)"></span></span>
+                  {{ percent(item.score) }}% similar
+                </span>
+              </div>
+
+              <h4 class="result-title">{{ item.title }}</h4>
+              <p class="result-note">
+                <mat-icon>task_alt</mat-icon>
+                <span>{{ item.resolution_note }}</span>
+              </p>
+
+              <div class="result-actions">
+                <button mat-button type="button" (click)="open(item)">
+                  <mat-icon>visibility</mat-icon>
+                  View details
+                </button>
+                @if (mode() === 'ticket') {
+                  <button mat-button type="button" (click)="useNote.emit(item)">
+                    <mat-icon>content_paste</mat-icon>
+                    Use this note
+                  </button>
+                }
+              </div>
+            </li>
+          }
+        </ol>
+
+        @if (usedKeywords()) {
+          <p class="engine-note">
+            <mat-icon>text_fields</mat-icon>
+            Matched by shared keywords because the language model is not available right now.
+          </p>
+        }
+      } @else if (state() === 'done') {
+        <div class="empty">
+          <mat-icon>search_off</mat-icon>
+          <div>
+            <strong>No similar resolved tickets found</strong>
+            <span>
+              @if (mode() === 'draft') {
+                Go ahead and submit your ticket. The support team will take a look.
+              } @else {
+                Nothing resolved so far reads like this ticket.
+              }
+            </span>
+          </div>
+        </div>
+      }
+    }
+  </section>
+}
