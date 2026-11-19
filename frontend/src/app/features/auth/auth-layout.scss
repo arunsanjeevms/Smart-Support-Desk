@@ -68,6 +68,27 @@ form {
   color: var(--app-text-muted);
 }
 
+.credit {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  margin: 20px 0 0;
+  font-size: 12.5px;
+  color: var(--app-text-muted);
+
+  .mat-icon {
+    width: 16px;
+    height: 16px;
+    font-size: 16px;
+  }
+
+  strong {
+    color: var(--app-text);
+    font-weight: 600;
+  }
+}
+
 // ---------------------------------------------------------------- demo accounts
 .divider {
   display: flex;
