@@ -1097,6 +1097,22 @@ from the running app:
 The first three are automated tests with the real model; the vote, the description fallback, inactive categories
 and the on/off switch are tested with the keyword engine (`apps/similarity/tests/test_category_suggestion.py`).
 
+### Limitations of the AI - an honest account
+
+| Limitation | What it means in practice |
+|---|---|
+| **Similar is not the same as solved** | The model measures how alike two texts are, not whether the old fix applies. Two tickets can read alike and have different causes - which is why every suggestion is advisory and nothing is applied automatically. |
+| **Tuned on a small data set** | The thresholds (0.35 for suggestions, 0.30 and a 50% vote for categories) were chosen on the 28 demo tickets. A real help desk should re-check them on its own history with `python manage.py similar_tickets "<text>"`. The 96% category result is from 29 tickets only. |
+| **Only as good as the past tickets** | With few resolved tickets there is little to suggest, and categories that are rarely used get few votes. The description fallback helps for new categories, but it is right less often (69% on the demo data). |
+| **Short or vague text** | "Help" or "It's broken" carries almost no meaning, so matches are weak or missing. The app asks for at least 10 characters and suggests nothing under the threshold rather than guessing. |
+| **Text only** | Attachments, screenshots and logs are not read; only the title and description are compared. |
+| **English only** | `all-MiniLM-L6-v2` is trained on English. Other languages need a multilingual model (`SIMILARITY_MODEL`, e.g. `paraphrase-multilingual-MiniLM-L12-v2`); the embeddings are then re-built automatically. |
+| **Long descriptions are cut** | The model reads about the first 256 word pieces (roughly 200 words). The title comes first, so the most telling part is always included. |
+| **No learning from feedback** | The model does not learn which suggestions helped; it ranks by text similarity alone. |
+| **Keyword fallback is much weaker** | If the model cannot be loaded, TF-IDF keyword matching is used and only finds tickets that share words (see the table above). The UI says when this happens. |
+| **Cost of running locally** | About 1 GB of Python packages (PyTorch CPU), a one-time 90 MB model download that needs internet, and about 500 MB of memory once the model is loaded. Encoding takes milliseconds per ticket on a normal CPU, and the libraries need a CPU with AVX / SSE4.2. |
+| **Scale** | Every search compares against the cached tickets in memory with NumPy. That is fast for tens of thousands of tickets; for millions a vector index (MongoDB Atlas Vector Search) would be needed. |
+
 ### Settings (`backend/.env`)
 
 | Variable | Default | Meaning |
@@ -1175,7 +1191,7 @@ List endpoints return `{"count", "page", "page_size", "total_pages", "results"}`
 
 | Method | Endpoint | Who | Purpose |
 |---|---|---|---|
-| POST | `/tickets/similar/` | signed in | `{title?, description?, exclude?}` → up to 3 similar resolved tickets with `score` and `match`, plus `engine` and `model` |
+| POST | `/tickets/similar/` | signed in | `{title?, description?, exclude?}` → up to 3 similar resolved tickets, each with `title`, `status`, `link`, `score` and `match`, plus `engine` and `model` |
 | POST | `/tickets/suggest-category/` | signed in | `{title?, description?}` → `{suggestion: {category, confidence, basis, matches} or null, engine, model}` |
 
 **Team data and exports**
@@ -1326,8 +1342,8 @@ flowchart LR
 ## 🚧 Limitations and next steps
 
 - [ ] **Vector index for very large data.** Suggestions compare against tickets in memory; with millions of tickets,
-  MongoDB Atlas Vector Search would replace the numpy comparison. The default model is English only - a multilingual
-  Sentence Transformers model can be set with `SIMILARITY_MODEL`.
+  MongoDB Atlas Vector Search would replace the numpy comparison. All limits of the AI are listed in
+  [Limitations of the AI](#limitations-of-the-ai---an-honest-account).
 - [ ] **Faster search.** Search uses case-insensitive regular expressions; for very large data sets a MongoDB text or
   Atlas Search index would be faster.
 - [ ] **Background exports.** Exports are generated synchronously and capped at `EXPORT_MAX_ROWS` (5,000 by default);
