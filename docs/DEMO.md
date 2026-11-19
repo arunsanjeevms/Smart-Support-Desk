@@ -24,7 +24,7 @@ screen instead of a video, follow [SCREENS.md](SCREENS.md).
 | 4c | Change the title to `Invoice download button does nothing`, choose **Billing & Payments**, drop a screenshot on **Attachments** → **Submit** | "Categories and priorities are configured in the backend. Files are checked in the browser and again on the server, then stored in MongoDB GridFS. The ticket gets a reference like SSD-1028 and lands on its detail page." |
 | 4d | On the ticket, click the image thumbnail in **Attachments** | "Images open full size; any file can be downloaded, and removing one is recorded in the timeline." |
 | 5 | **My tickets** → type `invoice` in search, sort by *Created*, filter *Status = Open* | "Search, sort, filters and paging all run on the server." |
-| 6 | Account menu → **Sign out**, then **Support Agent · Meera Iyer** | "Agents see the whole queue, their workload and the average resolution time." |
+| 6 | Account menu → **Sign out**, then **Support Agent · Arun Sanjeev** | "Agents see the whole queue, their workload and the average resolution time." |
 | 7 | **All tickets** → filter *Assignee = Unassigned* → open the new ticket | "The filters are in the URL, so a filtered view can be bookmarked or shared." |
 | 8 | Click **Start progress** | "Starting work assigns the ticket to me and records it in the timeline." |
 | 8b | Point at **Similar resolved tickets** on the ticket → **Use this note** | "Agents see similar resolved tickets too. *Use this note* only copies the old resolution into the form - nothing is resolved until I save." |

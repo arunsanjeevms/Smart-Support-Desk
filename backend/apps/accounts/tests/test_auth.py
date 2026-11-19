@@ -2,7 +2,7 @@ from django.test import override_settings
 from django.urls import reverse
 from rest_framework.authtoken.models import Token
 
-from apps.core.testing import PASSWORD, ApiTestCase, User
+from apps.core.testing import PASSWORD, ApiTestCase, User, make_user
 
 
 class LoginTests(ApiTestCase):
@@ -91,8 +91,18 @@ class DemoAccountsTests(ApiTestCase):
     url = reverse("accounts:demo-accounts")
 
     def test_lists_only_existing_demo_accounts(self):
+        # The test database has ragavan and meera; only configured accounts that exist are listed.
         response = self.anon.get(self.url)
-        self.assertEqual([a["username"] for a in response.data], ["ragavan", "meera"])
+        self.assertEqual([a["username"] for a in response.data], ["ragavan"])
+
+    def test_lists_the_requester_agent_and_admin_buttons_in_order(self):
+        make_user("arun", role=User.Role.AGENT)
+        make_user("admin", role=User.Role.AGENT)
+        response = self.anon.get(self.url)
+        self.assertEqual(
+            [(a["username"], a["label"]) for a in response.data],
+            [("ragavan", "Requester"), ("arun", "Support Agent"), ("admin", "Admin")],
+        )
 
     def test_hidden_when_demo_mode_is_off(self):
         from django.conf import settings

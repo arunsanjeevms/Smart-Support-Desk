@@ -178,7 +178,7 @@ in the README section *Similar ticket suggestions (AI)*.
 
 | Tool | What it checks |
 |---|---|
-| Django test runner | 112 backend tests against a temporary MongoDB database: auth and roles, validation, visibility, workflow, notifications, comments, configuration, exports, attachments, similarity and category suggestion (including the real model) |
+| Django test runner | 113 backend tests against a temporary MongoDB database: auth and roles, validation, visibility, workflow, notifications, comments, configuration, exports, attachments, similarity and category suggestion (including the real model) |
 | Vitest (via `ng test`) | 51 frontend unit tests: auth service, API error mapping, table state, status badge, relative time pipe, count-up, welcome intro, similar tickets panel, category suggestion, file picker, attachment list, attachment uploads |
 | `manage.py check` and `makemigrations --check` | Django configuration and that no migration is missing |
 | Angular production build | type checking of every template and bundle size budgets |

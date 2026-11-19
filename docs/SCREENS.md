@@ -23,8 +23,7 @@ cd ..\frontend; npm start              # terminal 2 - http://localhost:4200
 ```
 
 - Use a browser window of about **1440 × 900** at 100 % zoom, with the bookmarks bar hidden.
-- Sign in with the one-click demo buttons: **Requester** (`ragavan`) and **Support Agent** (`meera`). The admin is
-  `admin` / `Admin@12345`.
+- Sign in with the one-click demo buttons: **Requester** (`ragavan`), **Support Agent** (`arun`) and **Admin** (`admin`).
 - Windows: `Win + Shift + S` takes a screenshot of a region. Chrome DevTools (`F12` → `Ctrl + Shift + P` →
   *Capture full size screenshot*) captures a whole long page.
 - Save the images as `docs/screenshots/NN-name.png` using the numbers in the checklist below, so they sort in
@@ -209,7 +208,7 @@ Mermaid diagrams can be saved as images by opening the Markdown file on GitHub (
 
 ### 13 - Agent dashboard
 
-- **Address:** `/dashboard` · **Who:** agent (`meera`)
+- **Address:** `/dashboard` · **Who:** agent (`arun`)
 - **Capture:** the whole page.
 - **Explanation:** The team overview: **Open queue**, **Assigned to me**, **Resolved this week** and **Avg.
   resolution time**, tickets by status and by category, and the latest tickets. Clicking a tile opens the ticket list

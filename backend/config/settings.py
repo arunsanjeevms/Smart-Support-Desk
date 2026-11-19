@@ -241,8 +241,10 @@ SUPPORT_DESK = {
     "DEMO_ACCOUNTS": [
         {"username": "ragavan", "password": "Demo@12345", "label": "Requester",
          "description": "Raise tickets and follow their progress", "icon": "person"},
-        {"username": "meera", "password": "Demo@12345", "label": "Support Agent",
+        {"username": "arun", "password": "Demo@12345", "label": "Support Agent",
          "description": "Work the queue and resolve tickets", "icon": "support_agent"},
+        {"username": "admin", "password": "Admin@12345", "label": "Admin",
+         "description": "Full access, including users and configuration", "icon": "admin_panel_settings"},
     ],
 }
 
