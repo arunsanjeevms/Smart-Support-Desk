@@ -233,6 +233,11 @@ export interface SimilarTicket {
   id: string;
   reference: string;
   title: string;
+  /** Always 'resolved' today; sent so the card can show the status like any ticket. */
+  status: TicketStatus;
+  status_label: string;
+  /** Route of the ticket in this app, e.g. "/tickets/<id>". */
+  link: string;
   description: string;
   resolution_note: string;
   category: LookupOption;

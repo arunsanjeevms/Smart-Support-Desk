@@ -7,6 +7,7 @@ import { RouterLink } from '@angular/router';
 
 import { SimilarTicket } from '../../../core/models/api.models';
 import { LookupBadge } from '../../../shared/components/lookup-badge';
+import { StatusBadge } from '../../../shared/components/status-badge';
 import { similarityPercent } from './similar-text';
 
 export interface SimilarTicketDialogData {
@@ -24,7 +25,7 @@ export type SimilarTicketDialogResult = 'use-note' | undefined;
 /** Read-only details of a suggested resolved ticket. */
 @Component({
   selector: 'app-similar-ticket-dialog',
-  imports: [DatePipe, RouterLink, MatDialogModule, MatButtonModule, MatIconModule, LookupBadge],
+  imports: [DatePipe, RouterLink, MatDialogModule, MatButtonModule, MatIconModule, LookupBadge, StatusBadge],
   template: `
     <h2 mat-dialog-title class="dialog-title">
       <span class="title-icon"><mat-icon>task_alt</mat-icon></span>
@@ -36,6 +37,7 @@ export type SimilarTicketDialogResult = 'use-note' | undefined;
 
     <mat-dialog-content class="content">
       <div class="meta">
+        <app-status-badge [status]="ticket.status" />
         <app-lookup-badge [option]="ticket.category" />
         @if (data.sameCategory) {
           <span class="tag same"><mat-icon>check</mat-icon>Same category</span>
@@ -76,7 +78,7 @@ export type SimilarTicketDialogResult = 'use-note' | undefined;
 
     <mat-dialog-actions align="end" class="actions">
       @if (data.canOpenTicket) {
-        <a mat-button [routerLink]="['/tickets', ticket.id]" target="_blank" rel="noopener">
+        <a mat-button [routerLink]="ticket.link" target="_blank" rel="noopener">
           <mat-icon>open_in_new</mat-icon>
           Open full ticket
         </a>

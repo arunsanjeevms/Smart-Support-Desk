@@ -92,6 +92,10 @@ class SimilarTicketsApiTests(SimilarityTestCase):
         self.assertEqual(results[0]["id"], str(self.invoices.pk))
         self.assertEqual(results[0]["resolution_note"], self.invoices.resolution_note)
         self.assertEqual(results[0]["category"]["code"], "billing")
+        # Enough for the UI to show a title, a status and a link for each suggestion.
+        self.assertEqual(results[0]["status"], "resolved")
+        self.assertEqual(results[0]["status_label"], "Resolved")
+        self.assertEqual(results[0]["link"], f"/tickets/{self.invoices.pk}")
         self.assertNotIn(str(self.still_open.pk), [r["id"] for r in results])
         scores = [r["score"] for r in results]
         self.assertEqual(scores, sorted(scores, reverse=True))

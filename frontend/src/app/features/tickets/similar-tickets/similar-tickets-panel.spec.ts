@@ -16,6 +16,9 @@ function suggestion(id: string, score: number, title = `Resolved ticket ${id}`):
     id,
     reference: `SSD-10${id}`,
     title,
+    status: 'resolved',
+    status_label: 'Resolved',
+    link: `/tickets/${id}`,
     description: 'Clicking download on any invoice does nothing.',
     resolution_note: 'Pop-ups were blocked for the billing site; allowing them fixed the download.',
     category: {
@@ -94,6 +97,7 @@ describe('SimilarTicketsPanel', () => {
     const results = element.querySelectorAll('.result');
     expect(results.length).toBe(3);
     expect(results[0].textContent).toContain('81% similar');
+    expect(results[0].querySelector('app-status-badge')).not.toBeNull();
     expect(results[0].textContent).toContain('Same category');
     expect(element.textContent).toContain('Suggestions only.');
     expect(element.textContent).toContain('You can still submit your ticket.');

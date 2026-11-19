@@ -23,6 +23,7 @@ import { ConfigService } from '../../../core/services/config.service';
 import { TicketService } from '../../../core/services/ticket.service';
 import { errorMessage } from '../../../core/utils/api-errors';
 import { LookupBadge } from '../../../shared/components/lookup-badge';
+import { StatusBadge } from '../../../shared/components/status-badge';
 import {
   SimilarTicketDialog,
   SimilarTicketDialogData,
@@ -45,7 +46,7 @@ type SearchState = 'idle' | 'loading' | 'done' | 'error';
  */
 @Component({
   selector: 'app-similar-tickets',
-  imports: [MatButtonModule, MatIconModule, MatProgressSpinnerModule, MatTooltipModule, LookupBadge],
+  imports: [MatButtonModule, MatIconModule, MatProgressSpinnerModule, MatTooltipModule, LookupBadge, StatusBadge],
   templateUrl: './similar-tickets-panel.html',
   styleUrl: './similar-tickets-panel.scss',
   host: { '[class.ticket-mode]': "mode() === 'ticket'" },

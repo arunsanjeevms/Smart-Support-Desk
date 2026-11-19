@@ -88,6 +88,7 @@
             <li class="result" [style.--delay]="index * 70 + 'ms'">
               <div class="result-top">
                 <span class="ref-chip">{{ item.reference }}</span>
+                <app-status-badge [status]="item.status" />
                 <app-lookup-badge [option]="item.category" />
                 @if (sameCategory(item)) {
                   <span class="same"><mat-icon>check</mat-icon>Same category</span>

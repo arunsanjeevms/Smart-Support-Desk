@@ -45,6 +45,10 @@ class SimilarTicketSerializer(serializers.Serializer):
             "id": str(ticket.pk),
             "reference": ticket.reference,
             "title": ticket.title,
+            "status": ticket.status,
+            "status_label": ticket.get_status_display(),
+            # Route of the ticket in the Angular app (agents can open it; everyone sees the details dialog).
+            "link": f"/tickets/{ticket.pk}",
             "description": ticket.description,
             "resolution_note": ticket.resolution_note,
             "category": LookupOptionSerializer(ticket.category).data,
