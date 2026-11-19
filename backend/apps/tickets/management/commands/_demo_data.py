@@ -3,7 +3,7 @@
 DEMO_PASSWORD = "Demo@12345"
 
 REQUESTERS = [
-    {"username": "riya", "first_name": "Riya", "last_name": "Menon", "email": "riya.menon@example.com",
+    {"username": "riya", "first_name": "Ragavan", "last_name": "Menon", "email": "ragavan.menon@example.com",
      "job_title": "Finance Executive", "role": "requester", "role_label": "Requester", "password": DEMO_PASSWORD},
     {"username": "karthik", "first_name": "Karthik", "last_name": "Raj", "email": "karthik.raj@example.com",
      "job_title": "Sales Manager", "role": "requester", "role_label": "Requester", "password": DEMO_PASSWORD},
@@ -16,7 +16,7 @@ REQUESTERS = [
 AGENTS = [
     {"username": "meera", "first_name": "Meera", "last_name": "Iyer", "email": "meera.iyer@example.com",
      "job_title": "Support Engineer", "role": "agent", "role_label": "Support Agent", "password": DEMO_PASSWORD},
-    {"username": "sam", "first_name": "Sam", "last_name": "Wilson", "email": "sam.wilson@example.com",
+    {"username": "sam", "first_name": "Arun", "last_name": "Sanjeev", "email": "arun.sanjeev@example.com",
      "job_title": "Senior Support Engineer", "role": "agent", "role_label": "Support Agent", "password": DEMO_PASSWORD},
 ]
 

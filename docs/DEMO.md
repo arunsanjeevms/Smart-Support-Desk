@@ -16,7 +16,7 @@ screen instead of a video, follow [SCREENS.md](SCREENS.md).
 | # | Show | Say |
 |---|---|---|
 | 1 | Sign-in page | "Two roles: requesters raise tickets, the support team resolves them. Demo accounts come from the backend." |
-| 2 | Click **Requester · Riya Menon** → dashboard | "Riya only sees her own numbers: open, in progress, resolved, and her tickets by category." |
+| 2 | Click **Requester · Ragavan Menon** → dashboard | "Ragavan only sees their own numbers: open, in progress, resolved, and her tickets by category." |
 | 3 | **New ticket** → click **Submit ticket** with an empty form | "Validation runs in the browser and again in the API - every field explains what is missing." |
 | 3b | Type *Title*: `Money was taken from our card twice` and wait a second | "While I type, the AI suggests the category from similar past tickets - *Billing & Payments, based on 2 similar tickets*. It never picks it for me: **Use it** applies it." |
 | 4 | Type *Title*: `The analytics page is painfully slow to open` and a short description → **Find similar tickets** | "An open-source language model running inside Django compares the text with resolved tickets. Different words, same problem: it finds *Dashboard takes more than a minute to load*. Suggestions are advisory, so I can still submit." |

@@ -190,7 +190,7 @@ Mermaid diagrams can be saved as images by opening the Markdown file on GitHub (
 ### 11 - Ticket detail: requester view
 
 - **Address:** `/tickets/<id>` · **Who:** the requester who raised it
-- **Capture:** one of Riya's tickets that has comments and a status change.
+- **Capture:** one of Ragavan's tickets that has comments and a status change.
 - **Explanation:** The header shows the reference (`SSD-1001`), status, category, priority, who raised it, when, and
   who is assigned. Below are the description, the **activity timeline** (status changes, assignments, comments) and
   a comment box. The side panel explains the current status in plain words. The **Details** card lists every
