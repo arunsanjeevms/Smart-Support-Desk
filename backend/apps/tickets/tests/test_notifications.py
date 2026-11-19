@@ -21,7 +21,7 @@ def sent_to(address: str):
 class NotificationTests(ApiTestCase):
     def setUp(self):
         super().setUp()
-        self.sam = make_user("sam", role="agent")
+        self.arun = make_user("arun", role="agent")
 
     def raise_ticket(self, user=None):
         return services.create_ticket(
@@ -35,21 +35,21 @@ class NotificationTests(ApiTestCase):
     # ---- new tickets ------------------------------------------------------
     def test_new_ticket_confirms_to_requester_and_alerts_the_team(self):
         self.raise_ticket()
-        confirmation = sent_to("riya@acme-support.io")
+        confirmation = sent_to("ragavan@acme-support.io")
         self.assertEqual(len(confirmation), 1)
         self.assertIn("We received your ticket", confirmation[0].subject)
         self.assertIn("received your ticket", confirmation[0].alternatives[0][0])
         # Both agents get the "new ticket" alert.
         self.assertEqual(len(sent_to("meera@acme-support.io")), 1)
-        self.assertEqual(len(sent_to("sam@acme-support.io")), 1)
-        self.assertIn("New ticket", sent_to("sam@acme-support.io")[0].subject)
+        self.assertEqual(len(sent_to("arun@acme-support.io")), 1)
+        self.assertIn("New ticket", sent_to("arun@acme-support.io")[0].subject)
 
     def test_switching_an_event_off_stops_that_email_only(self):
         switch(NotificationEvent.NEW_TICKET_ALERT, False)
         self.raise_ticket()
-        self.assertEqual(len(sent_to("riya@acme-support.io")), 1)  # confirmation still sent
+        self.assertEqual(len(sent_to("ragavan@acme-support.io")), 1)  # confirmation still sent
         self.assertEqual(sent_to("meera@acme-support.io"), [])
-        self.assertEqual(sent_to("sam@acme-support.io"), [])
+        self.assertEqual(sent_to("arun@acme-support.io"), [])
 
     def test_demo_addresses_that_cannot_receive_mail_are_skipped(self):
         demo = make_user("demo", email="demo.user@example.com")
@@ -60,9 +60,9 @@ class NotificationTests(ApiTestCase):
     def test_assignment_emails_the_new_assignee_but_not_self_assignment(self):
         ticket = self.raise_ticket()
         mail.outbox.clear()
-        services.update_ticket(ticket=ticket, actor=self.agent, changes={"assigned_to": self.sam})
-        self.assertEqual(len(sent_to("sam@acme-support.io")), 1)
-        self.assertIn("Assigned to you", sent_to("sam@acme-support.io")[0].subject)
+        services.update_ticket(ticket=ticket, actor=self.agent, changes={"assigned_to": self.arun})
+        self.assertEqual(len(sent_to("arun@acme-support.io")), 1)
+        self.assertIn("Assigned to you", sent_to("arun@acme-support.io")[0].subject)
 
         mail.outbox.clear()
         services.update_ticket(ticket=ticket, actor=self.agent, changes={"assigned_to": self.agent})
@@ -73,7 +73,7 @@ class NotificationTests(ApiTestCase):
         mail.outbox.clear()
         high = LookupValue.objects.get(lookup_type__code="ticket_priority", code="high")
         services.update_ticket(ticket=ticket, actor=self.agent, changes={"priority": high})
-        message = sent_to("riya@acme-support.io")[0]
+        message = sent_to("ragavan@acme-support.io")[0]
         self.assertIn("details updated", message.subject)
         self.assertIn("Priority changed from Medium to High", message.body)
 
@@ -83,20 +83,20 @@ class NotificationTests(ApiTestCase):
         mail.outbox.clear()
         services.add_comment(ticket=ticket, author=self.requester, message="Any news on this?")
         self.assertEqual(len(sent_to("meera@acme-support.io")), 1)  # unassigned: whole team
-        self.assertEqual(len(sent_to("sam@acme-support.io")), 1)
+        self.assertEqual(len(sent_to("arun@acme-support.io")), 1)
 
-        services.update_ticket(ticket=ticket, actor=self.agent, changes={"assigned_to": self.sam})
+        services.update_ticket(ticket=ticket, actor=self.agent, changes={"assigned_to": self.arun})
         mail.outbox.clear()
         services.add_comment(ticket=ticket, author=self.requester, message="Still broken today.")
-        self.assertEqual(len(sent_to("sam@acme-support.io")), 1)  # assigned: only the assignee
+        self.assertEqual(len(sent_to("arun@acme-support.io")), 1)  # assigned: only the assignee
         self.assertEqual(sent_to("meera@acme-support.io"), [])
-        self.assertIn("Still broken today.", sent_to("sam@acme-support.io")[0].body)
+        self.assertIn("Still broken today.", sent_to("arun@acme-support.io")[0].body)
 
     def test_agent_comment_goes_to_the_requester(self):
         ticket = self.raise_ticket()
         mail.outbox.clear()
         services.add_comment(ticket=ticket, author=self.agent, message="Could you share a screenshot?")
-        message = sent_to("riya@acme-support.io")[0]
+        message = sent_to("ragavan@acme-support.io")[0]
         self.assertIn("New comment from Meera", message.subject)
         self.assertIn("Could you share a screenshot?", message.alternatives[0][0])
 

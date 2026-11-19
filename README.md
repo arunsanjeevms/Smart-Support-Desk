@@ -520,7 +520,7 @@ Open <http://localhost:4200> and click one of the demo accounts on the sign-in p
 | What | Command (inside `backend/` with the venv active) |
 |---|---|
 | Reset demo data | `python manage.py seed_demo --reset` |
-| Receive the demo accounts' e-mails in your inbox | `python manage.py seed_demo --inbox you@gmail.com` (riya gets `you+riya@gmail.com`, ...) |
+| Receive the demo accounts' e-mails in your inbox | `python manage.py seed_demo --inbox you@gmail.com` (ragavan gets `you+ragavan@gmail.com`, ...) |
 | Create your own admin | `python manage.py createsuperuser` |
 | Try the AI matching from the terminal | `python manage.py similar_tickets "The analytics page is painfully slow to open"` |
 | (Re)build the AI index | `python manage.py build_similarity_index` (`--force` to encode everything again) |
@@ -674,8 +674,8 @@ The frontend has one setting, the API address, in `frontend/src/environments/env
 
 | Role | Username | Password |
 |---|---|---|
-| 🙋 Requester | `riya` (also `karthik`, `emily`, `daniel`) | `Demo@12345` |
-| 🎧 Support agent | `meera` (also `sam`) | `Demo@12345` |
+| 🙋 Requester | `ragavan` (also `karthik`, `emily`, `daniel`) | `Demo@12345` |
+| 🎧 Support agent | `meera` (also `arun`) | `Demo@12345` |
 | 🛡️ Admin (agent + Django admin) | `admin` | `Admin@12345` |
 
 …plus **28 realistic tickets** across all categories and priorities - a mix of *Open*, *In Progress* and *Resolved*

@@ -5,7 +5,7 @@ Load demo users and realistic tickets so the app can be explored immediately.
     python manage.py seed_demo --reset   # wipe tickets first, then reload
 
     # Receive the demo accounts' notification e-mails in your own inbox
-    # (riya -> you+riya@gmail.com, meera -> you+meera@gmail.com, ...):
+    # (ragavan -> you+ragavan@gmail.com, meera -> you+meera@gmail.com, ...):
     python manage.py seed_demo --inbox you@gmail.com
 
 At the end the resolved tickets are encoded for the similar-ticket
@@ -58,7 +58,7 @@ class Command(BaseCommand):
         parser.add_argument(
             "--inbox",
             metavar="EMAIL",
-            help="Give every demo account a plus address of this inbox (you+riya@gmail.com) so the "
+            help="Give every demo account a plus address of this inbox (you+ragavan@gmail.com) so the "
             "notification e-mails actually arrive. The demo addresses on example.com cannot receive mail.",
         )
 

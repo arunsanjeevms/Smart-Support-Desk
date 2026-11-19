@@ -34,7 +34,7 @@ class CreateTicketTests(ApiTestCase):
         self.assertRegex(response.data["reference"], r"^SSD-\d{4,}$")
         self.assertEqual(response.data["status"], "open")
         self.assertEqual(response.data["priority"]["code"], "medium")
-        self.assertEqual(response.data["created_by"]["username"], "riya")
+        self.assertEqual(response.data["created_by"]["username"], "ragavan")
         ticket = Ticket.objects.get(pk=response.data["id"])
         self.assertEqual(ticket.activities.get().activity_type, "created")
 
@@ -186,7 +186,7 @@ class StatusWorkflowTests(ApiTestCase):
 
         self.assertEqual(len(mail.outbox), 1)
         message = mail.outbox[0]
-        self.assertEqual(message.to, ["riya@acme-support.io"])
+        self.assertEqual(message.to, ["ragavan@acme-support.io"])
         self.assertIn("Resolved", message.subject)
         self.assertIn(note, message.body)
         html, html_type = message.alternatives[0]
@@ -212,12 +212,12 @@ class StatusWorkflowTests(ApiTestCase):
         self.assertEqual(client.patch(self.url, {}, format="json").status_code, 400)
 
     def test_agent_can_reassign_and_change_priority(self):
-        other_agent = make_user("sam", role="agent")
+        other_agent = make_user("arun", role="agent")
         response = self.client_for(self.agent).patch(
             self.url, {"assigned_to": str(other_agent.pk), "priority": str(priority("critical").pk)}, format="json"
         )
         self.assertEqual(response.status_code, 200, response.data)
-        self.assertEqual(response.data["assigned_to"]["username"], "sam")
+        self.assertEqual(response.data["assigned_to"]["username"], "arun")
         self.assertEqual(response.data["priority"]["code"], "critical")
         self.assertEqual(self.ticket.activities.count(), 3)
 

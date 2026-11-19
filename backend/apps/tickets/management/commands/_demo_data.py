@@ -3,7 +3,7 @@
 DEMO_PASSWORD = "Demo@12345"
 
 REQUESTERS = [
-    {"username": "riya", "first_name": "Ragavan", "last_name": "Menon", "email": "ragavan.menon@example.com",
+    {"username": "ragavan", "first_name": "Ragavan", "last_name": "", "email": "ragavan@example.com",
      "job_title": "Finance Executive", "role": "requester", "role_label": "Requester", "password": DEMO_PASSWORD},
     {"username": "karthik", "first_name": "Karthik", "last_name": "Raj", "email": "karthik.raj@example.com",
      "job_title": "Sales Manager", "role": "requester", "role_label": "Requester", "password": DEMO_PASSWORD},
@@ -16,7 +16,7 @@ REQUESTERS = [
 AGENTS = [
     {"username": "meera", "first_name": "Meera", "last_name": "Iyer", "email": "meera.iyer@example.com",
      "job_title": "Support Engineer", "role": "agent", "role_label": "Support Agent", "password": DEMO_PASSWORD},
-    {"username": "sam", "first_name": "Arun", "last_name": "Sanjeev", "email": "arun.sanjeev@example.com",
+    {"username": "arun", "first_name": "Arun", "last_name": "Sanjeev", "email": "arun@example.com",
      "job_title": "Senior Support Engineer", "role": "agent", "role_label": "Support Agent", "password": DEMO_PASSWORD},
 ]
 
@@ -32,7 +32,7 @@ TICKETS = [
         "title": "Cannot log in after resetting my password",
         "description": "I reset my password using the 'Forgot password' link this morning. The reset email "
                        "arrived and I set a new password, but the login page keeps saying 'Invalid credentials'.",
-        "category": "login_access", "priority": "high", "status": "resolved", "requester": "riya",
+        "category": "login_access", "priority": "high", "status": "resolved", "requester": "ragavan",
         "agent": "meera", "days_ago": 41,
         "resolution": "The account was locked after five failed attempts before the reset. Unlocked the account "
                       "and confirmed the user can sign in with the new password. Lockouts now clear automatically "
@@ -43,7 +43,7 @@ TICKETS = [
         "description": "Our company card shows two identical charges for the Pro plan on the 1st of this month. "
                        "We only have one workspace. Please refund the duplicate payment.",
         "category": "billing", "priority": "high", "status": "resolved", "requester": "karthik",
-        "agent": "sam", "days_ago": 38,
+        "agent": "arun", "days_ago": 38,
         "resolution": "The payment gateway retried a timed-out request and both attempts succeeded. Refunded the "
                       "duplicate charge; it will appear on the statement in 5-7 working days.",
     },
@@ -61,7 +61,7 @@ TICKETS = [
         "description": "When I export the monthly sales report to Excel, all the dates are shifted by one day. "
                        "The values on screen are correct.",
         "category": "data_reports", "priority": "medium", "status": "resolved", "requester": "daniel",
-        "agent": "sam", "days_ago": 33,
+        "agent": "arun", "days_ago": 33,
         "resolution": "The export used UTC instead of the workspace time zone. Fixed in release 4.2.1; please "
                       "re-run the export. Old files need to be exported again.",
     },
@@ -79,7 +79,7 @@ TICKETS = [
         "description": "The six digit code from my authenticator app is always rejected. I have tried several "
                        "times and waited for a new code each time.",
         "category": "login_access", "priority": "high", "status": "resolved", "requester": "emily",
-        "agent": "sam", "days_ago": 28,
+        "agent": "arun", "days_ago": 28,
         "resolution": "The phone clock was about four minutes behind, so codes were already expired. Enabled "
                       "automatic time sync on the phone and codes are accepted now.",
     },
@@ -87,8 +87,8 @@ TICKETS = [
         "title": "Invoice PDF is missing our GST number",
         "description": "The invoices we download do not show our GST registration number even though it is "
                        "saved in the billing settings. Our accounts team needs it for compliance.",
-        "category": "billing", "priority": "medium", "status": "resolved", "requester": "riya",
-        "agent": "sam", "days_ago": 26,
+        "category": "billing", "priority": "medium", "status": "resolved", "requester": "ragavan",
+        "agent": "arun", "days_ago": 26,
         "resolution": "The tax number was saved on the profile but not on the billing entity used for invoices. "
                       "Copied it across and regenerated the last three invoices.",
     },
@@ -114,7 +114,7 @@ TICKETS = [
         "description": "Selecting 'Last 12 months' on the reports page ends with a gateway timeout after about "
                        "30 seconds. Quarterly view works.",
         "category": "performance", "priority": "high", "status": "resolved", "requester": "daniel",
-        "agent": "sam", "days_ago": 20,
+        "agent": "arun", "days_ago": 20,
         "resolution": "Yearly reports are now generated from pre-aggregated monthly totals, which brings the "
                       "response time down to around four seconds.",
     },
@@ -132,7 +132,7 @@ TICKETS = [
         "description": "Our nightly sync hits 'HTTP 429 Too Many Requests' after a few minutes. We send about "
                        "50 requests per minute which should be within our plan's limit.",
         "category": "integration", "priority": "medium", "status": "resolved", "requester": "daniel",
-        "agent": "sam", "days_ago": 16,
+        "agent": "arun", "days_ago": 16,
         "resolution": "The client created a new API token for every request, and limits are counted per account "
                       "including token creation. Reusing one token keeps the sync well under the limit.",
     },
@@ -140,7 +140,7 @@ TICKETS = [
         "title": "Need to change the billing email address",
         "description": "Invoices are still going to a former employee. Please update the billing email to "
                        "accounts@ourcompany.com.",
-        "category": "billing", "priority": "low", "status": "resolved", "requester": "riya",
+        "category": "billing", "priority": "low", "status": "resolved", "requester": "ragavan",
         "agent": "meera", "days_ago": 14,
         "resolution": "Updated the billing contact and explained where to change it under Settings > Billing.",
     },
@@ -149,7 +149,7 @@ TICKETS = [
         "description": "Global search never returns projects we archived last quarter. We need to find old "
                        "project documents regularly.",
         "category": "feature_request", "priority": "low", "status": "resolved", "requester": "emily",
-        "agent": "sam", "days_ago": 12,
+        "agent": "arun", "days_ago": 12,
         "resolution": "Archived items are excluded by default. Use the 'Include archived' toggle in the search "
                       "filters. Logged the request to make it a saved preference.",
     },
@@ -165,7 +165,7 @@ TICKETS = [
         "description": "After enabling SSO, users are sent back and forth between our login page and Microsoft "
                        "without ever signing in.",
         "category": "login_access", "priority": "critical", "status": "in_progress", "requester": "emily",
-        "agent": "sam", "days_ago": 7,
+        "agent": "arun", "days_ago": 7,
     },
     {
         "title": "CSV import skips rows with special characters",
@@ -178,8 +178,8 @@ TICKETS = [
         "title": "Refund not received for cancelled plan",
         "description": "We cancelled our annual plan within the 14-day window two weeks ago, but the refund has "
                        "not reached our account yet.",
-        "category": "billing", "priority": "medium", "status": "in_progress", "requester": "riya",
-        "agent": "sam", "days_ago": 5,
+        "category": "billing", "priority": "medium", "status": "in_progress", "requester": "ragavan",
+        "agent": "arun", "days_ago": 5,
     },
     {
         "title": "Page freezes when filtering a large table",
@@ -204,7 +204,7 @@ TICKETS = [
         "title": "Account locked after too many sign-in attempts",
         "description": "I typed my password wrong a few times and now it says my account is locked. I need "
                        "access urgently for month-end closing.",
-        "category": "login_access", "priority": "high", "status": "open", "requester": "riya", "days_ago": 2,
+        "category": "login_access", "priority": "high", "status": "open", "requester": "ragavan", "days_ago": 2,
     },
     {
         "title": "Wrong tax amount on latest invoice",
@@ -222,7 +222,7 @@ TICKETS = [
         "title": "Cannot remove a former employee from the workspace",
         "description": "The remove option is disabled for one user who left the company. They still have access "
                        "to shared projects.",
-        "category": "account", "priority": "high", "status": "open", "requester": "riya", "days_ago": 1,
+        "category": "account", "priority": "high", "status": "open", "requester": "ragavan", "days_ago": 1,
     },
     {
         "title": "Scheduled report email arrives empty",
@@ -239,7 +239,7 @@ TICKETS = [
         "title": "How do I generate a new API key?",
         "description": "Our developer left and we need to create a new API key for the inventory integration. "
                        "I can't find the option.",
-        "category": "integration", "priority": "low", "status": "open", "requester": "riya", "days_ago": 0,
+        "category": "integration", "priority": "low", "status": "open", "requester": "ragavan", "days_ago": 0,
     },
 ]
 

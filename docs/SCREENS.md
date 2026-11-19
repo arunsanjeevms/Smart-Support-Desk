@@ -23,7 +23,7 @@ cd ..\frontend; npm start              # terminal 2 - http://localhost:4200
 ```
 
 - Use a browser window of about **1440 × 900** at 100 % zoom, with the bookmarks bar hidden.
-- Sign in with the one-click demo buttons: **Requester** (`riya`) and **Support Agent** (`meera`). The admin is
+- Sign in with the one-click demo buttons: **Requester** (`ragavan`) and **Support Agent** (`meera`). The admin is
   `admin` / `Admin@12345`.
 - Windows: `Win + Shift + S` takes a screenshot of a region. Chrome DevTools (`F12` → `Ctrl + Shift + P` →
   *Capture full size screenshot*) captures a whole long page.
@@ -125,7 +125,7 @@ Mermaid diagrams can be saved as images by opening the Markdown file on GitHub (
 
 ### 04 - Requester dashboard
 
-- **Address:** `/dashboard` · **Who:** requester (`riya`)
+- **Address:** `/dashboard` · **Who:** requester (`ragavan`)
 - **Capture:** the whole page.
 - **Explanation:** A requester's own overview: tiles for **My tickets**, **Open**, **In progress** and **Resolved**,
   their tickets by status and by category, and the latest tickets. Every tile and bar links to the matching

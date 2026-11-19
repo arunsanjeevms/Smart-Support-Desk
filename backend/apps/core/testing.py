@@ -52,7 +52,7 @@ class ApiTestCase(APITestCase):
 
     def setUp(self):
         create_default_lookups()
-        self.requester = make_user("riya")
+        self.requester = make_user("ragavan")
         self.other_requester = make_user("karthik")
         self.agent = make_user("meera", role=User.Role.AGENT)
         self.anon = APIClient()

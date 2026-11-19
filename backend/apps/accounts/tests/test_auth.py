@@ -9,7 +9,7 @@ class LoginTests(ApiTestCase):
     url = reverse("accounts:login")
 
     def test_login_with_username_returns_token_and_user(self):
-        response = self.anon.post(self.url, {"username": "riya", "password": PASSWORD}, format="json")
+        response = self.anon.post(self.url, {"username": "ragavan", "password": PASSWORD}, format="json")
         self.assertEqual(response.status_code, 200)
         self.assertTrue(Token.objects.filter(key=response.data["token"], user=self.requester).exists())
         self.assertEqual(response.data["user"]["role"], "requester")
@@ -21,7 +21,7 @@ class LoginTests(ApiTestCase):
         self.assertTrue(response.data["user"]["is_agent"])
 
     def test_wrong_password_gives_friendly_error(self):
-        response = self.anon.post(self.url, {"username": "riya", "password": "nope"}, format="json")
+        response = self.anon.post(self.url, {"username": "ragavan", "password": "nope"}, format="json")
         self.assertEqual(response.status_code, 400)
         self.assertEqual(response.data["message"], "Incorrect username or password.")
 
@@ -56,7 +56,7 @@ class RegisterTests(ApiTestCase):
 
     def test_password_mismatch_and_duplicates_are_rejected(self):
         response = self.anon.post(
-            self.url, self.payload(confirm_password="different", email="RIYA@acme-support.io", username="riya"),
+            self.url, self.payload(confirm_password="different", email="RAGAVAN@acme-support.io", username="ragavan"),
             format="json",
         )
         self.assertEqual(response.status_code, 400)
@@ -92,7 +92,7 @@ class DemoAccountsTests(ApiTestCase):
 
     def test_lists_only_existing_demo_accounts(self):
         response = self.anon.get(self.url)
-        self.assertEqual([a["username"] for a in response.data], ["riya", "meera"])
+        self.assertEqual([a["username"] for a in response.data], ["ragavan", "meera"])
 
     def test_hidden_when_demo_mode_is_off(self):
         from django.conf import settings

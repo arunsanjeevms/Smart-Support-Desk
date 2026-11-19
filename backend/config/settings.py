@@ -239,7 +239,7 @@ SUPPORT_DESK = {
     # One-click demo sign-in on the login page. Turn off outside demos.
     "DEMO_MODE": env_bool("DEMO_MODE", True),
     "DEMO_ACCOUNTS": [
-        {"username": "riya", "password": "Demo@12345", "label": "Requester",
+        {"username": "ragavan", "password": "Demo@12345", "label": "Requester",
          "description": "Raise tickets and follow their progress", "icon": "person"},
         {"username": "meera", "password": "Demo@12345", "label": "Support Agent",
          "description": "Work the queue and resolve tickets", "icon": "support_agent"},
