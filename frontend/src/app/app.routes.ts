@@ -1,6 +1,6 @@
 import { Routes } from '@angular/router';
 
-import { agentGuard, authGuard, configGuard, guestGuard } from './core/guards/auth.guards';
+import { agentGuard, authGuard, configGuard, guestGuard, requesterGuard } from './core/guards/auth.guards';
 
 /**
  * Every page is lazy loaded, so the browser only downloads the code for the
@@ -40,6 +40,7 @@ export const routes: Routes = [
       {
         path: 'tickets/new',
         title: 'New ticket',
+        canActivate: [requesterGuard],
         loadComponent: () =>
           import('./features/tickets/ticket-create-page').then((m) => m.TicketCreatePage),
       },

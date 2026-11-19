@@ -10,10 +10,12 @@
   >
     <app-live-indicator class="header-live" [updatedAt]="source.lastUpdated()" />
     <app-export-menu [endpoint]="source.endpoint" [params]="exportParams()" title="Tickets" />
-    <a mat-flat-button routerLink="/tickets/new">
-      <mat-icon>add</mat-icon>
-      New ticket
-    </a>
+    @if (!auth.isAgent()) {
+      <a mat-flat-button routerLink="/tickets/new">
+        <mat-icon>add</mat-icon>
+        New ticket
+      </a>
+    }
   </app-page-header>
 
   <app-data-table
@@ -148,9 +150,11 @@
       <span [matTooltip]="(row.created_at | date: 'medium') ?? ''">{{ row.created_at | relativeTime }}</span>
     </ng-template>
 
-    <a tableEmptyAction mat-flat-button routerLink="/tickets/new">
-      <mat-icon>add</mat-icon>
-      Raise a ticket
-    </a>
+    @if (!auth.isAgent()) {
+      <a tableEmptyAction mat-flat-button routerLink="/tickets/new">
+        <mat-icon>add</mat-icon>
+        Raise a ticket
+      </a>
+    }
   </app-data-table>
 </div>

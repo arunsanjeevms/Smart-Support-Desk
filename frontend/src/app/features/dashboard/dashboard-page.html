@@ -5,10 +5,12 @@
     [description]="(today | date: 'EEEE, d MMMM y') + ' · ' + (auth.isAgent() ? 'Everything in the queue at a glance.' : 'Track the issues you have reported.')"
   >
     <app-live-indicator [updatedAt]="lastUpdated()" />
-    <a mat-flat-button routerLink="/tickets/new">
-      <mat-icon>add</mat-icon>
-      New ticket
-    </a>
+    @if (!auth.isAgent()) {
+      <a mat-flat-button routerLink="/tickets/new">
+        <mat-icon>add</mat-icon>
+        New ticket
+      </a>
+    }
   </app-page-header>
 
   @if (loading() && !stats()) {
@@ -194,7 +196,9 @@
               <strong>No tickets yet</strong>
               <p class="muted">When you report an issue it will show up here.</p>
             </div>
-            <a mat-stroked-button routerLink="/tickets/new">Raise your first ticket</a>
+            @if (!auth.isAgent()) {
+              <a mat-stroked-button routerLink="/tickets/new">Raise your first ticket</a>
+            }
           </li>
         }
       </ul>

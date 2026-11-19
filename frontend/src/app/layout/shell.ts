@@ -67,7 +67,9 @@ export class Shell {
       link: '/tickets',
       exact: true,
     },
-    { label: 'New ticket', icon: 'add_circle', link: '/tickets/new', exact: true },
+    ...(this.auth.isAgent()
+      ? []
+      : [{ label: 'New ticket', icon: 'add_circle', link: '/tickets/new', exact: true }]),
   ]);
 
   protected readonly supportNav: NavItem[] = [

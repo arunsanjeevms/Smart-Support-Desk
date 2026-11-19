@@ -1,6 +1,6 @@
 from django.core import mail
 
-from apps.core.testing import ApiTestCase, category, make_user, priority
+from apps.core.testing import ApiTestCase, User, category, make_user, priority
 from apps.lookups.models import LookupValue
 from apps.tickets import services
 from apps.tickets.models import Ticket, TicketActivity
@@ -27,6 +27,14 @@ class CreateTicketTests(ApiTestCase):
         }
         data.update(overrides)
         return data
+
+    def test_support_team_cannot_raise_tickets(self):
+        admin = make_user("admin", role=User.Role.AGENT, is_staff=True, is_superuser=True)
+        for user in (self.agent, admin):
+            response = self.client_for(user).post(URL, self.payload(), format="json")
+            self.assertEqual(response.status_code, 403)
+            self.assertIn("raised by requesters", response.data["message"])
+        self.assertFalse(Ticket.objects.exists())
 
     def test_requester_creates_ticket_with_reference_and_default_priority(self):
         response = self.client_for(self.requester).post(URL, self.payload(), format="json")

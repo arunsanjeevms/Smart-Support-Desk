@@ -173,6 +173,8 @@ class TicketViewSet(
 
     # ---- create / update ----------------------------------------------------
     def create(self, request, *args, **kwargs):
+        if request.user.is_agent:
+            raise PermissionDenied("Tickets are raised by requesters. The support team works on them.")
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         ticket = services.create_ticket(created_by=request.user, **serializer.validated_data)

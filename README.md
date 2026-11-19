@@ -13,7 +13,7 @@
 ![MongoDB](https://img.shields.io/badge/MongoDB-8-47A248?style=flat-square&logo=mongodb&logoColor=white)
 ![Python](https://img.shields.io/badge/Python-3.13-3776AB?style=flat-square&logo=python&logoColor=white)
 ![AI model](https://img.shields.io/badge/AI-all--MiniLM--L6--v2-FFD21E?style=flat-square&logo=huggingface&logoColor=black)
-![Tests](https://img.shields.io/badge/tests-113%20backend%20%C2%B7%2051%20frontend-0f766e?style=flat-square)
+![Tests](https://img.shields.io/badge/tests-114%20backend%20%C2%B7%2051%20frontend-0f766e?style=flat-square)
 
 **A complete help desk: requesters raise tickets, the support team resolves them, and an open-source language model
 running inside the backend suggests the category and finds similar fixes.**
@@ -96,8 +96,8 @@ in the UI.
 | Capability | Requester | Support agent |
 |---|:---:|:---:|
 | Sign up / sign in (one-click demo accounts) | ✅ | ✅ |
-| Create a ticket (title, description, category, priority) with validation | ✅ | ✅ |
-| Get the likely category suggested while typing a new ticket (AI) | ✅ | ✅ |
+| Create a ticket (title, description, category, priority) with validation | ✅ | — (the support team works on tickets; it does not raise them) |
+| Get the likely category suggested while typing a new ticket (AI) | ✅ | — |
 | Attach screenshots, logs and documents to a ticket or a comment, preview images | ✅ | ✅ |
 | Ask for up to 3 similar resolved tickets while writing one, and open their details | ✅ | ✅ |
 | See similar resolved tickets on an open ticket and reuse a resolution note | | ✅ |
@@ -1232,7 +1232,7 @@ More detail in [docs/TECH_STACK.md](docs/TECH_STACK.md#8-security-measures).
 ## 🧪 Running the tests
 
 ```powershell
-# Backend - 113 tests against a temporary MongoDB database (test_smart_support_desk)
+# Backend - 114 tests against a temporary MongoDB database (test_smart_support_desk)
 cd backend
 .venv\Scripts\activate
 python manage.py test
@@ -1248,12 +1248,12 @@ npm run build
 
 <br>
 
-**Backend (113)**
+**Backend (114)**
 
 | Suite | Tests | Covers |
 |---|:---:|---|
 | `accounts/tests/test_auth.py` | 16 | sign-in with username or e-mail, sign-up rules, roles, logout, demo accounts, user directory |
-| `tickets/tests/test_tickets.py` | 29 | validation messages, visibility, search / filter / sort / paging, the status workflow, auto-assignment, re-opening, comments, dashboard stats, the config endpoint |
+| `tickets/tests/test_tickets.py` | 30 | validation messages, visibility, search / filter / sort / paging, the status workflow, auto-assignment, re-opening, comments, dashboard stats, the config endpoint |
 | `tickets/tests/test_notifications.py` | 9 | who gets which e-mail, per-event switches, undeliverable demo addresses, built-in events that cannot be added or deleted |
 | `lookups/tests/test_lookups.py` | 10 | default lists, one default per list, who may change configuration, validation and duplicate codes, hidden inactive values, the "in use" delete guard |
 | `core/tests/test_exports.py` | 12 | PDF (with the embedded Poppins font) and Excel exports of the filtered rows, requesters exporting only their own tickets, e-mailed reports and recipient checks, the atomic reference counter, the health endpoint |

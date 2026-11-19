@@ -27,6 +27,14 @@ export const agentGuard: CanActivateFn = () => {
   return inject(Router).createUrlTree(['/dashboard']);
 };
 
+/** Only requesters: the support team (agents and admins) works on tickets but does not raise them. */
+export const requesterGuard: CanActivateFn = () => {
+  const auth = inject(AuthService);
+  if (!auth.isAgent()) return true;
+  inject(NotifyService).error('Tickets are raised by requesters. The support team works on them.');
+  return inject(Router).createUrlTree(['/tickets']);
+};
+
 /** Loads backend configuration (statuses, categories, ...) before the app shell renders. */
 export const configGuard: CanActivateFn = () => {
   const config = inject(ConfigService);
