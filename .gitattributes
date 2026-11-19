@@ -6,3 +6,7 @@
 *.pdf binary
 *.xlsx binary
 *.ttf binary
+
+# Language statistics on GitHub: documentation and bundled fonts are not project code
+docs/** linguist-documentation
+backend/apps/core/exports/fonts/** linguist-vendored
